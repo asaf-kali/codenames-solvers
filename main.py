@@ -1,6 +1,6 @@
 from functions import find_vector, n_closest_words
 import numpy as np
-import wikipedia2vec
+import gensim
 
 # %%
 
