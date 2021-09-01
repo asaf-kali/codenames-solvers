@@ -1,8 +1,9 @@
 # Custom
 .idea/
-GoogleNews-vectors-negative300.bin
-/heb_words.txt
-/heb_words_vectors.npy
+nx.html
+
+# Language data files
+language_data/*.bin
 
 
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm,python,linux,windows

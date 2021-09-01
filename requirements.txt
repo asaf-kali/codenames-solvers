@@ -2,3 +2,4 @@ numpy==1.21.2
 gensim==4.1.0
 networkx==2.6.1
 pyvis==0.1.9
+python-louvain==0.15
