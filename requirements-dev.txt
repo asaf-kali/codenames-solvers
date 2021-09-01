@@ -1,0 +1,4 @@
+# Lint
+black==21.8b0
+mypy==0.910
+flake8==3.9.2
