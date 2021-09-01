@@ -1,7 +1,6 @@
 # Custom
 .idea/
 GoogleNews-vectors-negative300.bin
-/Googlew Word2Vec.url
 /heb_words.txt
 /heb_words_vectors.npy
 
