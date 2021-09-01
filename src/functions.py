@@ -1,6 +1,5 @@
-from typing import List, Union
-
 import numpy as np
+from typing import List, Union
 
 from words import WORDS, WORD_VECTORS
 
