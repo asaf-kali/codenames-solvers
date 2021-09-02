@@ -1,18 +1,10 @@
-from typing import List, Tuple
-
 import numpy as np
 
 from src.model_loader import load_language
+from src.visualizer import pretty_print_similarities
 
 LANGUAGE_FOLDER = "language_data"
 ENGLISH_DATA_FILE = "english.bin"
-
-
-def pretty_print_results(results: List[Tuple[str, float]]):
-    for result in results:
-        word, grade = result
-        print(f"{grade:.3f}: {word}")
-
 
 # %%
 
@@ -22,7 +14,7 @@ w = load_language("english")
 v1 = w.get_vector("park")
 v2 = w.get_vector("beach")
 a = w.most_similar((v1 / np.linalg.norm(v1) + v2 / np.linalg.norm(v2)), topn=50)
-pretty_print_results(a)
+pretty_print_similarities(a)
 
 # %%
 from src.game import Game, Team

@@ -1,4 +1,5 @@
 import webbrowser
+from typing import List, Tuple
 
 import networkx as nx
 from pyvis.network import Network
@@ -19,3 +20,9 @@ def render(nx_graph: nx.Graph):
     with open(RENDERED_FILE_NAME, "w") as file:
         file.write(content)
     webbrowser.open(RENDERED_FILE_NAME)
+
+
+def pretty_print_similarities(results: List[Tuple[str, float]]):
+    for result in results:
+        word, grade = result
+        print(f"{grade:.3f}: {word}")
