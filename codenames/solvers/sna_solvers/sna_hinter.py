@@ -4,7 +4,7 @@ import community
 import networkx as nx
 
 from codenames.game.player import Hinter
-from codenames.game.state import GameState, TeamColor, Hint
+from codenames.game.base import GameState, TeamColor, Hint
 from codenames.model_loader import load_language
 from codenames.visualizer import render, pretty_print_similarities
 
@@ -32,8 +32,8 @@ def filter_similarities(similarities: List[Similarity], words_to_filter_out: Lis
 
 
 class SnaHinter(Hinter):
-    def __init__(self, team: TeamColor):
-        super().__init__(team=team)
+    def __init__(self, name: str, team_color: TeamColor):
+        super().__init__(name=name, team_color=team_color)
         self.model = None
         self.language_length = None
         self.game_vectors = None

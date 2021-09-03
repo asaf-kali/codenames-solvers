@@ -19,7 +19,7 @@ lint:
 
 check-lint:
 	black . -l $(LINE_LENGTH) --check
-	flake8 . --max-line-length=$(LINE_LENGTH) --exclude print_manager/migrations
+	flake8 . --max-line-length=$(LINE_LENGTH) --exclude codenames/playground.py
 	mypy . --ignore-missing-imports
 
 unzip_data:
