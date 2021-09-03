@@ -2,12 +2,14 @@ LINE_LENGTH=120
 
 init:
 	make install
-	make unzip_data
+	make tests
 
 install:
 	pip install --upgrade pip
 	pip install -r requirements.txt -r requirements-dev.txt
 
+tests:
+	echo "Todo"
 
 # Linting
 

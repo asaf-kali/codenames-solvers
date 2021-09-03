@@ -6,6 +6,7 @@ from codenames.game.player import Guesser, Hinter, Player
 from codenames.game.state import TeamColor, Card, GivenHint, GivenGuess, GameState, CardColor, Guess
 
 SKIP_TURN = -1
+QUIT_GAME = -2
 
 
 @dataclass
@@ -21,20 +22,18 @@ class GuessError(ValueError):
 
 class GameManager:
     def __init__(
-        self,
-        red_hinter: Hinter,
-        blue_hinter: Hinter,
-        red_guesser: Guesser,
-        blue_guesser: Guesser,
-        language: str,
-        cards: List[Card],
+            self,
+            red_hinter: Hinter,
+            blue_hinter: Hinter,
+            red_guesser: Guesser,
+            blue_guesser: Guesser,
     ):
         self.red_hinter = red_hinter
         self.blue_hinter = blue_hinter
         self.red_guesser = red_guesser
         self.blue_guesser = blue_guesser
-        self.language = language
-        self.cards = cards
+        self.language = None
+        self.cards: List[Card] = []
         self.given_hints: List[GivenHint] = []
         self.given_guesses: List[GivenGuess] = []
         self.winner: Optional[TeamColor] = None
@@ -71,7 +70,9 @@ class GameManager:
     def state(self) -> GameState:
         return GameState(cards=self.cards, given_hints=self.given_hints, given_guesses=self.given_guesses)
 
-    def _reset_state(self):
+    def _reset_state(self, language: str, cards: List[Card]):
+        self.language = language
+        self.cards = cards
         for card in self.cards:
             card.revealed = False
         self.given_hints = []
@@ -142,12 +143,12 @@ class GameManager:
         guessed_card.revealed = True
         return guessed_card
 
-    def run_game(self) -> TeamColor:
-        self._reset_state()
+    def run_game(self, language: str, cards: List[Card]) -> TeamColor:
+        self._reset_state(language=language, cards=cards)
         self._notify_game_starts()
         while True:
-            if self._run_team_turn(team=self.red_team):
-                break
             if self._run_team_turn(team=self.blue_team):
+                break
+            if self._run_team_turn(team=self.red_team):
                 break
         return self.get_winner()
