@@ -1,14 +1,17 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, NamedTuple
 
 import community
 import networkx as nx
 
-from src.game import Game, Team
-from src.model_loader import load_language
-from src.solvers.abstract_hinter import AbstractHinter
-from src.visualizer import render, pretty_print_similarities
+from codenames.game.player import Hinter
+from codenames.game.state import GameState, TeamColor, Hint
+from codenames.model_loader import load_language
+from codenames.visualizer import render, pretty_print_similarities
 
-Similarity = Tuple[str, float]
+
+class Similarity(NamedTuple):
+    word: str
+    grade: float
 
 
 def _invert_dict(original: dict) -> dict:
@@ -22,38 +25,42 @@ def _invert_dict(original: dict) -> dict:
 def filter_similarities(similarities: List[Similarity], words_to_filter_out: List[str]) -> List[Similarity]:
     filtered = []
     for similarity in similarities:
-        word, grade = similarity
-        if word in words_to_filter_out:
+        if similarity.word in words_to_filter_out:
             continue
         filtered.append(similarity)
     return filtered
 
 
-class SnaHinter(AbstractHinter):
-    def __init__(self, team: Team, game: Game):
-        super().__init__(team=team, game=game)
-        self.model = load_language(language=self.game.language)
+class SnaHinter(Hinter):
+    def __init__(self, team: TeamColor):
+        super().__init__(team=team)
+        self.model = None
+        self.language_length = None
+        self.game_vectors = None
+
+    def notify_game_starts(self, language: str, state: GameState):
+        self.model = load_language(language=language)
         self.language_length = len(self.model.index_to_key)
-        self.game_vectors = self.model[self.game.words]
+        self.game_vectors = self.model[state.all_words]
 
     def get_vector(self, word: str):
-        if word in self.game.words:
-            word_index = self.game.words.index(word)
-            return self.game_vectors[word_index]
+        # if word in self.game.words:
+        #     word_index = self.game.words.index(word)
+        #     return self.game_vectors[word_index]
         return self.model[word]
 
     def rate_group(self, words: List[str]) -> float:
         pass
 
-    def pick_hint(self) -> str:
-        board_size = self.game.board_size
+    def pick_hint(self, state: GameState) -> Hint:
+        board_size = state.board_size
         vis_graph = nx.Graph()
-        vis_graph.add_nodes_from(self.game.words)
+        vis_graph.add_nodes_from(state.all_words)
         louvain = nx.Graph(vis_graph)
         for i in range(board_size):
-            v = self.game.words[i]
+            v = state.all_words[i]
             for j in range(i + 1, board_size):
-                u = self.game.words[j]
+                u = state.all_words[j]
                 distance = self.model.similarity(v, u) + 1
                 if distance > 1.1:
                     vis_graph.add_edge(v, u, weight=distance)
@@ -75,4 +82,4 @@ class SnaHinter(AbstractHinter):
 
         nx.set_node_attributes(vis_graph, word_to_group, "group")
         render(vis_graph)
-        return "hi"
+        return Hint("hi", 2)
