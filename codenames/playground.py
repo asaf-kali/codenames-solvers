@@ -1,7 +1,7 @@
 import numpy as np
 
-from src.model_loader import load_language
-from src.visualizer import pretty_print_similarities
+from codenames.model_loader import load_language
+from codenames.visualizer import pretty_print_similarities
 
 LANGUAGE_FOLDER = "language_data"
 ENGLISH_DATA_FILE = "english.bin"
@@ -17,8 +17,9 @@ a = w.most_similar((v1 / np.linalg.norm(v1) + v2 / np.linalg.norm(v2)), topn=50)
 pretty_print_similarities(a)
 
 # %%
-from src.game import Game, Team
-from src.solvers.sna_solvers.sna_hinter import SnaHinter
+from codenames.game.state import TeamColor
+from codenames.game.builder import build_simple_state
+from codenames.solvers.sna_solvers.sna_hinter import SnaHinter
 
 board_words = [
     "cloak",
@@ -48,6 +49,7 @@ board_words = [
     "gymnast",
 ]  # ['king', 'queen', 'teenage', 'tomato', 'parrot', 'london', 'spiderman']
 
-game = Game(words=board_words)
-hinter = SnaHinter(team=Team.RED, game=game)
-print(f"Hinter guessed: {hinter.pick_hint()}")
+game_state = build_simple_state(words=board_words)
+hinter = SnaHinter(team=TeamColor.RED)
+hinter.notify_game_starts(language="english", state=game_state)
+print(f"Hinter guessed: {hinter.pick_hint(state=game_state)}")
