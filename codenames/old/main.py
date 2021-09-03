@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.old.functions import find_vector
+from codenames.old.functions import find_vector
 
 
 # %%
