@@ -2,6 +2,7 @@ from typing import Dict, List, NamedTuple
 
 import community
 import networkx as nx
+import numpy as np
 
 from codenames.game.player import Hinter
 from codenames.game.state import GameState, TeamColor, Hint
@@ -51,6 +52,30 @@ class SnaHinter(Hinter):
 
     def rate_group(self, words: List[str]) -> float:
         pass
+
+    @staticmethod
+    def single_gram_schmidt(v, u):
+        v = v / np.linalg.norm(v)
+        u = u / np.linalg.norm(u)
+
+        projection_norm = u.T @ v
+
+        o = u - projection_norm * v
+
+        normed_o = o / np.linalg.norm(o)
+        return v, normed_o
+
+    def step_away(self, step_away_from, starting_point, arc_radians):
+        step_away_from, normed_o = self.single_gram_schmidt(step_away_from, starting_point)
+
+        original_phase = starting_point.T @ step_away_from
+
+        rotated = step_away_from * np.cos(original_phase + arc_radians) + normed_o * np.sin(original_phase + arc_radians)
+
+        rotated_original_size = rotated * np.linalg.norm(starting_point)
+
+        return rotated_original_size
+
 
     def pick_hint(self, state: GameState) -> Hint:
         board_size = state.board_size
