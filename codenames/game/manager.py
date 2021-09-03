@@ -9,6 +9,7 @@ from codenames.game.player import Guesser, Hinter, Player
 from codenames.utils import wrap
 
 log = logging.getLogger(__name__)
+SEPARATOR = "\n-----\n"
 
 
 # Models
@@ -106,7 +107,7 @@ class GameManager:
         return GameState(cards=self.cards, given_hints=self.given_hints, given_guesses=self.given_guesses)
 
     def _reset_state(self, language: str, cards: List[Card]):
-        log.info(f"Reset state with {wrap(len(cards))} cards, {wrap(language)} language")
+        log.info(f"\n{SEPARATOR}Reset state with {wrap(len(cards))} cards, {wrap(language)} language")
         self.language = language
         self.cards = cards
         for card in self.cards:
@@ -141,7 +142,7 @@ class GameManager:
                 winner_color = guess.team.opponent
                 self.winner = Winner(team_color=winner_color, reason=WinningReason.OPPONENT_HITS_BLACK)
                 return True
-            team_color = card_color.as_team_color
+            team_color = card_color.as_team_color  # type: ignore
             score_target[team_color] -= 1
             if score_target[team_color] == 0:
                 self.winner = Winner(team_color=team_color, reason=WinningReason.TARGET_SCORE)
@@ -153,7 +154,7 @@ class GameManager:
         :param team: the team to play this turn.
         :return: True if the game has ended.
         """
-        log.info(f"\n-----\n{wrap(team.team_color.value)} turn")
+        log.info(f"{SEPARATOR}{wrap(team.team_color.value)} turn")
         hint = team.hinter.pick_hint(self.state)
         given_hint = GivenHint(word=hint.word, card_amount=hint.card_amount, team_color=team.team_color)
         log.info(f"Hinter: '{hint.word}', {hint.card_amount} card(s)")
@@ -206,6 +207,7 @@ class GameManager:
             log.info(f"Player {e.player} quit the game!")
             winner_color = e.player.team_color.opponent
             self.winner = Winner(team_color=winner_color, reason=WinningReason.OPPONENT_QUIT)
-        log.info(f"\n-----\n{self.winner.reason.value}")  # type: ignore
-        log.info(f"{wrap(self.winner.team_color.value)} team wins!")  # type: ignore
+        log.info(
+            f"{SEPARATOR}{self.winner.reason.value}, {wrap(self.winner.team_color.value)} team wins!"  # type: ignore
+        )
         return self.winner  # type: ignore
