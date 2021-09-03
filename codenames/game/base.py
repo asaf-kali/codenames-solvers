@@ -6,20 +6,32 @@ from typing import List, Set, Optional
 BLACK_AMOUNT = 1
 
 
-class TeamColor(Enum):
-    RED = "Red"
-    BLUE = "Blue"
-
-    @staticmethod
-    def opponent(team_color: "TeamColor") -> "TeamColor":
-        return TeamColor.RED if team_color == TeamColor.BLUE else TeamColor.BLUE
-
-
 class CardColor(Enum):
-    RED = "Red"
     BLUE = "Blue"
+    RED = "Red"
     GRAY = "Gray"
     BLACK = "Black"
+
+    @property
+    def as_team_color(self) -> "TeamColor":
+        if self == CardColor.RED:
+            return TeamColor.RED
+        if self == CardColor.BLUE:
+            return TeamColor.BLUE
+        raise ValueError(f"No such team color: {self.value}")
+
+
+class TeamColor(Enum):
+    BLUE = "Blue"
+    RED = "Red"
+
+    @property
+    def opponent(self) -> "TeamColor":
+        return TeamColor.BLUE if self == TeamColor.RED else TeamColor.RED
+
+    @property
+    def as_card_color(self) -> CardColor:
+        return CardColor.BLUE if self == TeamColor.BLUE else CardColor.RED
 
 
 @dataclass
@@ -34,12 +46,18 @@ class Hint:
     word: str
     card_amount: int
 
+    def __str__(self) -> str:
+        return f"{self.word}, {self.card_amount}"
+
 
 @dataclass(frozen=True)
 class GivenHint:
     word: str
     card_amount: int
-    team: TeamColor
+    team_color: TeamColor
+
+    def __str__(self) -> str:
+        return f"{self.word}, {self.card_amount}"
 
 
 @dataclass(frozen=True)
@@ -52,13 +70,17 @@ class GivenGuess:
     given_hint: GivenHint
     guessed_card: Card
 
+    def __str__(self) -> str:
+        result = "Correct!" if self.was_correct else "Wrong!"
+        return f"'{self.guessed_card.word}', {result}"
+
     @cached_property
     def was_correct(self) -> bool:
-        return self.guessed_card.color.value == self.team.value
+        return self.team.as_card_color == self.guessed_card.color
 
     @cached_property
     def team(self) -> TeamColor:
-        return self.given_hint.team
+        return self.given_hint.team_color
 
 
 @dataclass
