@@ -13,7 +13,9 @@ class UnexpectedEndOfInput(Exception):
 
 
 class TestHinter(Hinter):
-    def __init__(self, team_color: TeamColor, hints: Iterable[Hint], name: str = "Test Hinter", auto_quit: bool = True):
+    def __init__(
+        self, team_color: TeamColor, hints: Iterable[Hint], name: str = "Test Hinter", auto_quit: bool = False
+    ):
         super().__init__(name=name, team_color=team_color)
         self.hints = iter(hints)
         self.auto_quit = auto_quit
@@ -30,7 +32,7 @@ class TestHinter(Hinter):
 
 class TestGuesser(Guesser):
     def __init__(
-        self, team_color: TeamColor, guesses: Iterable[Guess], name: str = "Test Guesser", auto_quit: bool = True
+        self, team_color: TeamColor, guesses: Iterable[Guess], name: str = "Test Guesser", auto_quit: bool = False
     ):
         super().__init__(name=name, team_color=team_color)
         self.guesses = iter(guesses)
