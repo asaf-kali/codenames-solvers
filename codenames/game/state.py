@@ -36,7 +36,9 @@ class Hint:
 
 
 @dataclass(frozen=True)
-class GivenHint(Hint):
+class GivenHint:
+    word: str
+    card_amount: int
     team: TeamColor
 
 
