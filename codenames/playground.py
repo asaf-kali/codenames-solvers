@@ -17,7 +17,7 @@ a = w.most_similar((v1 / np.linalg.norm(v1) + v2 / np.linalg.norm(v2)), topn=50)
 pretty_print_similarities(a)
 
 # %%
-from codenames.game.state import TeamColor
+from codenames.game.base import TeamColor
 from codenames.game.builder import build_simple_state
 from codenames.solvers.sna_solvers.sna_hinter import SnaHinter
 
@@ -50,6 +50,6 @@ board_words = [
 ]  # ['king', 'queen', 'teenage', 'tomato', 'parrot', 'london', 'spiderman']
 
 game_state = build_simple_state(words=board_words)
-hinter = SnaHinter(team=TeamColor.RED)
+hinter = SnaHinter(team_color=TeamColor.RED)
 hinter.notify_game_starts(language="english", state=game_state)
 print(f"Hinter guessed: {hinter.pick_hint(state=game_state)}")

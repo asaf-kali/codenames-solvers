@@ -1,7 +1,7 @@
 import random
 from typing import Iterable, Tuple, List
 
-from codenames.game.state import GameState, Card, BLACK_AMOUNT, CardColor
+from codenames.game.base import GameState, Card, BLACK_AMOUNT, CardColor
 
 
 def _extract_random_subset(complete_set: set, subset_size: int) -> Tuple[set, set]:
