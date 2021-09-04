@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 
 from codenames.game.base import TeamColor
 from codenames.game.player import Hinter, Guesser
@@ -16,7 +17,9 @@ def online_game():
     blue_hinter = Hinter("Leonardo", team_color=TeamColor.BLUE)
     blue_guesser = Guesser("Bard", team_color=TeamColor.BLUE)
     online_manager = NamecodingGameManager(red_hinter, red_guesser, blue_hinter, blue_guesser)  # noqa: F841
-
+    sleep(1)
+    sleep(1)
+    sleep(1)
     online_manager.close()
     log.info("Done")
 
