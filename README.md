@@ -1,5 +1,8 @@
 # Codenames
 
+[![Tests](https://github.com/mkali-personal/codenames/actions/workflows/tests.yml/badge.svg)](https://github.com/mkali-personal/codenames/actions/workflows/tests.yml)
+[![Lint](https://github.com/mkali-personal/codenames/actions/workflows/lint.yml/badge.svg)](https://github.com/mkali-personal/codenames/actions/workflows/lint.yml)
+
 Algorithm to play the Codenames board game.
 
 ## Intro

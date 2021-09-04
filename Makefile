@@ -9,7 +9,7 @@ install:
 	pip install -r requirements.txt -r requirements-dev.txt
 
 tests:
-	echo "Todo"
+	pytest
 
 # Linting
 
