@@ -2,8 +2,10 @@
 import numpy as np
 
 from codenames.model_loader import load_language
+from codenames.utils import configure_logging
 from codenames.visualizer import pretty_print_similarities
 
+configure_logging()
 LANGUAGE_FOLDER = "language_data"
 ENGLISH_DATA_FILE = "english.bin"
 
@@ -51,7 +53,6 @@ board_words = [
 ]  # ['king', 'queen', 'teenage', 'tomato', 'parrot', 'london', 'spiderman']
 
 game_state = build_simple_state(words=board_words)
-hinter = SnaHinter(name='Michael', team_color=TeamColor.RED)
-hinter.notify_game_starts(language="english", state=game_state)
+hinter = SnaHinter(name="Michael", team_color=TeamColor.RED)
+hinter.notify_game_starts(language="english", board=game_state.board)
 print(f"Hinter guessed: {hinter.pick_hint(state=game_state)}")
-
