@@ -1,5 +1,8 @@
 import logging
+import time
 from enum import Enum
+from time import sleep
+from typing import Callable
 
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
@@ -20,6 +23,21 @@ class NamecodingLanguage(Enum):
 
 class IllegalOperation(Exception):
     pass
+
+
+class PollingTimeout(Exception):
+    pass
+
+
+def poll(test: Callable[[], bool], timeout_seconds: float = 5, polls_per_second: int = 3):
+    sleep_time = 1 / polls_per_second
+    start = time.time()
+    while not test():
+        now = time.time()
+        passed = now - start
+        if passed >= timeout_seconds:
+            raise PollingTimeout()
+        sleep(sleep_time)
 
 
 class NamecodingPlayerAdapter:
@@ -136,6 +154,7 @@ class NamecodingPlayerAdapter:
         log.info(f"{self.log_prefix} is starting the game!")
         lobby_page = self.get_lobby_page()
         start_game_button = lobby_page.find_element_by_id("start-game-button")
+        poll(lambda: start_game_button.get_attribute("disabled") is None)
         start_game_button.click()
         return self
 
