@@ -6,6 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
 
 from codenames.game.base import Hint, Card, CardColor, Board, Guess
+from codenames.game.manager import PASS_GUESS
 from codenames.game.player import PlayerRole, Player
 from codenames.online.utils import poll_condition
 from codenames.utils import wrap
@@ -35,7 +36,7 @@ def fill_input(element: WebElement, value: str):
 
 
 def _parse_card(card_element: WebElement) -> Card:
-    log.debug("Parsing card...")
+    # log.debug("Parsing card...")
     word = card_element.find_element_by_id("bottom").text
     namecoding_color = card_element.find_element_by_id("right").get_attribute("team")
     card_color = parse_card_color(namecoding_color=namecoding_color)
@@ -208,9 +209,16 @@ class NamecodingPlayerAdapter:
     def transmit_guess(self, guess: Guess) -> "NamecodingPlayerAdapter":
         log.debug(f"Sending guess: {guess}")
         game_page = self.get_game_page()
-        card_containers = game_page.find_elements_by_id("card-padding-container")
-        selected_card = card_containers[guess.card_index]
-        selected_card.click()
+        if guess.card_index == PASS_GUESS:
+            clue_area = self.get_clue_area()
+            finish_turn_button = clue_area.find_element_by_id("finish-turn-button")
+            finish_turn_button.click()
+            sleep(0.5)
+            self.driver.switch_to.alert.accept()
+        else:
+            card_containers = game_page.find_elements_by_id("card-padding-container")
+            selected_card = card_containers[guess.card_index]
+            selected_card.click()
         sleep(0.5)
         return self
 
