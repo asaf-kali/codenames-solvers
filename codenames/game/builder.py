@@ -1,7 +1,7 @@
 import random
-from typing import Iterable, Tuple, List
+from typing import Iterable, Tuple
 
-from codenames.game.base import GameState, Card, BLACK_AMOUNT, CardColor
+from codenames.game.base import HinterGameState, Card, BLACK_AMOUNT, CardColor, Board
 
 
 def _extract_random_subset(complete_set: set, subset_size: int) -> Tuple[set, set]:
@@ -10,7 +10,7 @@ def _extract_random_subset(complete_set: set, subset_size: int) -> Tuple[set, se
     return reduced_set, subset
 
 
-def _words_to_cards(words: Iterable[str]) -> List[Card]:
+def _words_to_board(words: Iterable[str]) -> Board:
     words_set = set(words)
     board_size = len(words_set)
     red_amount = board_size // 3
@@ -30,9 +30,9 @@ def _words_to_cards(words: Iterable[str]) -> List[Card]:
 
     all_cards = red_cards + blue_cards + gray_cards + black_cards
     random.shuffle(all_cards)
-    return all_cards
+    return Board(all_cards)
 
 
-def build_simple_state(words: Iterable[str]) -> GameState:
-    cards = _words_to_cards(words)
-    return GameState(cards=cards, given_hints=[], given_guesses=[])
+def build_simple_state(words: Iterable[str]) -> HinterGameState:
+    board = _words_to_board(words)
+    return HinterGameState(board=board, given_hints=[], given_guesses=[])

@@ -1,6 +1,6 @@
 from enum import Enum
 
-from codenames.game.base import TeamColor, Hint, GameState, Guess, GivenHint
+from codenames.game.base import TeamColor, Hint, HinterGameState, Guess, GuesserGameState, Board
 
 
 class PlayerRole(Enum):
@@ -23,16 +23,16 @@ class Player:
     def role(self) -> PlayerRole:
         raise NotImplementedError()
 
+    def notify_game_starts(self, language: str, board: Board):
+        pass
+
 
 class Hinter(Player):
     @property
     def role(self) -> PlayerRole:
         return PlayerRole.HINTER
 
-    def notify_game_starts(self, language: str, state: GameState):
-        pass
-
-    def pick_hint(self, state: GameState) -> Hint:
+    def pick_hint(self, state: HinterGameState) -> Hint:
         raise NotImplementedError()
 
 
@@ -41,8 +41,5 @@ class Guesser(Player):
     def role(self) -> PlayerRole:
         return PlayerRole.GUESSER
 
-    def notify_game_starts(self, language: str, state: GameState):
-        pass
-
-    def guess(self, state: GameState, given_hint: GivenHint, left_guesses: int) -> Guess:
+    def guess(self, state: GuesserGameState) -> Guess:
         raise NotImplementedError()
