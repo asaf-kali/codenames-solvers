@@ -1,20 +1,20 @@
 # type: ignore
-from typing import Dict, List, NamedTuple
+from dataclasses import dataclass
+from typing import Dict, List, Tuple, Optional, Iterable
 
 import community
 import networkx as nx
 import numpy as np
 import pandas as pd
+from gensim.models import KeyedVectors
 
+from codenames.game.base import TeamColor, Hint, Board, HinterGameState
 from codenames.game.player import Hinter
-from codenames.game.base import GameState, TeamColor, Hint
 from codenames.model_loader import load_language
-from codenames.visualizer import render, pretty_print_similarities
 
+SIMILARITY_LOWER_LIMIT = 0.6
 
-class Similarity(NamedTuple):
-    word: str
-    grade: float
+Similarity = Tuple[str, float]
 
 
 def _invert_dict(original: dict) -> dict:
@@ -25,102 +25,145 @@ def _invert_dict(original: dict) -> dict:
     return inverted
 
 
-def filter_similarities(similarities: List[Similarity], words_to_filter_out: List[str]) -> List[Similarity]:
-    filtered = []
+def filter_word_expressions(word: str, filter_expressions: Iterable[str]) -> bool:
+    if "_" in word:
+        return True
+    for bad_word in filter_expressions:
+        if word in bad_word or bad_word in word:
+            return True
+    return False
+
+
+def pick_best_similarity(similarities: List[Similarity], words_to_filter_out: List[str]) -> Similarity:
+    words_to_filter_out = [word.lower() for word in words_to_filter_out]
+    filtered_similarities = []
     for similarity in similarities:
-        if similarity.word in words_to_filter_out:
+        word, grade = similarity
+        word = word.lower()
+        if filter_word_expressions(word, words_to_filter_out):
             continue
-        filtered.append(similarity)
-    return filtered
+        filtered_similarities.append(similarity)
+    # TODO: Complete
+    return filtered_similarities[0]
+
+
+def single_gram_schmidt(v: np.array, u: np.array) -> Tuple[np.array, np.array]:
+    v = v / np.linalg.norm(v)
+    u = u / np.linalg.norm(u)
+
+    projection_norm = u.T @ v
+
+    o = u - projection_norm * v
+
+    normed_o = o / np.linalg.norm(o)
+    return v, normed_o
+
+
+def step_away(step_away_from: np.array, starting_point: np.array, arc_radians: float) -> np.array:
+    step_away_from, normed_o = single_gram_schmidt(step_away_from, starting_point)
+
+    original_phase = starting_point.T @ step_away_from
+
+    rotated = step_away_from * np.cos(original_phase + arc_radians) + normed_o * np.sin(original_phase + arc_radians)
+
+    rotated_original_size = rotated * np.linalg.norm(starting_point)
+
+    return rotated_original_size
+
+
+def cosine_similarity(u: np.array, v: np.array) -> np.array:
+    u = u / np.linalg.norm(u)
+    v = v / np.linalg.norm(v)
+    return u.T @ v
+
+
+def cosine_distance(u: np.array, v: np.array) -> np.array:
+    return 1 - cosine_similarity(u, v)
+
+
+@dataclass
+class Cluster:
+    id: int
+    centroid: np.array
+    rows: pd.DataFrame
+    grade: float
 
 
 class SnaHinter(Hinter):
     def __init__(self, name: str, team_color: TeamColor):
         super().__init__(name=name, team_color=team_color)
-        self.model = None
-        self.language_length = None
-        self.board_data = None
+        self.model: Optional[KeyedVectors] = None
+        self.language_length: Optional[int] = None
+        self.board_data: Optional[pd.DataFrame] = None
+        self.graded_clusters: List[Cluster] = []
 
-
-    def notify_game_starts(self, language: str, state: GameState):
+    def notify_game_starts(self, language: str, board: Board):
         self.model = load_language(language=language)
         self.language_length = len(self.model.index_to_key)
-        self.board_data = pd.DataFrame(data={'color': state.all_colors,
-                                             'is_revealed': state.all_reveals,
-                                             'vector': self.model[state.all_words],
-                                             'cluster': None},
-                                       index=state.all_words)
+        vectors_lists_list: List[List[float]] = self.model[board.all_words].tolist()  # type: ignore
+        vectors_list = [np.array(v) for v in vectors_lists_list]
+        self.board_data = pd.DataFrame(
+            data={
+                "color": board.all_colors,
+                "is_revealed": board.all_reveals,
+                "vector": vectors_list,
+                "cluster": None,
+            },
+            index=board.all_words,
+        )
 
-    def get_vector(self, word: str):
-        # if word in self.game.words:
-        #     word_index = self.game.words.index(word)
-        #     return self.game_vectors[word_index]
-        return self.model[word]
+    # def get_vector(self, word: str):
+    #     # if word in self.game.words:
+    #     #     word_index = self.game.words.index(word)
+    #     #     return self.game_vectors[word_index]
+    #     return self.model[word]
 
-    def rate_group(self, words: List[str]) -> float:
-        pass
+    # def rate_group(self, words: List[str]) -> float:
+    #     pass
 
-    @staticmethod
-    def single_gram_schmidt(v, u):
-        v = v / np.linalg.norm(v)
-        u = u / np.linalg.norm(u)
+    def pick_hint(self, state: HinterGameState) -> Hint:
+        self.generate_graded_clusters()
+        for cluster in self.graded_clusters:
+            cluster_size = len(cluster.rows)
+            centroid = self.optimize_centroid(cluster.centroid)
+            similarities: List[Similarity] = self.model.most_similar(centroid)
+            word, grade = pick_best_similarity(
+                similarities=similarities, words_to_filter_out=cluster.rows.index.to_list()
+            )
+            if grade < SIMILARITY_LOWER_LIMIT:
+                continue
+            hint = Hint(word, cluster_size)
+            return hint
 
-        projection_norm = u.T @ v
+    def generate_graded_clusters(self):
+        unrevealed_index = (self.board_data.is_revealed == False) & (  # noqa: E712
+            self.board_data.color == self.team_color.as_card_color
+        )
+        unrevealed_cards = self.board_data[unrevealed_index]
+        self.divide_to_clusters(rows=unrevealed_cards)
+        unrevealed_cards = self.board_data[unrevealed_index]
+        self.graded_clusters = []
+        unique_clusters = pd.unique(unrevealed_cards.cluster)
+        for cluster_id in unique_clusters:
+            rows = unrevealed_cards[unrevealed_cards.cluster == cluster_id]
+            centroid = np.mean(rows.vector)
+            grade = self.grade_cluster(centroid=centroid, vectors=rows.vector)
+            cluster = Cluster(id=cluster_id, centroid=centroid, rows=rows, grade=grade)
+            self.graded_clusters.append(cluster)
+        self.graded_clusters.sort(key=lambda c: -c.grade)
 
-        o = u - projection_norm * v
+    def optimize_centroid(self, centroid: np.array) -> np.array:
+        return centroid
 
-        normed_o = o / np.linalg.norm(o)
-        return v, normed_o
+    def grade_cluster(self, centroid: np.array, vectors: pd.Series) -> float:
+        distances = [cosine_distance(v, centroid) for v in vectors]
+        return np.mean(distances)  # type: ignore
+        # closest_opponent_card = self.model.most_similar_to_given("king", ["queen", "prince"])
 
-    def step_away(self, step_away_from, starting_point, arc_radians):
-        step_away_from, normed_o = self.single_gram_schmidt(step_away_from, starting_point)
-
-        original_phase = starting_point.T @ step_away_from
-
-        rotated = step_away_from * np.cos(original_phase + arc_radians) + normed_o * np.sin(original_phase + arc_radians)
-
-        rotated_original_size = rotated * np.linalg.norm(starting_point)
-
-        return rotated_original_size
-
-    def cluster_mean(self, cluster_idx):
-        return np.mean(self.board_data[self.board_data.cluster == cluster_idx].vector)
-
-    def pick_hint(self):
-        best_cluster = self.pick_cluster
-        cluster_centroid = np.mean(self.board_data[self.board_data.cluster == best_cluster].vector)
-        cluster_size = len(self.board_data[self.board_data.cluster == best_cluster])
-        centroid = self.optimize_centroid(cluster_centroid)
-        hint_word = self.model.most_similar(centroid)
-        hint = Hint(hint_word, cluster_size)
-        return hint
-
-    def pick_cluster(self):
-        self.cluster()
-        clusters_values = []
-        unique_clusters = pd.unique(self.board_data.cluster)
-        for c in unique_clusters:
-            cluster_data = self.board_data[self.board_data.cluster == c]
-            clusters_values.append(self.evaluate_cluster(c))
-        best_cluster_idx = np.argmax(clusters_values)
-        best_cluster = unique_clusters[best_cluster_idx]
-        return best_cluster
-
-    def optimize_centroid(self, centroid) -> np.array:
-        return np.array([0])
-
-    def evaluate_cluster(self, cluster_idx: int):
-        cluster_centroid = self.cluster_mean(cluster_idx)
-        closest_opponent_card = self.model.most_similar_to_given('king', ['queen', 'prince'])
-
-
-        # return len(cluster) * (max)
-        pass
-
-    def cluster(self):
-        board_size = len(self.board_data.index)
+    def divide_to_clusters(self, rows: pd.DataFrame):
+        board_size = len(rows)
         vis_graph = nx.Graph()
-        words = self.board_data.index.to_list()
+        words = rows.index.to_list()
         vis_graph.add_nodes_from(words)
         louvain = nx.Graph(vis_graph)
         for i in range(board_size):
@@ -136,35 +179,35 @@ class SnaHinter(Hinter):
         word_to_group: Dict[str, int] = community.best_partition(louvain)
         self.board_data.cluster = self.board_data.index.map(word_to_group)
 
-    # board_size = state.board_size
-    # vis_graph = nx.Graph()
-    # vis_graph.add_nodes_from(state.all_words)
-    # louvain = nx.Graph(vis_graph)
-    # for i in range(board_size):
-    #     v = state.all_words[i]
-    #     for j in range(i + 1, board_size):
-    #         u = state.all_words[j]
-    #         distance = self.model.similarity(v, u) + 1
-    #         if distance > 1.1:
-    #             vis_graph.add_edge(v, u, weight=distance)
-    #         louvain_weight = distance ** 10
-    #         louvain.add_edge(v, u, weight=louvain_weight)
-    #
-    # word_to_group: Dict[str, int] = community.best_partition(louvain)
-    # # self.board_data.cluster = self.board_data.index.map(word_to_group)
-    #
-    # group_to_words = _invert_dict(word_to_group)
-    # # group_grades = {}
-    # for group, words in group_to_words.items():
-    #     vectors = self.model[words]
-    #     average = sum(vectors)
-    #     similarities = self.model.most_similar(average)
-    #     filtered_similarities = filter_similarities(similarities=similarities, words_to_filter_out=words)
-    #     print(f"\n\nFor the word group: {words}, got:")
-    #     pretty_print_similarities(filtered_similarities)
-    # # values = [partition_object.get(node) for node in louvain.nodes()]
-    # # print(f"Values are: {values}")
-    #
-    # nx.set_node_attributes(vis_graph, word_to_group, "group")
-    # render(vis_graph)
-    # return Hint("hi", 2)
+        # board_size = state.board_size
+        # vis_graph = nx.Graph()
+        # vis_graph.add_nodes_from(state.all_words)
+        # louvain = nx.Graph(vis_graph)
+        # for i in range(board_size):
+        #     v = state.all_words[i]
+        #     for j in range(i + 1, board_size):
+        #         u = state.all_words[j]
+        #         distance = self.model.similarity(v, u) + 1
+        #         if distance > 1.1:
+        #             vis_graph.add_edge(v, u, weight=distance)
+        #         louvain_weight = distance ** 10
+        #         louvain.add_edge(v, u, weight=louvain_weight)
+        #
+        # word_to_group: Dict[str, int] = community.best_partition(louvain)
+        # # self.board_data.cluster = self.board_data.index.map(word_to_group)
+        #
+        # group_to_words = _invert_dict(word_to_group)
+        # # group_grades = {}
+        # for group, words in group_to_words.items():
+        #     vectors = self.model[words]
+        #     average = sum(vectors)
+        #     similarities = self.model.most_similar(average)
+        #     filtered_similarities = filter_similarities(similarities=similarities, words_to_filter_out=words)
+        #     print(f"\n\nFor the word group: {words}, got:")
+        #     pretty_print_similarities(filtered_similarities)
+        # # values = [partition_object.get(node) for node in louvain.nodes()]
+        # # print(f"Values are: {values}")
+        #
+        # nx.set_node_attributes(vis_graph, word_to_group, "group")
+        # render(vis_graph)
+        # return Hint("hi", 2)

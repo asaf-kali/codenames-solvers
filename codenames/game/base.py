@@ -59,7 +59,7 @@ class Board(List[Card]):
 
     @property
     def all_colors(self) -> Tuple[CardColor, ...]:
-        return tuple(card.color for card in self)
+        return tuple(card.color for card in self)  # type: ignore
 
     @property
     def all_reveals(self) -> Tuple[bool, ...]:
