@@ -1,10 +1,11 @@
+# type: ignore
 from typing import Dict, List, NamedTuple
 
 import community
 import networkx as nx
 
 from codenames.game.player import Hinter
-from codenames.game.base import GameState, TeamColor, Hint
+from codenames.game.base import HinterGameState, TeamColor, Hint
 from codenames.model_loader import load_language
 from codenames.visualizer import render, pretty_print_similarities
 
@@ -38,7 +39,7 @@ class SnaHinter(Hinter):
         self.language_length = None
         self.game_vectors = None
 
-    def notify_game_starts(self, language: str, state: GameState):
+    def notify_game_starts(self, language: str, state: HinterGameState):
         self.model = load_language(language=language)
         self.language_length = len(self.model.index_to_key)
         self.game_vectors = self.model[state.all_words]
@@ -52,7 +53,7 @@ class SnaHinter(Hinter):
     def rate_group(self, words: List[str]) -> float:
         pass
 
-    def pick_hint(self, state: GameState) -> Hint:
+    def pick_hint(self, state: HinterGameState) -> Hint:
         board_size = state.board_size
         vis_graph = nx.Graph()
         vis_graph.add_nodes_from(state.all_words)
