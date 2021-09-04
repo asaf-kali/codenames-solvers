@@ -3,3 +3,4 @@ gensim==4.1.0
 networkx==2.6.1
 pyvis==0.1.9
 python-louvain==0.15
+selenium==3.141.0
