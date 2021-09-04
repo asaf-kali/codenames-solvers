@@ -98,6 +98,14 @@ class GameState:
         return [card.word for card in self.cards]
 
     @property
+    def all_colors(self) -> List[CardColor]:
+        return [card.color for card in self.cards]
+
+    @property
+    def all_reveals(self) -> List[bool]:
+        return [card.revealed for card in self.cards]
+
+    @property
     def red_cards(self) -> Set[Card]:
         return {card for card in self.cards if card.color == CardColor.RED}
 
