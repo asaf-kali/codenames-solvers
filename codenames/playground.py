@@ -50,6 +50,7 @@ board_words = [
 ]  # ['king', 'queen', 'teenage', 'tomato', 'parrot', 'london', 'spiderman']
 
 game_state = build_simple_state(words=board_words)
-hinter = SnaHinter(team_color=TeamColor.RED)
+hinter = SnaHinter(name='Michael', team_color=TeamColor.RED)
 hinter.notify_game_starts(language="english", state=game_state)
 print(f"Hinter guessed: {hinter.pick_hint(state=game_state)}")
+
