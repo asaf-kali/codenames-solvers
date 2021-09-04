@@ -1,10 +1,8 @@
 from typing import List, NamedTuple, Iterable, Tuple, Dict
 
-from codenames.game.base import GameState, Hint, GivenHint, Guess, TeamColor
-from codenames.game.manager import QuitGame, Team, PassGuessTurn
+from codenames.game.base import HinterGameState, Hint, Guess, TeamColor, GuesserGameState
+from codenames.game.manager import QuitGame, Team
 from codenames.game.player import Hinter, Guesser, Player
-
-SKIP_GUESS = -1
 
 
 class UnexpectedEndOfInput(Exception):
@@ -13,12 +11,14 @@ class UnexpectedEndOfInput(Exception):
 
 
 class TestHinter(Hinter):
-    def __init__(self, team_color: TeamColor, hints: Iterable[Hint], name: str = "Test Hinter", auto_quit: bool = True):
+    def __init__(
+        self, team_color: TeamColor, hints: Iterable[Hint], name: str = "Test Hinter", auto_quit: bool = False
+    ):
         super().__init__(name=name, team_color=team_color)
         self.hints = iter(hints)
         self.auto_quit = auto_quit
 
-    def pick_hint(self, state: GameState) -> Hint:
+    def pick_hint(self, state: HinterGameState) -> Hint:
         try:
             hint = next(self.hints)
         except StopIteration:
@@ -30,21 +30,19 @@ class TestHinter(Hinter):
 
 class TestGuesser(Guesser):
     def __init__(
-        self, team_color: TeamColor, guesses: Iterable[Guess], name: str = "Test Guesser", auto_quit: bool = True
+        self, team_color: TeamColor, guesses: Iterable[Guess], name: str = "Test Guesser", auto_quit: bool = False
     ):
         super().__init__(name=name, team_color=team_color)
         self.guesses = iter(guesses)
         self.auto_quit = auto_quit
 
-    def guess(self, state: GameState, given_hint: GivenHint, left_guesses: int) -> Guess:
+    def guess(self, state: GuesserGameState) -> Guess:
         try:
             guess = next(self.guesses)
         except StopIteration:
             if self.auto_quit:
                 raise QuitGame(self)
             raise UnexpectedEndOfInput(self)
-        if guess.card_index == SKIP_GUESS:
-            raise PassGuessTurn()
         return guess
 
 

@@ -13,7 +13,7 @@ LOGGING_CONFIG = {
         },
         "debug": {
             "format": "[%(asctime)s.%(msecs)03d] [%(levelname)-.4s]: %(message)s @@@ "
-                      "[%(name)s:%(lineno)s] [%(threadName)s]",
+            "[%(threadName)s] [%(name)s:%(lineno)s]",
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
@@ -36,6 +36,7 @@ LOGGING_CONFIG = {
         },
     },
     "root": {"handlers": ["console_out", "console_err"], "level": "DEBUG"},
+    "loggers": {"selenium": {"level": "INFO"}, "urllib3": {"level": "INFO"}},
 }
 
 

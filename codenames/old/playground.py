@@ -1,3 +1,4 @@
+# type: ignore
 import numpy as np
 
 from codenames.model_loader import load_language
