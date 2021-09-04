@@ -1,4 +1,5 @@
 # type: ignore
+import logging
 from dataclasses import dataclass
 from typing import Dict, List, Tuple, Optional, Iterable
 
@@ -11,8 +12,10 @@ from gensim.models import KeyedVectors
 from codenames.game.base import TeamColor, Hint, Board, HinterGameState
 from codenames.game.player import Hinter
 from codenames.model_loader import load_language
+from codenames.utils import wrap
 
-SIMILARITY_LOWER_LIMIT = 0.6
+log = logging.getLogger(__name__)
+SIMILARITY_LOWER_BOUNDARY = 0.5
 
 Similarity = Tuple[str, float]
 
@@ -25,7 +28,7 @@ def _invert_dict(original: dict) -> dict:
     return inverted
 
 
-def filter_word_expressions(word: str, filter_expressions: Iterable[str]) -> bool:
+def should_filter_word(word: str, filter_expressions: Iterable[str]) -> bool:
     if "_" in word:
         return True
     for bad_word in filter_expressions:
@@ -34,16 +37,17 @@ def filter_word_expressions(word: str, filter_expressions: Iterable[str]) -> boo
     return False
 
 
-def pick_best_similarity(similarities: List[Similarity], words_to_filter_out: List[str]) -> Similarity:
+def pick_best_similarity(similarities: List[Similarity], words_to_filter_out: List[str]) -> Optional[Similarity]:
     words_to_filter_out = [word.lower() for word in words_to_filter_out]
     filtered_similarities = []
     for similarity in similarities:
         word, grade = similarity
         word = word.lower()
-        if filter_word_expressions(word, words_to_filter_out):
+        if should_filter_word(word, words_to_filter_out):
             continue
         filtered_similarities.append(similarity)
-    # TODO: Complete
+    if len(filtered_similarities) == 0:
+        return None
     return filtered_similarities[0]
 
 
@@ -88,6 +92,10 @@ class Cluster:
     rows: pd.DataFrame
     grade: float
 
+    @property
+    def words(self) -> Tuple[str, ...]:
+        return tuple(self.rows.index)
+
 
 class SnaHinter(Hinter):
     def __init__(self, name: str, team_color: TeamColor):
@@ -100,7 +108,8 @@ class SnaHinter(Hinter):
     def notify_game_starts(self, language: str, board: Board):
         self.model = load_language(language=language)
         self.language_length = len(self.model.index_to_key)
-        vectors_lists_list: List[List[float]] = self.model[board.all_words].tolist()  # type: ignore
+        all_words = [word.replace(" ", "_") for word in board.all_words]
+        vectors_lists_list: List[List[float]] = self.model[all_words].tolist()  # type: ignore
         vectors_list = [np.array(v) for v in vectors_lists_list]
         self.board_data = pd.DataFrame(
             data={
@@ -122,18 +131,26 @@ class SnaHinter(Hinter):
     #     pass
 
     def pick_hint(self, state: HinterGameState) -> Hint:
+        self.board_data.is_revealed = state.board.all_reveals
         self.generate_graded_clusters()
         for cluster in self.graded_clusters:
             cluster_size = len(cluster.rows)
             centroid = self.optimize_centroid(cluster.centroid)
             similarities: List[Similarity] = self.model.most_similar(centroid)
-            word, grade = pick_best_similarity(
+            best_similarity = pick_best_similarity(
                 similarities=similarities, words_to_filter_out=cluster.rows.index.to_list()
             )
-            if grade < SIMILARITY_LOWER_LIMIT:
+            if best_similarity is None:
+                log.info("No legal similarity found")
+                continue
+            word, grade = best_similarity
+            log.info(f"Cluster words: {cluster.words}, best word: {wrap(word)}")
+            if grade < SIMILARITY_LOWER_BOUNDARY:
+                log.info(f"Grade wasn't good enough (was {grade})")
                 continue
             hint = Hint(word, cluster_size)
             return hint
+        return Hint("IDK", 2)
 
     def generate_graded_clusters(self):
         unrevealed_index = (self.board_data.is_revealed == False) & (  # noqa: E712
