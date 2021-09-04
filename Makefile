@@ -19,7 +19,7 @@ lint:
 
 check-lint:
 	black . -l $(LINE_LENGTH) --check
-	flake8 . --max-line-length=$(LINE_LENGTH) --exclude codenames/playground.py
+	flake8 . --max-line-length=$(LINE_LENGTH) --exclude codenames/old
 	mypy . --ignore-missing-imports
 
 unzip_data:

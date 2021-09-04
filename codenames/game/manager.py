@@ -70,15 +70,15 @@ def _determine_first_team(board: Board) -> TeamColor:
 class GameManager:
     def __init__(
         self,
-        blue_hinter: Hinter = None,
-        red_hinter: Hinter = None,
-        blue_guesser: Guesser = None,
-        red_guesser: Guesser = None,
+        blue_hinter: Hinter,
+        red_hinter: Hinter,
+        blue_guesser: Guesser,
+        red_guesser: Guesser,
     ):
-        self.blue_hinter: Hinter = blue_hinter  # type: ignore
-        self.red_hinter: Hinter = red_hinter  # type: ignore
-        self.blue_guesser: Guesser = blue_guesser  # type: ignore
-        self.red_guesser: Guesser = red_guesser  # type: ignore
+        self.blue_hinter = blue_hinter
+        self.red_hinter = red_hinter
+        self.blue_guesser = blue_guesser
+        self.red_guesser = red_guesser
         self.language = ""
         self.board = Board([])
         self.given_hints: List[GivenHint] = []
@@ -99,23 +99,26 @@ class GameManager:
 
     @cached_property
     def hinters(self) -> Tuple[Hinter, Hinter]:
-        return self.red_hinter, self.blue_hinter
+        return self.blue_hinter, self.red_hinter
 
     @cached_property
     def guessers(self) -> Tuple[Guesser, Guesser]:
-        return self.red_guesser, self.blue_guesser
+        return (
+            self.blue_guesser,
+            self.red_guesser,
+        )
 
     @cached_property
     def players(self) -> Tuple[Player, ...]:
         return *self.hinters, *self.guessers
 
     @cached_property
-    def red_team(self) -> Team:
-        return Team(hinter=self.red_hinter, guesser=self.red_guesser, team_color=TeamColor.RED)
-
-    @cached_property
     def blue_team(self) -> Team:
         return Team(hinter=self.blue_hinter, guesser=self.blue_guesser, team_color=TeamColor.BLUE)
+
+    @cached_property
+    def red_team(self) -> Team:
+        return Team(hinter=self.red_hinter, guesser=self.red_guesser, team_color=TeamColor.RED)
 
     @property
     def hinter_state(self) -> HinterGameState:
@@ -160,13 +163,39 @@ class GameManager:
         for guesser in self.guessers:
             guesser.notify_game_starts(language=self.language, board=censored_board)
 
-    def _guess_until_success(self, guesser: Guesser):
+    def _run_team_turn(self, team: Team) -> bool:
+        """
+        :param team: the team to play this turn.
+        :return: True if the game has ended.
+        """
+        log.info(f"{SEPARATOR}{wrap(self.current_team_color.value)} turn")
+        self.get_hint_and_process(hinter=team.hinter)
+        while self.left_guesses > 0:
+            self.get_guess_and_process(guesser=team.guesser)
+        return self.is_game_over
+
+    def _reveal_guessed_card(self, guess: Guess) -> Card:
+        if guess.card_index < 0 or guess.card_index >= len(self.board):
+            raise GuessError("Given card index is out of range!")
+        guessed_card = self.board[guess.card_index]
+        if guessed_card.revealed:
+            raise GuessError("Given card is already revealed!")
+        guessed_card.revealed = True
+        return guessed_card
+
+    def _end_turn(self):
+        self.left_guesses = 0
+        self.bonus_given = False
+        self.current_team_color = self.current_team_color.opponent
+
+    def _run_rounds(self):
         while True:
-            try:
-                guess = guesser.guess(state=self.guesser_state)
-                return self.process_guess(guess)
-            except GuessError:
-                pass
+            if self.current_team_color == TeamColor.BLUE:
+                if self._run_team_turn(team=self.blue_team):
+                    break
+            else:
+                if self._run_team_turn(team=self.red_team):
+                    break
 
     def _check_winner(self) -> bool:
         score_target = {TeamColor.BLUE: len(self.board.blue_cards), TeamColor.RED: len(self.board.red_cards)}
@@ -185,17 +214,21 @@ class GameManager:
                 return True
         return False
 
-    def process_hint(self, hint: Hint):
+    def initialize_game(self, language: str, board: Board):
+        self._reset_state(language=language, board=board)
+        self._notify_game_starts()
+
+    def process_hint(self, hint: Hint) -> GivenHint:
         given_hint = GivenHint(word=hint.word, card_amount=hint.card_amount, team_color=self.current_team_color)
         log.info(f"Hinter: '{hint.word}', {hint.card_amount} card(s)")
         self.given_hints.append(given_hint)
         self.left_guesses = given_hint.card_amount
         return given_hint
 
-    def _end_turn(self):
-        self.left_guesses = 0
-        self.bonus_given = False
-        self.current_team_color = self.current_team_color.opponent
+    def get_hint_and_process(self, hinter: Hinter) -> Hint:
+        hint = hinter.pick_hint(state=self.hinter_state)
+        self.process_hint(hint)
+        return hint
 
     def process_guess(self, guess: Guess):
         if guess.card_index == PASS_GUESS:
@@ -217,39 +250,14 @@ class GameManager:
             self.bonus_given = True
             self.left_guesses += 1
 
-    def _run_team_turn(self, team: Team) -> bool:
-        """
-        :param team: the team to play this turn.
-        :return: True if the game has ended.
-        """
-        log.info(f"{SEPARATOR}{wrap(self.current_team_color.value)} turn")
-        hint = team.hinter.pick_hint(self.hinter_state)
-        self.process_hint(hint=hint)
-        while self.left_guesses > 0:
-            self._guess_until_success(guesser=team.guesser)
-        return self.is_game_over
-
-    def _reveal_guessed_card(self, guess: Guess) -> Card:
-        if guess.card_index < 0 or guess.card_index >= len(self.board):
-            raise GuessError("Given card index is out of range!")
-        guessed_card = self.board[guess.card_index]
-        if guessed_card.revealed:
-            raise GuessError("Given card is already revealed!")
-        guessed_card.revealed = True
-        return guessed_card
-
-    def _run_rounds(self):
+    def get_guess_and_process(self, guesser: Guesser) -> Guess:
         while True:
-            if self.current_team_color == TeamColor.BLUE:
-                if self._run_team_turn(team=self.blue_team):
-                    break
-            else:
-                if self._run_team_turn(team=self.red_team):
-                    break
-
-    def initialize_game(self, language: str, board: Board):
-        self._reset_state(language=language, board=board)
-        self._notify_game_starts()
+            try:
+                guess = guesser.guess(state=self.guesser_state)
+                self.process_guess(guess)
+                return guess
+            except GuessError:
+                pass
 
     def run_game(self, language: str, board: Board) -> TeamColor:
         self.initialize_game(language=language, board=board)
