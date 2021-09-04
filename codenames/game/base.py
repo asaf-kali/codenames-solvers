@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
-from typing import List, Set, Optional
+from typing import List, Optional, Tuple
 
 BLACK_AMOUNT = 1
 
@@ -40,6 +40,43 @@ class Card:
     color: Optional[CardColor]  # None for guessers.
     revealed: bool = False
 
+    def __str__(self) -> str:
+        result = self.word
+        if self.color:
+            result += f" ({self.color.value})"
+        result += " V" if self.revealed else " X"
+        return result
+
+
+class Board(List[Card]):
+    @property
+    def size(self) -> int:
+        return len(self)
+
+    @cached_property
+    def all_words(self) -> Tuple[str, ...]:
+        return tuple(card.word for card in self)
+
+    @property
+    def all_colors(self) -> Tuple[CardColor, ...]:
+        return tuple(card.color for card in self)
+
+    @property
+    def all_reveals(self) -> Tuple[bool, ...]:
+        return tuple(card.revealed for card in self)
+
+    @cached_property
+    def red_cards(self) -> Tuple[Card, ...]:
+        return tuple(card for card in self if card.color == CardColor.RED)
+
+    @cached_property
+    def blue_cards(self) -> Tuple[Card, ...]:
+        return tuple(card for card in self if card.color == CardColor.BLUE)
+
+    @property
+    def censured(self) -> "Board":
+        return self
+
 
 @dataclass(frozen=True)
 class Hint:
@@ -72,7 +109,7 @@ class GivenGuess:
 
     def __str__(self) -> str:
         result = "Correct!" if self.was_correct else "Wrong!"
-        return f"'{self.guessed_card.word}', {result}"
+        return f"'{self.guessed_card}', {result}"
 
     @cached_property
     def was_correct(self) -> bool:
@@ -84,38 +121,20 @@ class GivenGuess:
 
 
 @dataclass
-class GameState:
-    cards: List[Card]
+class HinterGameState:
+    board: Board
     given_hints: List[GivenHint]
     given_guesses: List[GivenGuess]
 
-    @property
-    def board_size(self) -> int:
-        return len(self.cards)
+
+@dataclass
+class GuesserGameState:
+    board: Board
+    given_hints: List[GivenHint]
+    given_guesses: List[GivenGuess]
+    left_guesses: int
+    bonus_given: bool
 
     @property
-    def all_words(self) -> List[str]:
-        return [card.word for card in self.cards]
-
-    @property
-    def all_colors(self) -> List[CardColor]:
-        return [card.color for card in self.cards]
-
-    @property
-    def all_reveals(self) -> List[bool]:
-        return [card.revealed for card in self.cards]
-
-    @property
-    def red_cards(self) -> Set[Card]:
-        return {card for card in self.cards if card.color == CardColor.RED}
-
-    @property
-    def blue_cards(self) -> Set[Card]:
-        return {card for card in self.cards if card.color == CardColor.BLUE}
-
-    @property
-    def guesser_censored(self) -> "GameState":
-        """
-        :return: An identical state, where unrevealed cards colors are removed.
-        """
-        return self
+    def given_hint(self) -> GivenHint:
+        return self.given_hints[-1]

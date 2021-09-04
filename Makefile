@@ -9,7 +9,7 @@ install:
 	pip install -r requirements.txt -r requirements-dev.txt
 
 tests:
-	echo "Todo"
+	pytest
 
 # Linting
 
@@ -19,7 +19,7 @@ lint:
 
 check-lint:
 	black . -l $(LINE_LENGTH) --check
-	flake8 . --max-line-length=$(LINE_LENGTH) --exclude codenames/playground.py
+	flake8 . --max-line-length=$(LINE_LENGTH) --exclude codenames/old
 	mypy . --ignore-missing-imports
 
 unzip_data:
