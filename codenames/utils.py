@@ -25,13 +25,13 @@ LOGGING_CONFIG = {
         "console_out": {
             "class": "logging.StreamHandler",
             "filters": ["std_filter"],
-            "formatter": "debug",
+            "formatter": "simple",
             "stream": sys.stdout,
         },
         "console_err": {
             "class": "logging.StreamHandler",
             "filters": ["err_filter"],
-            "formatter": "debug",
+            "formatter": "simple",
             "stream": sys.stderr,
         },
     },
