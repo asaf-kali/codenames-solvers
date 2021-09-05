@@ -3,6 +3,7 @@ from enum import Enum
 from time import sleep
 
 from selenium import webdriver
+from selenium.common.exceptions import NoAlertPresentException
 from selenium.webdriver.remote.webelement import WebElement
 
 from codenames.game.base import Hint, Card, CardColor, Board, Guess
@@ -201,10 +202,26 @@ class NamecodingPlayerAdapter:
         fill_input(clue_input, hint.word)
         fill_input(cards_input, str(hint.card_amount))
         submit_clue_button.click()
-        sleep(0.5)
-        self.driver.switch_to.alert.accept()
+        sleep(0.2)
+        self.approve_alert()
         sleep(0.5)
         return self
+
+    def approve_alert(self, max_tries: int = 10, interval_seconds: float = 0.3):
+        log.debug("Approve alert called.")
+        tries = 0
+        while True:
+            tries += 1
+            try:
+                self.driver.switch_to.alert.accept()
+                log.debug("Alert found.")
+                return
+            except NoAlertPresentException as e:
+                if tries >= max_tries:
+                    log.warning(f"Alert not found after {max_tries} tries, quitting.")
+                    raise e
+                log.debug(f"Alert not found, sleeping {interval_seconds} seconds.")
+                sleep(interval_seconds)
 
     def transmit_guess(self, guess: Guess) -> "NamecodingPlayerAdapter":
         log.debug(f"Sending guess: {guess}")
@@ -213,8 +230,8 @@ class NamecodingPlayerAdapter:
             clue_area = self.get_clue_area()
             finish_turn_button = clue_area.find_element_by_id("finish-turn-button")
             finish_turn_button.click()
-            sleep(0.5)
-            self.driver.switch_to.alert.accept()
+            sleep(0.2)
+            self.approve_alert()
         else:
             card_containers = game_page.find_elements_by_id("card-padding-container")
             selected_card = card_containers[guess.card_index]

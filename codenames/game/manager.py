@@ -54,7 +54,15 @@ class QuitGame(Exception):
     pass
 
 
-class GuessError(ValueError):
+class GameRuleError(Exception):
+    pass
+
+
+class InvalidHint(GameRuleError):
+    pass
+
+
+class InvalidGuess(GameRuleError):
     pass
 
 
@@ -143,6 +151,10 @@ class GameManager:
     def is_game_over(self) -> bool:
         return self.winner is not None
 
+    @property
+    def given_hint_words(self) -> Tuple[str, ...]:
+        return tuple(hint.word for hint in self.given_hints)
+
     def _reset_state(self, language: str, board: Board):
         log.info(f"\n{SEPARATOR}Reset state with {wrap(len(board))} cards, {wrap(language)} language")
         self.language = language
@@ -176,10 +188,10 @@ class GameManager:
 
     def _reveal_guessed_card(self, guess: Guess) -> Card:
         if guess.card_index < 0 or guess.card_index >= len(self.board):
-            raise GuessError("Given card index is out of range!")
+            raise InvalidGuess("Given card index is out of range!")
         guessed_card = self.board[guess.card_index]
         if guessed_card.revealed:
-            raise GuessError("Given card is already revealed!")
+            raise InvalidGuess("Given card is already revealed!")
         guessed_card.revealed = True
         return guessed_card
 
@@ -219,6 +231,8 @@ class GameManager:
         self._notify_game_starts()
 
     def _process_hint(self, hint: Hint) -> GivenHint:
+        if hint.word in self.given_hint_words:
+            raise InvalidHint("Hint word was already used!")
         given_hint = GivenHint(word=hint.word, card_amount=hint.card_amount, team_color=self.current_team_color)
         log.info(f"Hinter: '{hint.word}', {hint.card_amount} card(s)")
         self.given_hints.append(given_hint)
@@ -258,7 +272,7 @@ class GameManager:
             guess = guesser.guess(state=self.guesser_state)
             try:
                 self._process_guess(guess)
-            except GuessError:
+            except InvalidGuess:
                 continue
             except QuitGame:
                 winner_color = guesser.team_color.opponent

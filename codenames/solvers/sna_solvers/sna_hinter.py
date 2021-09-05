@@ -39,8 +39,8 @@ def should_filter_word(word: str, filter_expressions: Iterable[str]) -> bool:
     return False
 
 
-def pick_best_similarity(similarities: List[Similarity], words_to_filter_out: List[str]) -> Optional[Similarity]:
-    words_to_filter_out = [word.lower() for word in words_to_filter_out]
+def pick_best_similarity(similarities: List[Similarity], words_to_filter_out: Iterable[str]) -> Optional[Similarity]:
+    words_to_filter_out = {word.lower() for word in words_to_filter_out}
     filtered_similarities = []
     for similarity in similarities:
         word, grade = similarity
@@ -143,8 +143,9 @@ class SnaHinter(Hinter):
             cluster_size = len(cluster.rows)
             centroid = self.optimize_centroid(cluster.centroid)
             similarities: List[Similarity] = self.model.most_similar(centroid)
+            cluster_words = cluster.rows.index.to_list()
             best_similarity = pick_best_similarity(
-                similarities=similarities, words_to_filter_out=cluster.rows.index.to_list()
+                similarities=similarities, words_to_filter_out={*cluster_words, *state.given_hint_words}
             )
             if best_similarity is None:
                 log.info("No legal similarity found")
