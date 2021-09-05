@@ -18,7 +18,7 @@ class CardColor(Enum):
             return TeamColor.RED
         if self == CardColor.BLUE:
             return TeamColor.BLUE
-        raise ValueError(f"No such team color: {self.value}")
+        raise ValueError(f"No such team color: {self.value}.")
 
 
 class TeamColor(Enum):
@@ -126,6 +126,10 @@ class HinterGameState:
     given_hints: List[GivenHint]
     given_guesses: List[GivenGuess]
 
+    @property
+    def given_hint_words(self) -> Tuple[str, ...]:
+        return tuple(hint.word for hint in self.given_hints)
+
 
 @dataclass
 class GuesserGameState:
@@ -136,5 +140,9 @@ class GuesserGameState:
     bonus_given: bool
 
     @property
-    def given_hint(self) -> GivenHint:
+    def current_hint(self) -> GivenHint:
         return self.given_hints[-1]
+
+    @property
+    def given_hint_words(self) -> Tuple[str, ...]:
+        return tuple(hint.word for hint in self.given_hints)
