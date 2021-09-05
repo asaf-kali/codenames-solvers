@@ -297,3 +297,4 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/pycharm,python,linux,windows
+/etc/chromedriver_win32.zip
