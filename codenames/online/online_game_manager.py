@@ -116,10 +116,10 @@ class NamecodingGameManager:
             current_player = current_player_adapter.player
             log.info(f"It is {current_player} turn.")
             if isinstance(current_player, Hinter):
-                hint = self._game_manager.get_hint_and_process(hinter=current_player)
+                hint = self._game_manager.get_hint_from(hinter=current_player)
                 current_player_adapter.transmit_hint(hint)
             if isinstance(current_player, Guesser):
-                guess = self._game_manager.get_guess_and_process(guesser=current_player)
+                guess = self._game_manager.get_guess_from(guesser=current_player)
                 current_player_adapter.transmit_guess(guess)
 
     def close(self):

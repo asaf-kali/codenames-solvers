@@ -18,7 +18,7 @@ pretty_print_similarities(a)
 # %%
 from codenames.game.base import TeamColor
 from codenames.game.builder import words_to_random_board
-from codenames.game.manager import GameManager
+from codenames.game.manager import GameManager, QuitGame
 from codenames.solvers.sna_solvers.sna_hinter import SnaHinter
 from codenames.online.online_game_manager import NamecodingGameManager
 from codenames.online.online_adapter import NamecodingLanguage
@@ -39,9 +39,10 @@ red_guesser = CliGuesser("Eve", team_color=TeamColor.RED)
 game_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
 try:
     game_manager.auto_start(language=NamecodingLanguage.ENGLISH, clock=False)
-except Exception as e:
+except QuitGame as e:
+    game_manager.close()
+except Exception as e:  # noqa
     log.exception("Error occurred")
-    raise e
 finally:
     game_manager.close()
 # %%

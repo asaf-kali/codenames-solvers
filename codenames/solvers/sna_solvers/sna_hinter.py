@@ -12,11 +12,11 @@ from gensim.models import KeyedVectors
 from codenames.game.base import TeamColor, Hint, Board, HinterGameState
 from codenames.game.player import Hinter
 from codenames.model_loader import load_language
-from codenames.utils import wrap
 
 log = logging.getLogger(__name__)
 SIMILARITY_LOWER_BOUNDARY = 0.5
 
+BANNED_WORDS = {"slackerjack"}
 Similarity = Tuple[str, float]
 
 
@@ -30,6 +30,8 @@ def _invert_dict(original: dict) -> dict:
 
 def should_filter_word(word: str, filter_expressions: Iterable[str]) -> bool:
     if "_" in word:
+        return True
+    if word in BANNED_WORDS:
         return True
     for bad_word in filter_expressions:
         if word in bad_word or bad_word in word:
@@ -85,6 +87,10 @@ def cosine_distance(u: np.array, v: np.array) -> np.array:
     return 1 - cosine_similarity(u, v)
 
 
+def format_word(word: str) -> str:
+    return word.replace(" ", "_").replace("-", "_").strip()
+
+
 @dataclass
 class Cluster:
     id: int
@@ -108,7 +114,7 @@ class SnaHinter(Hinter):
     def notify_game_starts(self, language: str, board: Board):
         self.model = load_language(language=language)
         self.language_length = len(self.model.index_to_key)
-        all_words = [word.replace(" ", "_") for word in board.all_words]
+        all_words = [format_word(word) for word in board.all_words]
         vectors_lists_list: List[List[float]] = self.model[all_words].tolist()  # type: ignore
         vectors_list = [np.array(v) for v in vectors_lists_list]
         self.board_data = pd.DataFrame(
@@ -144,9 +150,9 @@ class SnaHinter(Hinter):
                 log.info("No legal similarity found")
                 continue
             word, grade = best_similarity
-            log.info(f"Cluster words: {cluster.words}, best word: {wrap(word)}")
+            log.info(f"Cluster words: {cluster.words}, best word: ({word}, {grade})")
             if grade < SIMILARITY_LOWER_BOUNDARY:
-                log.info(f"Grade wasn't good enough (was {grade})")
+                log.info(f"Grade wasn't good enough (below {SIMILARITY_LOWER_BOUNDARY})")
                 continue
             hint = Hint(word, cluster_size)
             return hint

@@ -22,6 +22,7 @@ from codenames.utils import wrap
 log = logging.getLogger(__name__)
 SEPARATOR = "\n-----\n"
 PASS_GUESS = -1
+QUIT_GAME = -2
 
 
 # Models
@@ -50,8 +51,7 @@ class Winner:
 
 
 class QuitGame(Exception):
-    def __init__(self, player: Player):
-        self.player = player
+    pass
 
 
 class GuessError(ValueError):
@@ -169,9 +169,9 @@ class GameManager:
         :return: True if the game has ended.
         """
         log.info(f"{SEPARATOR}{wrap(self.current_team_color.value)} turn")
-        self.get_hint_and_process(hinter=team.hinter)
+        self.get_hint_from(hinter=team.hinter)
         while self.left_guesses > 0:
-            self.get_guess_and_process(guesser=team.guesser)
+            self.get_guess_from(guesser=team.guesser)
         return self.is_game_over
 
     def _reveal_guessed_card(self, guess: Guess) -> Card:
@@ -218,22 +218,25 @@ class GameManager:
         self._reset_state(language=language, board=board)
         self._notify_game_starts()
 
-    def process_hint(self, hint: Hint) -> GivenHint:
+    def _process_hint(self, hint: Hint) -> GivenHint:
         given_hint = GivenHint(word=hint.word, card_amount=hint.card_amount, team_color=self.current_team_color)
         log.info(f"Hinter: '{hint.word}', {hint.card_amount} card(s)")
         self.given_hints.append(given_hint)
         self.left_guesses = given_hint.card_amount
         return given_hint
 
-    def get_hint_and_process(self, hinter: Hinter) -> Hint:
+    def get_hint_from(self, hinter: Hinter) -> Hint:
         hint = hinter.pick_hint(state=self.hinter_state)
-        self.process_hint(hint)
+        self._process_hint(hint)
         return hint
 
-    def process_guess(self, guess: Guess):
+    def _process_guess(self, guess: Guess):
         if guess.card_index == PASS_GUESS:
             log.info("Guesser passed the turn")
             return self._end_turn()
+        if guess.card_index == QUIT_GAME:
+            log.info("Guesser quit the game")
+            raise QuitGame()
         guessed_card = self._reveal_guessed_card(guess)
         given_guess = GivenGuess(given_hint=self.last_given_hint, guessed_card=guessed_card)
         log.info(f"Guesser: {given_guess}")
@@ -250,23 +253,21 @@ class GameManager:
             self.bonus_given = True
             self.left_guesses += 1
 
-    def get_guess_and_process(self, guesser: Guesser) -> Guess:
+    def get_guess_from(self, guesser: Guesser) -> Guess:
         while True:
+            guess = guesser.guess(state=self.guesser_state)
             try:
-                guess = guesser.guess(state=self.guesser_state)
-                self.process_guess(guess)
-                return guess
+                self._process_guess(guess)
             except GuessError:
-                pass
+                continue
+            except QuitGame:
+                winner_color = guesser.team_color.opponent
+                self.winner = Winner(team_color=winner_color, reason=WinningReason.OPPONENT_QUIT)
+            return guess
 
     def run_game(self, language: str, board: Board) -> TeamColor:
         self.initialize_game(language=language, board=board)
-        try:
-            self._run_rounds()
-        except QuitGame as e:
-            log.info(f"Player {e.player} quit the game!")
-            winner_color = e.player.team_color.opponent
-            self.winner = Winner(team_color=winner_color, reason=WinningReason.OPPONENT_QUIT)
+        self._run_rounds()
         log.info(
             f"{SEPARATOR}{self.winner.reason.value}, {wrap(self.winner.team_color.value)} team wins!"  # type: ignore
         )
