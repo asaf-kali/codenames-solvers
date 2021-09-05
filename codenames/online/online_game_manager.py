@@ -10,6 +10,10 @@ from codenames.online.utils import poll_not_none
 log = logging.getLogger(__name__)
 
 
+class OnlineGameError(Exception):
+    pass
+
+
 class NamecodingGameManager:
     def __init__(self, blue_hinter: Hinter, red_hinter: Hinter, blue_guesser: Guesser, red_guesser: Guesser):
         self.host: Optional[NamecodingPlayerAdapter] = None
@@ -40,7 +44,7 @@ class NamecodingGameManager:
                 self.host_game(host=player)
             else:
                 self._auto_start_semaphore.acquire()
-                log.debug("Semaphore acquire")
+                log.debug("Semaphore acquired.")
                 self.join_game(guest=player, multithreaded=True)
         if not self._running_game_id:
             log.warning("Game not running after auto start.")
@@ -48,8 +52,8 @@ class NamecodingGameManager:
         self.configure(language=language, clock=clock)
         for i in range(number_of_guests):
             self._auto_start_semaphore.acquire()
-            log.debug(f"Thread {i} done")
-        log.debug(f"All {number_of_guests} done, starting")
+            log.debug(f"Thread {i} done.")
+        log.info(f"All {number_of_guests} joined, starting.")
         self.start_game()
         self.run_game()
         return self
@@ -101,12 +105,15 @@ class NamecodingGameManager:
         self.host.start_game()
         return self
 
-    def get_current_turn_player(self) -> Optional[NamecodingPlayerAdapter]:
+    def get_current_turn_player(self) -> NamecodingPlayerAdapter:
+        log.debug("get_current_turn_player called.")
         players = list(self.players)
         for player in players:
             if player.is_my_turn():
+                log.debug(f"Found player turn: {player}.")
                 return player
-        return None
+        log.warning("Not current turn found.")
+        raise OnlineGameError("Couldn't find current player turn.")
 
     def run_game(self):
         board = self.host.parse_board()

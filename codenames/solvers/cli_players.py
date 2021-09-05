@@ -8,6 +8,7 @@ class CliHinter(Hinter):
         while True:
             try:
                 data = input("Please enter your hint in the format 'word, card_amount': ")
+                print()
                 word, card_amount = data.split(",")
                 word = word.strip()
                 card_amount_parsed = int(card_amount.strip())
@@ -19,9 +20,10 @@ class CliHinter(Hinter):
 class CliGuesser(Guesser):
     def guess(self, state: GuesserGameState) -> Guess:
         print(f"State is: {state}")
-        data = input("Please enter your guess card index: ")
         while True:
             try:
+                data = input("Please enter your guess card index: ")
+                print()
                 index = int(data.strip())
                 return Guess(card_index=index)
             except ValueError:
