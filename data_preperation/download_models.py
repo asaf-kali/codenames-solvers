@@ -15,11 +15,4 @@ for model_name in models_names:
     print(datetime.now() - begin_time)
     print(f"saved {model_name}")
 
-# %% Save models:
-begin_time = datetime.now()
-for i in range(len(models_names)):
-    models[i].save_word2vec_format(f"language_data\\{models_names[i]}.bin", binary=True)
-    print(f"saved {models_names[i]}")
-    print(datetime.now() - begin_time)
-
 
