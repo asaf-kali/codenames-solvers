@@ -25,7 +25,6 @@ def online_game():
         red_guesser = CliGuesser("Eve", team_color=TeamColor.RED)
         online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
         online_manager.auto_start(language=NamecodingLanguage.ENGLISH, clock=False)
-        log.info(f"Winner: {online_manager.winner}")
         sleep(1)
     except QuitGame:
         online_manager.close()
@@ -33,6 +32,7 @@ def online_game():
         log.exception("Error occurred")
     finally:
         if online_manager is not None:
+            log.info(f"Winner: {online_manager.winner}")
             online_manager.close()
     log.info("Done")
 

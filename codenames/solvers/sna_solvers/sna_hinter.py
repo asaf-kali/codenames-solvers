@@ -1,7 +1,7 @@
 # type: ignore
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Optional, Iterable, Union
+from typing import Dict, List, Tuple, Optional, Iterable, Sequence, Union
 
 import community
 import networkx as nx
@@ -77,15 +77,23 @@ def step_away(step_away_from: np.array, starting_point: np.array, arc_radians: f
     return rotated_original_size
 
 
-def cosine_similarity(u: np.array, v: Union[np.array, pd.core.series.Series]) -> np.array:  # Ask asaf about this type
-    if type(v) == pd.core.series.Series:
-        u = u / np.linalg.norm(u)
-        v_list = [vec / np.linalg.norm(vec) for vec in v]
-        return np.array([u.T @ vec for vec in v_list])
+def cosine_similarity_with_vectors(u: np.array, v: Sequence[np.array]) -> np.array:
+    u = u / np.linalg.norm(u)
+    v_list = [vec / np.linalg.norm(vec) for vec in v]
+    return np.array([u.T @ vec for vec in v_list])
+
+
+def cosine_similarity_with_vector(u: np.array, v: np.array) -> float:
+    u = u / np.linalg.norm(u)
+    v = v / np.linalg.norm(v)
+    return u.T @ v
+
+
+def cosine_similarity(u: np.array, v: Union[np.array, Sequence[np.array]]) -> Union[float, np.array]:
+    if isinstance(v, pd.Series):
+        return cosine_similarity_with_vectors(u, v)
     else:
-        u = u / np.linalg.norm(u)
-        v = v / np.linalg.norm(v)
-        return u.T @ v
+        return cosine_similarity_with_vector(u, v)
 
 
 def cosine_distance(u: np.array, v: np.array) -> np.array:
@@ -101,7 +109,7 @@ class Cluster:
     id: int
     # centroid: np.array
     rows: pd.DataFrame
-    grade: float
+    grade: float = 0
 
     @property
     def words(self) -> Tuple[str, ...]:
@@ -122,8 +130,8 @@ class SnaHinter(Hinter):
         self.board_data: Optional[pd.DataFrame] = None
         self.graded_clusters: List[Cluster] = []
 
-    def notify_game_starts(self, model: str, board: Board):
-        self.model = load_language(model=model)
+    def notify_game_starts(self, language: str, board: Board):
+        self.model = load_language(language=language)
         self.language_length = len(self.model.index_to_key)
         all_words = [format_word(word) for word in board.all_words]
         vectors_lists_list: List[List[float]] = self.model[all_words].tolist()  # type: ignore
@@ -190,7 +198,7 @@ class SnaHinter(Hinter):
         unique_clusters_ids = pd.unique(unrevealed_cards.cluster)
         for cluster_id in unique_clusters_ids:
             rows = unrevealed_cards[unrevealed_cards.cluster == cluster_id]
-            cluster = Cluster(id=cluster_id, rows=rows, grade=0)  # Ask Asaf about this 0
+            cluster = Cluster(id=cluster_id, rows=rows)
             self.grade_cluster(cluster)
             self.graded_clusters.append(cluster)
         self.graded_clusters.sort(key=lambda c: -c.grade)
@@ -201,13 +209,13 @@ class SnaHinter(Hinter):
     # flake8: noqa: F841
     def grade_cluster(self, cluster: Cluster) -> float:
         distances = cosine_distance(cluster.centroid, cluster.rows.vector)
-        centroid_to_black = cosine_distance(
-            cluster.centroid, self.board_data[self.board_data.color == "Black"]["vector"]
-        )
-        centroid_to_gray = np.min(
-            cosine_distance(cluster.centroid, self.board_data[self.board_data.color == "Gray"]["vector"])
-        )
-        centroid_to_opponent = 0
+        # centroid_to_black = cosine_distance(
+        #     cluster.centroid, self.board_data[self.board_data.color == "Black"]["vector"]
+        # )
+        # centroid_to_gray = np.min(
+        #     cosine_distance(cluster.centroid, self.board_data[self.board_data.color == "Gray"]["vector"])
+        # )
+        # centroid_to_opponent = 0
         return np.mean(distances)  # type: ignore
         # closest_opponent_card = self.model.most_similar_to_given("king", ["queen", "prince"])
 

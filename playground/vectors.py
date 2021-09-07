@@ -4,7 +4,7 @@ from codenames.visualizer import pretty_print_similarities
 
 # %%
 
-w = load_language("english")
+w = load_language("english", None)
 
 # %%
 
