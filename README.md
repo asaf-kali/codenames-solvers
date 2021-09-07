@@ -25,9 +25,20 @@ Algorithm to play the Codenames board game.
 ### English
 
 1. Download the [zip file](https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit?usp=sharing).
-1. Extract the `GoogleNews-vectors-negative300.bin` file into the `language_data/` folder and rename it to `english.bin`
-   .
+2. Extract the `GoogleNews-vectors-negative300.bin` file into the `language_data/` 
+folder and rename it to `english.bin`.
 
 ### Hebrew
 
 Look in the [GitHub repo](https://github.com/Ronshm/hebrew-word2vec).
+
+
+### How to work
+
+1. `git checkout main`
+2. `git pull`
+3. `git checkout [-b] <my_branch>`
+4. `git merge main`
+5. Work work work...
+6. `git commit -m "Message"`
+7. `git push`
