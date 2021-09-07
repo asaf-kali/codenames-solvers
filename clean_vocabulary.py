@@ -1,3 +1,4 @@
+# %% Imports:
 import re
 from itertools import compress
 
@@ -7,13 +8,11 @@ import pandas as pd
 from codenames.model_loader import load_language
 
 # clean_word_idx =
-# %%
+# %% Load original spammy model:
 model = load_language("english")
-temp_words = model.index_to_key[:100]
-
-
-# %%
-def filter(x: str):
+print('loaded original model')
+# %% function to filter out trash words:
+def words_filter(x: str):
     patterns = r"^[a-zA-Z\.]+$"
     if re.match(patterns, x) is None:
         return False
@@ -21,34 +20,27 @@ def filter(x: str):
         return True
 
 
-# %%
-
-logical_idx = [filter(w) for w in model.index_to_key]
+# %% create two lists of cleaned data:
+logical_idx = [words_filter(w) for w in model.index_to_key]
 clean_words = list(compress(model.index_to_key, logical_idx))  # [x for x in model.index_to_key if filter(x)]
 clean_vectors = model.vectors[logical_idx, :]
-
-# %%
+print('cleaned data')
+# %% Create a Dataframe with the clean data, and aggregate identical words in different capitalization:
 vectors_list_of_lists = clean_vectors.tolist()
 vectors_list_of_arrays = [np.array(v) for v in vectors_list_of_lists]
 lowercase_words = [s.lower() for s in clean_words]
 
-df = pd.DataFrame({"word": clean_words, "lowercase_words": lowercase_words, "vector": vectors_list_of_arrays})
-
-
-# %%
-
-
-def word_filter(x: str):
-    patterns = r"^[a-zA-Z]+$"
-    if re.match(patterns, x) is None:
-        return False
-    else:
-        return True
-
-
-# %%
-good_idx = df.loc[1:100, "words"].apply(word_filter)
-
-# %%
-for word in model.index_to_key[109990:110000]:
-    print(word, word_filter(word))
+df = pd.DataFrame({"lowercase_words": lowercase_words, "vector": vectors_list_of_arrays})
+grouped = df.groupby('lowercase_words')['vector'].agg(np.mean)
+print('capitalization unified')
+# %% Create a cleaned gensim word2vec model:
+from gensim.models import KeyedVectors
+clean_model = KeyedVectors(vector_size=300)
+clean_model.index_to_key = grouped.index.to_list()
+clean_model.key_to_index = {s: i for i, s in enumerate(clean_model.index_to_key)}
+agg_vectors = np.stack(grouped, axis=0)
+clean_model.vectors = agg_vectors
+print("created cleaned model")
+# %% Save model:
+clean_model.save_word2vec_format(r'language_data\english_cleaned.bin', binary=True)
+print("model saved")
