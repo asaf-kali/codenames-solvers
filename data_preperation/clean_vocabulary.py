@@ -14,6 +14,7 @@ print("loaded original model")
 
 # %% function to filter out trash words:
 
+
 def words_filter(x: str):
     patterns = r"^[a-zA-Z\.]+$"
     only_dots_pattern = r"^\.*$"

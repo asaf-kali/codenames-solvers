@@ -1,7 +1,8 @@
 # %% imports:
 import gensim.downloader
 from datetime import datetime
-models_names = ['glove-wiki-gigaword-50', 'glove-wiki-gigaword-100', 'glove-wiki-gigaword-300']
+
+models_names = ["glove-wiki-gigaword-50", "glove-wiki-gigaword-100", "glove-wiki-gigaword-300"]
 # %% Download and save:
 begin_time = datetime.now()
 for model_name in models_names:
@@ -14,5 +15,3 @@ for model_name in models_names:
     temp_model.save_word2vec_format(f"language_data\\{model_name}.bin", binary=True)
     print(datetime.now() - begin_time)
     print(f"saved {model_name}")
-
-
