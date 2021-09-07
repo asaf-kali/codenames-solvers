@@ -8,7 +8,7 @@ DATA_FOLDER = "language_data"
 
 
 @lru_cache
-def load_language(language: str, cleaned_model=True) -> KeyedVectors:
+def load_language(language: str, cleaned_model=False) -> KeyedVectors:
     log.debug(f"Loading language: {language}...")
     if cleaned_model:
         data_path = f"{DATA_FOLDER}/{language}_cleaned.bin"
