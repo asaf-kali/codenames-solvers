@@ -1,7 +1,7 @@
 # type: ignore
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Optional, Iterable
+from typing import Dict, List, Tuple, Optional, Iterable, Union
 
 import community
 import networkx as nx
@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 
-from codenames.game.base import TeamColor, Hint, Board, HinterGameState
+from codenames.game.base import TeamColor, Hint, Board, HinterGameState, CardColor
 from codenames.game.player import Hinter
 from codenames.model_loader import load_language
 
@@ -77,10 +77,15 @@ def step_away(step_away_from: np.array, starting_point: np.array, arc_radians: f
     return rotated_original_size
 
 
-def cosine_similarity(u: np.array, v: np.array) -> np.array:
-    u = u / np.linalg.norm(u)
-    v = v / np.linalg.norm(v)
-    return u.T @ v
+def cosine_similarity(u: np.array, v: Union[np.array, pd.core.series.Series]) -> np.array: # Ask asaf about this type
+    if type(v) == pd.core.series.Series:
+        u = u / np.linalg.norm(u)
+        v_list = [vec / np.linalg.norm(vec) for vec in v]
+        return np.array([u.T @ vec for vec in v_list])
+    else:
+        u = u / np.linalg.norm(u)
+        v = v / np.linalg.norm(v)
+        return u.T @ v
 
 
 def cosine_distance(u: np.array, v: np.array) -> np.array:
@@ -94,13 +99,19 @@ def format_word(word: str) -> str:
 @dataclass
 class Cluster:
     id: int
-    centroid: np.array
+    # centroid: np.array
     rows: pd.DataFrame
     grade: float
 
     @property
     def words(self) -> Tuple[str, ...]:
         return tuple(self.rows.index)
+
+    @property
+    def centroid(self) -> np.array:
+        non_normalized_v = np.mean(self.rows["vector_normed"])
+        normalized_v = non_normalized_v / np.linalg.norm(non_normalized_v)
+        return normalized_v
 
 
 class SnaHinter(Hinter):
@@ -111,30 +122,39 @@ class SnaHinter(Hinter):
         self.board_data: Optional[pd.DataFrame] = None
         self.graded_clusters: List[Cluster] = []
 
-    def notify_game_starts(self, language: str, board: Board):
-        self.model = load_language(language=language)
+    def notify_game_starts(self, model: str, board: Board):
+        self.model = load_language(model=model)
         self.language_length = len(self.model.index_to_key)
         all_words = [format_word(word) for word in board.all_words]
         vectors_lists_list: List[List[float]] = self.model[all_words].tolist()  # type: ignore
         vectors_list = [np.array(v) for v in vectors_lists_list]
+        vectors_list_normed = [v / np.linalg.norm(v) for v in vectors_list]
         self.board_data = pd.DataFrame(
             data={
                 "color": board.all_colors,
                 "is_revealed": board.all_reveals,
                 "vector": vectors_list,
+                "vector_normed": vectors_list_normed,
                 "cluster": None,
             },
             index=board.all_words,
         )
 
-    # def get_vector(self, word: str):
-    #     # if word in self.game.words:
-    #     #     word_index = self.game.words.index(word)
-    #     #     return self.game_vectors[word_index]
-    #     return self.model[word]
+    @property
+    def opponent_cards(self) -> pd.DataFrame:
+        return self.board_data[self.board_data.color == self.team_color.opponent]
 
-    # def rate_group(self, words: List[str]) -> float:
-    #     pass
+    @property
+    def gray_cards(self) -> pd.DataFrame:
+        return self.board_data[self.board_data.color == "Gray"]
+
+    @property
+    def own_cards(self) -> pd.DataFrame:
+        return self.board_data[self.board_data.color == self.team_color]
+
+    @property
+    def black(self) -> pd.DataFrame:
+        return self.board_data[self.board_data.color == "Black"]
 
     def pick_hint(self, state: HinterGameState) -> Hint:
         self.board_data.is_revealed = state.board.all_reveals
@@ -167,20 +187,22 @@ class SnaHinter(Hinter):
         self.divide_to_clusters(rows=unrevealed_cards)
         unrevealed_cards = self.board_data[unrevealed_index]  # Now updated with cluster columns
         self.graded_clusters = []
-        unique_clusters = pd.unique(unrevealed_cards.cluster)
-        for cluster_id in unique_clusters:
+        unique_clusters_ids = pd.unique(unrevealed_cards.cluster)
+        for cluster_id in unique_clusters_ids:
             rows = unrevealed_cards[unrevealed_cards.cluster == cluster_id]
-            centroid = np.mean(rows.vector)
-            grade = self.grade_cluster(centroid=centroid, vectors=rows.vector)
-            cluster = Cluster(id=cluster_id, centroid=centroid, rows=rows, grade=grade)
+            cluster = Cluster(id=cluster_id, rows=rows, grade=0) # Ask Asaf about this 0
+            self.grade_cluster(cluster)
             self.graded_clusters.append(cluster)
         self.graded_clusters.sort(key=lambda c: -c.grade)
 
     def optimize_centroid(self, centroid: np.array) -> np.array:
         return centroid
 
-    def grade_cluster(self, centroid: np.array, vectors: pd.Series) -> float:
-        distances = [cosine_distance(v, centroid) for v in vectors]
+    def grade_cluster(self, cluster: Cluster) -> float:
+        distances = cosine_distance(cluster.centroid, cluster.rows.vector)
+        centroid_to_black = cosine_distance(cluster.centroid, self.board_data[self.board_data.color == 'Black']['vector'])
+        centroid_to_gray = np.min(cosine_distance(cluster.centroid, self.board_data[self.board_data.color == 'Gray']['vector']))
+        centroid_to_opponent =
         return np.mean(distances)  # type: ignore
         # closest_opponent_card = self.model.most_similar_to_given("king", ["queen", "prince"])
 
