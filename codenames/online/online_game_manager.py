@@ -118,7 +118,7 @@ class NamecodingGameManager:
     def run_game(self):
         board = self.host.parse_board()
         self._game_manager.initialize_game(language=self._language.value, board=board)
-        while self._game_manager.winner is None:
+        while not self._game_manager.is_game_over:
             current_player_adapter = poll_not_none(self.get_current_turn_player)
             current_player = current_player_adapter.player
             log.info(f"It is {current_player} turn.")

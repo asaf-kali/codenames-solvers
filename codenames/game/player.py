@@ -23,7 +23,7 @@ class Player:
     def role(self) -> PlayerRole:
         raise NotImplementedError()
 
-    def notify_game_starts(self, model: str, board: Board):
+    def notify_game_starts(self, language: str, board: Board):
         pass
 
 

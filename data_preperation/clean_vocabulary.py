@@ -9,7 +9,7 @@ from gensim.models import KeyedVectors
 from codenames.model_loader import load_language
 
 # %% Load original spammy model:
-model = load_language("english", cleaned_model=False)
+model = load_language("english", None)
 print("loaded original model")
 
 # %% function to filter out trash words:

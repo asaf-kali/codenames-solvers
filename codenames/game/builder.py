@@ -10,7 +10,9 @@ def _extract_random_subset(complete_set: set, subset_size: int) -> Tuple[set, se
     return reduced_set, subset
 
 
-def words_to_random_board(words: Iterable[str]) -> Board:
+def words_to_random_board(words: Iterable[str], seed: int = None) -> Board:
+    random.seed(a=seed)
+
     words_set = set(words)
     board_size = len(words_set)
     red_amount = board_size // 3
