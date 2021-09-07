@@ -7,18 +7,18 @@ import pandas as pd
 
 from codenames.model_loader import load_language
 
-# clean_word_idx =
 # %% Load original spammy model:
-model = load_language("english")
+model = load_language("english", cleaned_model=False)
 print('loaded original model')
 # %% function to filter out trash words:
+
 def words_filter(x: str):
     patterns = r"^[a-zA-Z\.]+$"
-    if re.match(patterns, x) is None:
+    only_dots_pattern = r"^\.*$"
+    if re.match(patterns, x) is None or re.match(only_dots_pattern, x) is not None:
         return False
     else:
         return True
-
 
 # %% create two lists of cleaned data:
 logical_idx = [words_filter(w) for w in model.index_to_key]
