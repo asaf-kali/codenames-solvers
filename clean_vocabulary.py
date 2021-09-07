@@ -10,12 +10,13 @@ from codenames.model_loader import load_language
 
 # %% Load original spammy model:
 model = load_language("english", cleaned_model=False)
-print('loaded original model')
+print("loaded original model")
 # %% function to filter out trash words:
 
 def words_filter(x: str):
     patterns = r"^[a-zA-Z\.]+$"
-    if re.match(patterns, x) is None:
+    only_dots_pattern = r"^\.*$"
+    if re.match(patterns, x) is None or re.match(only_dots_pattern, x) is not None:
         return False
     else:
         return True
@@ -43,6 +44,7 @@ clean_model.key_to_index = {s: i for i, s in enumerate(clean_model.index_to_key)
 agg_vectors = np.stack(grouped, axis=0)
 clean_model.vectors = agg_vectors
 print("created cleaned model")
+
 # %% Save model:
 clean_model.save_word2vec_format(r"language_data\english_cleaned.bin", binary=True)
 print("model saved")
