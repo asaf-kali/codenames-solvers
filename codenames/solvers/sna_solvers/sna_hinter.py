@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 
-from codenames.game.base import TeamColor, Hint, Board, HinterGameState, CardColor
+from codenames.game.base import TeamColor, Hint, Board, HinterGameState
 from codenames.game.player import Hinter
 from codenames.model_loader import load_language
 
@@ -77,7 +77,7 @@ def step_away(step_away_from: np.array, starting_point: np.array, arc_radians: f
     return rotated_original_size
 
 
-def cosine_similarity(u: np.array, v: Union[np.array, pd.core.series.Series]) -> np.array: # Ask asaf about this type
+def cosine_similarity(u: np.array, v: Union[np.array, pd.core.series.Series]) -> np.array:  # Ask asaf about this type
     if type(v) == pd.core.series.Series:
         u = u / np.linalg.norm(u)
         v_list = [vec / np.linalg.norm(vec) for vec in v]
@@ -190,7 +190,7 @@ class SnaHinter(Hinter):
         unique_clusters_ids = pd.unique(unrevealed_cards.cluster)
         for cluster_id in unique_clusters_ids:
             rows = unrevealed_cards[unrevealed_cards.cluster == cluster_id]
-            cluster = Cluster(id=cluster_id, rows=rows, grade=0) # Ask Asaf about this 0
+            cluster = Cluster(id=cluster_id, rows=rows, grade=0)  # Ask Asaf about this 0
             self.grade_cluster(cluster)
             self.graded_clusters.append(cluster)
         self.graded_clusters.sort(key=lambda c: -c.grade)
@@ -198,11 +198,16 @@ class SnaHinter(Hinter):
     def optimize_centroid(self, centroid: np.array) -> np.array:
         return centroid
 
+    # flake8: noqa: F841
     def grade_cluster(self, cluster: Cluster) -> float:
         distances = cosine_distance(cluster.centroid, cluster.rows.vector)
-        centroid_to_black = cosine_distance(cluster.centroid, self.board_data[self.board_data.color == 'Black']['vector'])
-        centroid_to_gray = np.min(cosine_distance(cluster.centroid, self.board_data[self.board_data.color == 'Gray']['vector']))
-        centroid_to_opponent =
+        centroid_to_black = cosine_distance(
+            cluster.centroid, self.board_data[self.board_data.color == "Black"]["vector"]
+        )
+        centroid_to_gray = np.min(
+            cosine_distance(cluster.centroid, self.board_data[self.board_data.color == "Gray"]["vector"])
+        )
+        centroid_to_opponent = 0
         return np.mean(distances)  # type: ignore
         # closest_opponent_card = self.model.most_similar_to_given("king", ["queen", "prince"])
 
