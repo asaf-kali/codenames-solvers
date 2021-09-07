@@ -165,7 +165,7 @@ class SnaHinter(Hinter):
         )
         unrevealed_cards = self.board_data[unrevealed_index]
         self.divide_to_clusters(rows=unrevealed_cards)
-        unrevealed_cards = self.board_data[unrevealed_index]
+        unrevealed_cards = self.board_data[unrevealed_index]  # Now updated with cluster columns
         self.graded_clusters = []
         unique_clusters = pd.unique(unrevealed_cards.cluster)
         for cluster_id in unique_clusters:
@@ -191,9 +191,9 @@ class SnaHinter(Hinter):
         vis_graph.add_nodes_from(words)
         louvain = nx.Graph(vis_graph)
         for i in range(board_size):
-            v = words[i]
+            v = format_word(words[i])
             for j in range(i + 1, board_size):
-                u = words[j]
+                u = format_word(words[j])
                 distance = self.model.similarity(v, u) + 1
                 if distance > 1.1:
                     vis_graph.add_edge(v, u, weight=distance)
