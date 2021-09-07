@@ -277,6 +277,7 @@ class GameManager:
             except QuitGame:
                 winner_color = guesser.team_color.opponent
                 self.winner = Winner(team_color=winner_color, reason=WinningReason.OPPONENT_QUIT)
+                self._end_turn()
             return guess
 
     def run_game(self, language: str, board: Board) -> TeamColor:
