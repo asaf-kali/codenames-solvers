@@ -1,1 +1,3 @@
 **/*.bin
+/hebrew/heb_words.txt
+/hebrew/heb_words_vectors.npy
