@@ -20,6 +20,13 @@ class CardColor(Enum):
             return TeamColor.BLUE
         raise ValueError(f"No such team color: {self.value}.")
 
+    @property
+    def opponent(self) -> "CardColor":
+        return self.as_team_color.opponent.as_card_color
+
+    def __lt__(self, other: "CardColor") -> bool:
+        return self.value < other.value
+
 
 class TeamColor(Enum):
     BLUE = "Blue"
@@ -32,6 +39,9 @@ class TeamColor(Enum):
     @property
     def as_card_color(self) -> CardColor:
         return CardColor.BLUE if self == TeamColor.BLUE else CardColor.RED
+
+    def __lt__(self, other: "CardColor") -> bool:
+        return self.value < other.value
 
 
 @dataclass
@@ -65,13 +75,20 @@ class Board(List[Card]):
     def all_reveals(self) -> Tuple[bool, ...]:
         return tuple(card.revealed for card in self)
 
+    @property
+    def unrevealed_cards(self) -> Tuple[Card, ...]:
+        return tuple(card for card in self if not card.revealed)
+
+    def cards_for_color(self, card_color: CardColor) -> Tuple[Card, ...]:
+        return tuple(card for card in self if card.color == card_color)
+
     @cached_property
     def red_cards(self) -> Tuple[Card, ...]:
-        return tuple(card for card in self if card.color == CardColor.RED)
+        return self.cards_for_color(CardColor.RED)
 
     @cached_property
     def blue_cards(self) -> Tuple[Card, ...]:
-        return tuple(card for card in self if card.color == CardColor.BLUE)
+        return self.cards_for_color(CardColor.BLUE)
 
     @property
     def censured(self) -> "Board":

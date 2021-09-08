@@ -11,7 +11,7 @@ from gensim.models import KeyedVectors
 
 from codenames.game.base import TeamColor, Hint, Board, HinterGameState
 from codenames.game.player import Hinter
-from codenames.model_loader import load_language
+from codenames.solvers.utils.model_loader import load_language
 
 log = logging.getLogger(__name__)
 SIMILARITY_LOWER_BOUNDARY = 0.5
@@ -164,8 +164,8 @@ class SnaHinter(Hinter):
     def black(self) -> pd.DataFrame:
         return self.board_data[self.board_data.color == "Black"]
 
-    def pick_hint(self, state: HinterGameState) -> Hint:
-        self.board_data.is_revealed = state.board.all_reveals
+    def pick_hint(self, game_state: HinterGameState) -> Hint:
+        self.board_data.is_revealed = game_state.board.all_reveals
         self.generate_graded_clusters()
         for cluster in self.graded_clusters:
             cluster_size = len(cluster.rows)
@@ -173,7 +173,7 @@ class SnaHinter(Hinter):
             similarities: List[Similarity] = self.model.most_similar(centroid)
             cluster_words = cluster.rows.index.to_list()
             best_similarity = pick_best_similarity(
-                similarities=similarities, words_to_filter_out={*cluster_words, *state.given_hint_words}
+                similarities=similarities, words_to_filter_out={*cluster_words, *game_state.given_hint_words}
             )
             if best_similarity is None:
                 log.info("No legal similarity found")
