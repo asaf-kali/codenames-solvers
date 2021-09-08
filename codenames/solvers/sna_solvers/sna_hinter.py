@@ -357,15 +357,27 @@ class SnaHinter(Hinter):
         self.board_data.loc[relevant_rows, 'distance_to_centroid'] =\
             self.board_data.loc[relevant_rows, 'vector'].apply(lambda v: cosine_distance(v, centroid))
 
-    def optimization_break_condition(self, centroid):
+    def optimization_break_condition(self, centroid) -> bool:
         self.update_distances(centroid)
         distances2opponent = self.extract_centroid_distances(self.team_color.opponent.as_card_color)
         distances2own = self.extract_centroid_distances(self.team_color.as_card_color)
         distance2black = self.extract_centroid_distances(CardColor.BLACK)
         distances2gray = self.extract_centroid_distances(CardColor.GRAY)
-        # if min(distances2opponent) - max(distances2own) >
+        max_distance2own = max(distances2own)
+        if (min(distances2opponent) - max_distance2own > MIN_SELF_OPPONENT_DELTA) and\
+           (distance2black - max_distance2own > MIN_SELF_OPPONENT_DELTA) and \
+           (min(distances2gray) - max_distance2own >  MIN_SELF_GRAY_DELTA) and \
+           (max_distance2own < MAX_SELF_DISTANCE):
+            return True
+        else:
+            return False
 
-    # def clean_cluster(self, cluster: Cluster):
+    def clean_cluster(self, cluster: Cluster):
+        cluster.df['centroid_distance'] = cluster.df['vector'].apply(lambda v: cosine_distance(v, cluster.centroid))
+        max_distance = max(cluster.df['centroid_distance'])
+        rouge_word = (cluster.df['centroid_distance'] > MAX_SELF_DISTANCE) | (cluster.df['centroid_distance'] != max_distance)
+        cluster.df = cluster.df[rouge_word]
+        cluster.centroid = cluster.default_centroid
 
 
     def optimize_centroid_phys(self, cluster: Cluster) -> Cluster:
@@ -374,7 +386,9 @@ class SnaHinter(Hinter):
         # temp_board['centroid_distance'] = cluster.df['vector'].apply(lambda v: cosine_distance(v, centroid))
         # temp_board['in_current_cluster'] = temp_board.index.map(lambda x: x in cluster.df.index)
         for i in range(100):
-
+            if self.optimization_break_condition(cluster.centroid):
+                break
+            self.clean_cluster(cluster)
             nodes = self.board_df2nodes(centroid)
             centroid = step_from_forces(centroid, nodes, arc_radians=0.1)
 
