@@ -56,6 +56,7 @@ red_guesser = SnaGuesser("Eve", team_color=TeamColor.RED)
 game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
 
 # %% Run game
+from codenames.solvers.sna_solvers.sna_hinter import SnaHinter  # type: ignore
 os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
 game_manager.run_game(language="english", board=board)
 
