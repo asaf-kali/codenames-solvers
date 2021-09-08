@@ -32,7 +32,7 @@ class Hinter(Player):
     def role(self) -> PlayerRole:
         return PlayerRole.HINTER
 
-    def pick_hint(self, state: HinterGameState) -> Hint:
+    def pick_hint(self, game_state: HinterGameState) -> Hint:
         raise NotImplementedError()
 
 
@@ -41,5 +41,5 @@ class Guesser(Player):
     def role(self) -> PlayerRole:
         return PlayerRole.GUESSER
 
-    def guess(self, state: GuesserGameState) -> Guess:
+    def guess(self, game_state: GuesserGameState) -> Guess:
         raise NotImplementedError()
