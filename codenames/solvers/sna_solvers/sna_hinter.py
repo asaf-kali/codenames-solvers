@@ -15,9 +15,19 @@ from codenames.model_loader import load_language
 
 log = logging.getLogger(__name__)
 SIMILARITY_LOWER_BOUNDARY = 0.5
+MIN_BLACK_DISTANCE = 0.5
+MIN_SELF_OPPONENT_DELTA = 0.2
+MIN_SELF_GRAY_DELTA = 0.1
+MAX_SELF_DISTANCE = 0.6
+FRIENDLY_FORCE_CUTOFF = 0.4
+FRIENDLY_FORCE_FACTOR = 1
+FRIENDLY_FORCE_FACTOR = 0.5
+BLACK_FORCE_FACTOR = 2
 
 BANNED_WORDS = {"slackerjack"}
 Similarity = Tuple[str, float]
+
+
 
 
 def _invert_dict(original: dict) -> dict:
@@ -65,7 +75,7 @@ def single_gram_schmidt(v: np.array, u: np.array) -> Tuple[np.array, np.array]:
     return v, normed_o
 
 
-def step_away(step_away_from: np.array, starting_point: np.array, arc_radians: float) -> np.array:
+def step_away(starting_point: np.array, step_away_from: np.array , arc_radians: float) -> np.array:
     step_away_from, normed_o = single_gram_schmidt(step_away_from, starting_point)
 
     original_phase = starting_point.T @ step_away_from
@@ -76,6 +86,53 @@ def step_away(step_away_from: np.array, starting_point: np.array, arc_radians: f
 
     return rotated_original_size
 
+def step_towards(starting_point: np.array, step_away_from: np.array , arc_radians: float) -> np.array:
+    return step_away(starting_point, step_away_from, - arc_radians)
+
+def forces2direction(starting_point: np.array, nodes: List[Tuple[np.array, float], ...]):
+    direction_vector = starting_point
+    total_force = np.zeros(nodes[0][0].shape)
+    epsilon = 0.0001
+    for node in nodes:
+        rotated = step_away(starting_point, node[0], node[1] * epsilon)
+        contribution = rotated - starting_point
+        total_force += contribution
+    direction_vector += total_force
+    direction_vector = direction_vector / np.linalg.norm(direction_vector)
+    return direction_vector
+
+
+def step_from_forces(starting_point: np.array, nodes: List[Tuple[np.array, float], ...], arc_radians: float):
+    direction_node = forces2direction(starting_point, nodes)
+    rotated = step_towards(starting_point, nodes, arc_radians)
+    return rotated
+
+
+OPPONENT_FORCE_CUTOFF = 0.4
+OPPONENT_FORCE_FACTOR = 10
+def opponent_force(vec, opponent_vec):
+    d = cosine_distance(opponent_vec, vec)
+    if d > OPPONENT_FORCE_CUTOFF:
+        return 0
+    else:
+        # return force of OPPONENT_FORCE_FACTOR at distance=0, force of 1 at distance = OPPONENT_FORCE_CUTOFF and 0 else
+        a = OPPONENT_FORCE_FACTOR / (OPPONENT_FORCE_FACTOR - 1) * OPPONENT_FORCE_CUTOFF
+        return a / (d + a / OPPONENT_FORCE_FACTOR)
+
+def friendly_force(vec, friend_vec):
+    d = cosine_distance(vec, friend_vec)
+    if d > FRIENDLY_FORCE_CUTOFF:
+        return 0
+    else:
+        return FRIENDLY_FORCE_FACTOR * d / FRIENDLY_FORCE_CUTOFF
+
+
+def gray_force(vec, gray_vec):
+    return opponent_force(vec, gray_vec) * FRIENDLY_FORCE_FACTOR
+
+
+def black_force(vec, gray_vec):
+    return opponent_force(vec, gray_vec) * BLACK_FORCE_FACTOR
 
 def cosine_similarity_with_vectors(u: np.array, v: Sequence[np.array]) -> np.array:
     u = u / np.linalg.norm(u)
@@ -121,6 +178,11 @@ class Cluster:
         normalized_v = non_normalized_v / np.linalg.norm(non_normalized_v)
         return normalized_v
 
+    def __gt__(self, cluster_2):
+        return self.grade > cluster_2.grade
+
+    def __lt__(self, cluster_2):
+        return self.grade < cluster_2.grade
 
 class SnaHinter(Hinter):
     def __init__(self, name: str, team_color: TeamColor):
@@ -205,22 +267,52 @@ class SnaHinter(Hinter):
         self.graded_clusters.sort(key=lambda c: -c.grade)
 
     def optimize_cluster(self, cluster: Cluster, method: str = 'Geometric') -> Cluster:
+        # Initiate the middle of the cluster as the initial cluster's centroid
         initial_centroid = cluster.default_centroid
+        # Rank words by their distance to the centroid:
         cluster.df['centroid_distance'] = cluster.df['vector'].apply(lambda v: cosine_distance(v, initial_centroid))
         cluster.df.sort_values('centroid_distance', inplace=True)
+        # Generate list of optional sub_clusters within the cluster:
         sub_clusters = []
-        for sub_cluster_size in range(len(cluster.df)):
-            sub_df = cluster.df.loc[:sub_cluster_size, :]
+        for sub_cluster_size in range(1,len(cluster.df)+1):
+            sub_df = cluster.df.iloc[0:sub_cluster_size, :]
             sub_cluster = Cluster(id=sub_cluster_size, df=sub_df)
+            # For each sub_cluster, optimize it's centroid and grade it:
             if method == 'Geometric':
                 optimized_sub_cluster = self.optimize_centroid_lin(sub_cluster)
             elif method == 'Physical':
                 optimized_sub_cluster = self.optimize_centroid_phys(sub_cluster)
+            # noinspection PyUnboundLocalVariable
             sub_clusters.append(optimized_sub_cluster)
+        best_cluster = max(sub_clusters)
+        return best_cluster
 
 
     def optimize_centroid_lin(self, cluster: Cluster) -> Cluster:
+        initial_centroid = cluster.default_centroid
+        temp_board = self.board_data.copy()
+        temp_board['centroid_distance'] = cluster.df['vector'].apply(lambda v: cosine_distance(v, initial_centroid))
+        temp_board['current_cluster'] = temp_board.index.map(lambda x: x in cluster.df.index)
+        max_distance_to_self = max(temp_board[temp_board['current_cluster'] is True]['centroid_distance'])
 
+        dangerous_opponents = temp_board[(temp_board['centroid_distance'] - max_distance_to_self < MIN_SELF_OPPONENT_DELTA) &
+                                         (temp_board['color'] == self.team_color.opponent.as_card_color)]
+
+
+        # distances_to_self = cosine_distance(initial_centroid, cluster.df.vector)
+        # max_distance_to_self = max(distances_to_self)
+        # distance_to_black = cosine_distance(
+        #     initial_centroid, self.board_data[self.board_data.color == CardColor.Black]["vector"]
+        # )
+        # distances_to_gray = cosine_distance(
+        #     initial_centroid, self.board_data[self.board_data.color == CardColor.Gray]["vector"]
+        # )
+        # distances_to_opponent = cosine_distance(initial_centroid,
+        #                     self.board_data[self.board_data.color == self.team_color.opponent.as_card_color]["vector"]
+        # )
+        # self_black_delta = distance_to_black - max_distance_to_self
+        # self_opponent_delta = min(distances_to_opponent) - max_distance_to_self
+        # self_gray_delta = min(distances_to_gray) - max_distance_to_self
         return cluster
 
     def optimize_centroid_phys(self, cluster: Cluster) -> Cluster:
