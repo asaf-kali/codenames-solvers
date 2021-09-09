@@ -3,7 +3,7 @@ from codenames.game.player import Guesser, Hinter
 
 
 class CliHinter(Hinter):
-    def pick_hint(self, state: HinterGameState) -> Hint:
+    def pick_hint(self, game_state: HinterGameState) -> Hint:
         # print(f"State is: {state}")
         while True:
             try:
@@ -18,7 +18,7 @@ class CliHinter(Hinter):
 
 
 class CliGuesser(Guesser):
-    def guess(self, state: GuesserGameState) -> Guess:
+    def guess(self, game_state: GuesserGameState) -> Guess:
         # print(f"State is: {state}")
         while True:
             data = input("Please enter your guess word or card index: ").lower().strip()
@@ -26,7 +26,7 @@ class CliGuesser(Guesser):
             try:
                 index = int(data.strip())
             except ValueError:
-                if data not in state.board.all_words:
+                if data not in game_state.board.all_words:
                     continue
-                index = state.board.all_words.index(data)
+                index = game_state.board.all_words.index(data)
             return Guess(card_index=index)

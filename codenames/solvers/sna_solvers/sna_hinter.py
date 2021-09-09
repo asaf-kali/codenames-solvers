@@ -1,10 +1,10 @@
 # type: ignore
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Optional, Iterable, Sequence, Union
-import matplotlib.pyplot as plt
+from typing import Dict, List, Tuple, Optional, Iterable
 
 import community
+import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -12,8 +12,8 @@ from gensim.models import KeyedVectors
 
 from codenames.game.base import TeamColor, Hint, Board, HinterGameState, CardColor
 from codenames.game.player import Hinter
-from codenames.model_loader import load_language
-from codenames.visualizer import render
+from codenames.solvers.utils.algebra import cosine_distance, single_gram_schmidt
+from codenames.solvers.utils.model_loader import load_language
 
 log = logging.getLogger(__name__)
 SIMILARITY_LOWER_BOUNDARY = 0.25
@@ -63,18 +63,6 @@ def pick_best_similarity(similarities: List[Similarity], words_to_filter_out: It
     if len(filtered_similarities) == 0:
         return None
     return filtered_similarities[0]
-
-
-def single_gram_schmidt(v: np.array, u: np.array) -> Tuple[np.array, np.array]:
-    v = v / np.linalg.norm(v)
-    u = u / np.linalg.norm(u)
-
-    projection_norm = u.T @ v
-
-    o = u - projection_norm * v
-
-    normed_o = o / np.linalg.norm(o)
-    return v, normed_o
 
 
 def step_away(starting_point: np.array, step_away_from: np.array, arc_radians: float) -> np.array:
@@ -141,29 +129,6 @@ def gray_force(vec, gray_vec):
 
 def black_force(vec, gray_vec):
     return opponent_force(vec, gray_vec) * BLACK_FORCE_FACTOR
-
-
-def cosine_similarity_with_vectors(u: np.array, v: Sequence[np.array]) -> np.array:
-    u = u / np.linalg.norm(u)
-    v_list = [vec / np.linalg.norm(vec) for vec in v]
-    return np.array([u.T @ vec for vec in v_list])
-
-
-def cosine_similarity_with_vector(u: np.array, v: np.array) -> float:
-    u = u / np.linalg.norm(u)
-    v = v / np.linalg.norm(v)
-    return u.T @ v
-
-
-def cosine_similarity(u: np.array, v: Union[np.array, Sequence[np.array]]) -> Union[float, np.array]:
-    if isinstance(v[0], np.ndarray):
-        return cosine_similarity_with_vectors(u, v)
-    else:
-        return cosine_similarity_with_vector(u, v)
-
-
-def cosine_distance(u: np.array, v: np.array) -> np.array:
-    return (1 - cosine_similarity(u, v)) / 2
 
 
 def format_word(word: str) -> str:
@@ -248,7 +213,7 @@ class SnaHinter(Hinter):
             self.board_data["color"].isin([CardColor.GRAY, CardColor.BLAC, self.team_color.opponent.as_card_color])
         ]
 
-    def pick_hint(self, state: HinterGameState) -> Hint:
+    def pick_hint(self, game_state: HinterGameState) -> Hint:
         # self.board_data.is_revealed = state.board.all_reveals
         for resolution_parameter in [1, 2, 3]:
             self.generate_graded_clusters(resolution_parameter)
@@ -257,7 +222,7 @@ class SnaHinter(Hinter):
                 similarities: List[Similarity] = self.model.most_similar(cluster.centroid)
                 cluster_words = cluster.df.index.to_list()
                 best_similarity = pick_best_similarity(
-                    similarities=similarities, words_to_filter_out={*cluster_words, *state.given_hint_words}
+                    similarities=similarities, words_to_filter_out={*cluster_words, *game_state.given_hint_words}
                 )
                 if best_similarity is None:
                     log.info("No legal similarity found")

@@ -36,7 +36,11 @@ LOGGING_CONFIG = {
         },
     },
     "root": {"handlers": ["console_out", "console_err"], "level": "DEBUG"},
-    "loggers": {"selenium": {"level": "INFO"}, "urllib3": {"level": "INFO"}},
+    "loggers": {
+        "selenium": {"level": "INFO"},
+        "urllib3": {"level": "INFO"},
+        # "codenames.solvers.naive": {"level": "INFO"},
+    },
 }
 
 
