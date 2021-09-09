@@ -37,7 +37,7 @@ class Team:
 
 class WinningReason(Enum):
     TARGET_SCORE = "Target score reached"
-    OPPONENT_HITS_BLACK = "Opponent hit blackcard card"
+    OPPONENT_HITS_BLACK = "Opponent hit black card"
     OPPONENT_QUIT = "Opponent quit"
 
 
