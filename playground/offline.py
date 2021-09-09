@@ -5,9 +5,8 @@ from codenames.game.base import TeamColor
 from codenames.game.builder import words_to_random_board
 from codenames.game.manager import GameManager
 from codenames.model_loader import MODEL_NAME_ENV_KEY
-from codenames.solvers.cli_players import CliGuesser
+from codenames.solvers.sna_solvers.sna_guesser import SnaGuesser  # type: ignore
 from codenames.solvers.sna_solvers.sna_hinter import SnaHinter  # type: ignore
-from codenames.solvers.sna_solvers.sna_guesser import SnaGuesser
 from codenames.utils import configure_logging
 
 #
@@ -60,4 +59,3 @@ os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
 game_manager.run_game(language="english", board=board)
 
 # %%
-

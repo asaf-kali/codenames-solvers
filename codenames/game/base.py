@@ -52,7 +52,7 @@ class Card:
             censored_color = self.color
         else:
             censored_color = None
-        return Card(word=self.word, color = censored_color, revealed=self.revealed)
+        return Card(word=self.word, color=censored_color, revealed=self.revealed)
 
 
 class Board(List[Card]):
@@ -87,10 +87,6 @@ class Board(List[Card]):
     @property
     def unrevealed_cards(self) -> Tuple[Card, ...]:
         return tuple(card for card in self if card.revealed is False)
-
-    def word2idx(self, word):
-        card = [card for card in self if card.revealed is False]
-
 
 
 @dataclass(frozen=True)
