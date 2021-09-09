@@ -1,7 +1,7 @@
 # type: ignore
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Optional, Iterable, Sequence, Union
+from typing import Dict, List, Tuple, Optional, Iterable
 
 import community
 import networkx as nx
@@ -11,6 +11,7 @@ from gensim.models import KeyedVectors
 
 from codenames.game.base import TeamColor, Hint, Board, HinterGameState
 from codenames.game.player import Hinter
+from codenames.solvers.utils.algebra import cosine_distance
 from codenames.solvers.utils.model_loader import load_language
 
 log = logging.getLogger(__name__)
@@ -75,29 +76,6 @@ def step_away(step_away_from: np.array, starting_point: np.array, arc_radians: f
     rotated_original_size = rotated * np.linalg.norm(starting_point)
 
     return rotated_original_size
-
-
-def cosine_similarity_with_vectors(u: np.array, v: Sequence[np.array]) -> np.array:
-    u = u / np.linalg.norm(u)
-    v_list = [vec / np.linalg.norm(vec) for vec in v]
-    return np.array([u.T @ vec for vec in v_list])
-
-
-def cosine_similarity_with_vector(u: np.array, v: np.array) -> float:
-    u = u / np.linalg.norm(u)
-    v = v / np.linalg.norm(v)
-    return u.T @ v
-
-
-def cosine_similarity(u: np.array, v: Union[np.array, Sequence[np.array]]) -> Union[float, np.array]:
-    if isinstance(v, pd.Series):
-        return cosine_similarity_with_vectors(u, v)
-    else:
-        return cosine_similarity_with_vector(u, v)
-
-
-def cosine_distance(u: np.array, v: np.array) -> np.array:
-    return 1 - cosine_similarity(u, v)
 
 
 def format_word(word: str) -> str:

@@ -46,7 +46,7 @@ words = [
     "spiderman",
 ]
 
-board = words_to_random_board(words=words, seed=2)
+board = words_to_random_board(words=words, seed=5)
 blue_hinter = NaiveHinter("Leonardo", team_color=TeamColor.BLUE)
 blue_guesser = CliGuesser("Bard", team_color=TeamColor.BLUE)
 red_hinter = NaiveHinter("Adam", team_color=TeamColor.RED)

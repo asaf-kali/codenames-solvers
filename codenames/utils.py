@@ -39,7 +39,7 @@ LOGGING_CONFIG = {
     "loggers": {
         "selenium": {"level": "INFO"},
         "urllib3": {"level": "INFO"},
-        "codenames.solvers.naive": {"level": "INFO"},
+        # "codenames.solvers.naive": {"level": "INFO"},
     },
 }
 
