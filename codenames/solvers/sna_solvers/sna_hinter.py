@@ -446,7 +446,7 @@ class SnaHinter(Hinter):
         word_to_group: Dict[str, int] = community.best_partition(louvain)
         self.board_data.cluster = self.board_data.index.map(word_to_group)
 
-        # board_size = state.board_size
+        # board_size = state.board_size#
         # vis_graph = nx.Graph()
         # vis_graph.add_nodes_from(state.all_words)
         # louvain = nx.Graph(vis_graph)
