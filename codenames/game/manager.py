@@ -240,7 +240,7 @@ class GameManager:
         return given_hint
 
     def get_hint_from(self, hinter: Hinter) -> Hint:
-        hint = hinter.pick_hint(state=self.hinter_state)
+        hint = hinter.pick_hint(game_state=self.hinter_state)
         self._process_hint(hint)
         return hint
 
@@ -269,7 +269,7 @@ class GameManager:
 
     def get_guess_from(self, guesser: Guesser) -> Guess:
         while True:
-            guess = guesser.guess(state=self.guesser_state)
+            guess = guesser.guess(game_state=self.guesser_state)
             try:
                 self._process_guess(guess)
             except InvalidGuess:

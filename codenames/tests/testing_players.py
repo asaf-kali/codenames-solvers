@@ -18,7 +18,7 @@ class TestHinter(Hinter):
         self.hints = iter(hints)
         self.auto_quit = auto_quit
 
-    def pick_hint(self, state: HinterGameState) -> Hint:
+    def pick_hint(self, game_state: HinterGameState) -> Hint:
         try:
             hint = next(self.hints)
         except StopIteration:
@@ -36,7 +36,7 @@ class TestGuesser(Guesser):
         self.guesses = iter(guesses)
         self.auto_quit = auto_quit
 
-    def guess(self, state: GuesserGameState) -> Guess:
+    def guess(self, game_state: GuesserGameState) -> Guess:
         try:
             guess = next(self.guesses)
         except StopIteration:
