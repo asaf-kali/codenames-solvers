@@ -37,7 +37,7 @@ def fill_input(element: WebElement, value: str):
 
 
 def _parse_card(card_element: WebElement) -> Card:
-    word = card_element.find_element_by_id("bottom").text
+    word = card_element.find_element_by_id("bottom").text.lower().strip()
     namecoding_color = card_element.find_element_by_id("right").get_attribute("team")
     card_color = parse_card_color(namecoding_color=namecoding_color)
     image_overlay = card_element.find_element_by_id("image-overlay")
@@ -47,7 +47,7 @@ def _parse_card(card_element: WebElement) -> Card:
 
 
 class NamecodingPlayerAdapter:
-    def __init__(self, player: Player, implicitly_wait: int = 1, headless: bool = True):
+    def __init__(self, player: Player, implicitly_wait: int = 1, headless: bool = False):
         options = webdriver.ChromeOptions()
         if headless:
             options.add_argument("headless")
@@ -199,7 +199,7 @@ class NamecodingPlayerAdapter:
         clue_input = clue_area.find_element_by_id("clue-input")
         cards_input = clue_area.find_element_by_id("cards-input")
         submit_clue_button = clue_area.find_element_by_id("submit-clue-button")
-        fill_input(clue_input, hint.word)
+        fill_input(clue_input, hint.word.title())
         fill_input(cards_input, str(hint.card_amount))
         submit_clue_button.click()
         sleep(0.2)

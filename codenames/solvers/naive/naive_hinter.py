@@ -1,22 +1,21 @@
 import itertools
 import logging
 from dataclasses import dataclass
+from functools import cached_property
 from typing import List, Tuple, Optional, Iterable
 
 import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 
-from codenames.game.base import TeamColor, HinterGameState, Hint, Board, CardColor
+from codenames.game.base import TeamColor, HinterGameState, Hint, Board, CardColor, Card
 from codenames.game.player import Hinter
-from codenames.solvers.sna_solvers.sna_hinter import cosine_distance  # type: ignore
+from codenames.solvers.utils.algebra import cosine_distance
 from codenames.solvers.utils.model_loader import load_language
 from codenames.solvers.utils.models import Similarity
 from codenames.utils import wrap
 
 log = logging.getLogger(__name__)
-
-SIMILARITY_LOWER_BOUNDARY = 0.5
 
 WordGroup = Tuple[str, ...]
 
@@ -42,23 +41,32 @@ class NoProposalsFound(Exception):
 
 @dataclass
 class ProposalThresholds:
+    min_frequency: float
     max_distance_group: float
     min_distance_gray: float
     min_distance_opponent: float
     min_distance_black: float
 
 
+# min_frequency:         high = more results
 # max_distance_group:     high = more results
 # min_distance_gray:      high = less results
 # min_distance_opponent:  high = less results
 # min_distance_black:     high = less results
-DEFAULT_THRESHOLDS = ProposalThresholds(0.50, 0.55, 0.60, 0.65)
+DEFAULT_THRESHOLDS = ProposalThresholds(
+    min_frequency=0.9,  # Can't be less common then X.
+    max_distance_group=0.24,  # Can't be far from the group more then X.
+    min_distance_gray=0.27,  # Can't be closer to gray then X.
+    min_distance_opponent=0.3,  # Can't be closer to opponent then X.
+    min_distance_black=0.32,  # Can't be closer to black then X.
+)
 
 
 @dataclass
 class Proposal:
     word_group: WordGroup
     hint_word: str
+    hint_word_frequency: float
     distance_group: float
     distance_gray: float
     distance_opponent: float
@@ -78,11 +86,12 @@ def calculate_proposal_grade(proposal: Proposal) -> float:
     High grade is good.
     """
     return (
-        1.4 * len(proposal.word_group)
-        - 3.0 * proposal.distance_group
-        + 2.0 * proposal.distance_gray
-        + 3.0 * proposal.distance_opponent
-        + 4.0 * proposal.distance_black
+        1.5 * len(proposal.word_group)
+        + 2.0 * proposal.hint_word_frequency
+        - 2.5 * proposal.distance_group
+        + 1.0 * proposal.distance_gray
+        + 1.5 * proposal.distance_opponent
+        + 2.0 * proposal.distance_black
     )
 
 
@@ -109,11 +118,38 @@ class NaiveProposalsGenerator:
         )
         self.illegal_words = {*self.game_state.board.all_words, *self.game_state.given_hint_words}
 
+    def get_vectors(self, index: np.ndarray) -> pd.Series:
+        return self.board_data[index]["vector"]
+
+    def word_group_vectors(self, word_group: WordGroup) -> pd.Series:
+        return self.get_vectors(self.board_data.index.isin(word_group))
+
+    @cached_property
+    def team_unrevealed_cards(self) -> Tuple[Card, ...]:
+        team_cards = self.game_state.board.cards_for_color(self.team_card_color)
+        return tuple(card for card in team_cards if not card.revealed)
+
+    @cached_property
+    def gray_vectors(self) -> pd.Series:
+        return self.get_vectors(self.board_data.color == CardColor.GRAY)
+
+    @cached_property
+    def opponent_vectors(self) -> pd.Series:
+        return self.get_vectors(self.board_data.color == self.team_card_color.opponent)
+
+    @cached_property
+    def black_vectors(self) -> pd.Series:
+        return self.get_vectors(self.board_data.color == CardColor.BLACK)
+
+    def get_word_frequency(self, word: str) -> float:
+        return 1 - self.model.key_to_index[word] / len(self.model)
+
     def should_filter_proposal(self, proposal: Proposal) -> bool:
         if not self.thresholds_filter_active:
             return False
         return (
-            proposal.distance_group > self.proposals_thresholds.max_distance_group
+            proposal.hint_word_frequency < self.proposals_thresholds.min_frequency
+            or proposal.distance_group > self.proposals_thresholds.max_distance_group
             or proposal.distance_gray < self.proposals_thresholds.min_distance_gray
             or proposal.distance_opponent < self.proposals_thresholds.min_distance_opponent
             or proposal.distance_black < self.proposals_thresholds.min_distance_black
@@ -124,17 +160,14 @@ class NaiveProposalsGenerator:
         if should_filter_word(word=word, filter_expressions=self.illegal_words):
             return None
         word_vector = self.model[word]
-        word_to_group = cosine_distance(word_vector, self.board_data[self.board_data.index.isin(word_group)]["vector"])
-        word_to_gray = cosine_distance(word_vector, self.board_data[self.board_data.color == CardColor.GRAY]["vector"])
-        word_to_opponent = cosine_distance(
-            word_vector, self.board_data[self.board_data.color == self.team_card_color.opponent]["vector"]
-        )
-        word_to_black = cosine_distance(
-            word_vector, self.board_data[self.board_data.color == CardColor.BLACK]["vector"]
-        )
+        word_to_group = cosine_distance(word_vector, self.word_group_vectors(word_group))
+        word_to_gray = cosine_distance(word_vector, self.gray_vectors)
+        word_to_opponent = cosine_distance(word_vector, self.opponent_vectors)
+        word_to_black = cosine_distance(word_vector, self.black_vectors)
         proposal = Proposal(
             word_group=word_group,
             hint_word=word,
+            hint_word_frequency=self.get_word_frequency(word),
             distance_group=np.max(word_to_group),
             distance_gray=np.min(word_to_gray),
             distance_opponent=np.min(word_to_opponent),
@@ -156,9 +189,14 @@ class NaiveProposalsGenerator:
         return proposals
 
     def create_proposals_for_word_group(self, word_group: WordGroup) -> List[Proposal]:
-        log.debug(f"Creating proposals for group: {word_group}.")
+        # log.debug(f"Creating proposals for group: {word_group}.")
         vectors = self.model[word_group]  # type: ignore
         centroid = np.mean(vectors, axis=0)
+        group_vectors = self.word_group_vectors(word_group)
+        centroid_to_group = cosine_distance(centroid, group_vectors)
+        max_centroid_to_group = np.max(centroid_to_group)
+        if self.thresholds_filter_active and max_centroid_to_group > self.proposals_thresholds.max_distance_group:
+            return []
         # distances = cosine_distance(centroid, vectors)
         # group_similarity = np.mean(distances)
         similarities = self.model.most_similar(centroid)  # type: ignore
@@ -166,10 +204,8 @@ class NaiveProposalsGenerator:
 
     def create_proposals_for_group_size(self, group_size: int) -> List[Proposal]:
         log.info(f"Creating proposals for group size {wrap(group_size)}...")
-        team_cards = self.game_state.board.cards_for_color(self.team_card_color)
-        unrevealed_cards = tuple(card for card in team_cards if not card.revealed)
         proposals = []
-        for card_group in itertools.combinations(unrevealed_cards, group_size):
+        for card_group in itertools.combinations(self.team_unrevealed_cards, group_size):
             word_group = tuple(card.word for card in card_group)
             word_group_proposals = self.create_proposals_for_word_group(word_group=word_group)
             proposals.extend(word_group_proposals)
@@ -200,10 +236,12 @@ class NaiveHinter(Hinter):
     def notify_game_starts(self, language: str, board: Board):
         self.model = load_language(language=language)
 
-    def pick_proposal(self, proposals: List[Proposal]) -> Proposal:
+    def pick_best_proposal(self, proposals: List[Proposal]) -> Proposal:
         if len(proposals) == 0:
             raise NoProposalsFound()
         proposals.sort(key=lambda proposal: -proposal.grade)
+        best_5_repr = "\n".join(str(p) for p in proposals[:5])
+        log.info(f"Best 5 proposals: \n{best_5_repr}")
         best_proposal = proposals[0]
         log.info(f"Picked proposal: {best_proposal}")
         return best_proposal
@@ -218,7 +256,7 @@ class NaiveHinter(Hinter):
         )
         proposals = proposal_generator.generate_proposals(self.max_group_size)
         try:
-            proposal = self.pick_proposal(proposals=proposals)
+            proposal = self.pick_best_proposal(proposals=proposals)
             return Hint(proposal.hint_word, proposal.card_count)
         except NoProposalsFound:
             log.info("No legal proposals found.")
