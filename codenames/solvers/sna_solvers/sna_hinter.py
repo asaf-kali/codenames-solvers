@@ -94,7 +94,7 @@ def step_towards(starting_point: np.array, step_away_from: np.array , arc_radian
     return step_away(starting_point, step_away_from, - arc_radians)
 
 
-def sum_forces(starting_point: np.array, nodes: List[Tuple[np.array, float], ...]) -> np.array:
+def sum_forces(starting_point: np.array, nodes) -> np.array: # : List[Tuple([)np.array, float], ...]
     # Nodes are vector+Force from vector pairs
     total_force = np.zeros(nodes[0][0].shape)
     epsilon = 0.00001
@@ -105,7 +105,7 @@ def sum_forces(starting_point: np.array, nodes: List[Tuple[np.array, float], ...
     return total_force / epsilon
 
 
-def step_from_forces(starting_point: np.array, nodes: List[Tuple[np.array, float], ...], arc_radians: float) -> np.array():
+def step_from_forces(starting_point: np.array, nodes, arc_radians: float) -> np.array: #: List[Tuple[np.array, float], ...]
     net_force = sum_forces(starting_point, nodes)
     direction_vector = starting_point + net_force
     force_size = np.linalg.norm(net_force)
@@ -262,12 +262,12 @@ class SnaHinter(Hinter):
         return Hint("IDK", 2)
 
     def generate_graded_clusters(self, resolution_parameter=1):
-        unrevealed_index = (self.board_data.is_revealed == False) & (  # noqa: E712
+        unrevealed_self_index = (self.board_data.is_revealed == False) & (  # noqa: E712
             self.board_data.color == self.team_color.as_card_color
         )
-        unrevealed_cards = self.board_data[unrevealed_index]
+        unrevealed_cards = self.board_data[unrevealed_self_index]
         self.divide_to_clusters(df=unrevealed_cards, resolution_parameter=resolution_parameter)
-        unrevealed_cards = self.board_data[unrevealed_index]  # Now updated with cluster columns
+        unrevealed_cards = self.board_data[unrevealed_self_index]  # Now updated with cluster columns
         self.graded_clusters = []
         unique_clusters_ids = pd.unique(unrevealed_cards.cluster)
         for cluster_id in unique_clusters_ids:
@@ -312,7 +312,7 @@ class SnaHinter(Hinter):
         else:
             raise ValueError(f"color{row['color']} is not a valid color")
 
-    def board_df2nodes(self, centroid: np.array) -> List[Tuple[np.array, float], ...]:
+    def board_df2nodes(self, centroid: np.array): #-> List[Tuple[np.array, float], ...]:
         relevant_df = self.board_data[self.board_data['is_revealed'] == False]
         relevant_df['force'] = relevant_df.apply(lambda row: self.color2force(centroid, row))
         relevant_df = relevant_df[['vector', 'force']]
@@ -353,9 +353,11 @@ class SnaHinter(Hinter):
     # BLACK_FORCE_FACTOR = 2
 
     def update_distances(self, centroid):
-        relevant_rows = self.board_data[not self.board_data['is_revealed']]
-        self.board_data.loc[relevant_rows, 'distance_to_centroid'] =\
-            self.board_data.loc[relevant_rows, 'vector'].apply(lambda v: cosine_distance(v, centroid))
+        # relevant_idx = self.board_data['is_revealed'].apply(lambda x: not x)
+        # relevant_rows = self.board_data[relevant_idx]
+        # self.board_data.loc[relevant_rows, 'distance_to_centroid'] =\
+            # self.board_data.loc[relevant_rows, 'vector'].apply(lambda v: cosine_distance(v, centroid))
+        self.board_data['distance_to_centroid'] = self.board_data['vector'].apply(lambda v: cosine_distance(v, centroid))
 
     def optimization_break_condition(self, centroid) -> bool:
         self.update_distances(centroid)
@@ -381,7 +383,7 @@ class SnaHinter(Hinter):
 
 
     def optimize_centroid_phys(self, cluster: Cluster) -> Cluster:
-        centroid = cluster.default_centroid
+        cluster.centroid = cluster.default_centroid
         # temp_board = self.board_data.copy()
         # temp_board['centroid_distance'] = cluster.df['vector'].apply(lambda v: cosine_distance(v, centroid))
         # temp_board['in_current_cluster'] = temp_board.index.map(lambda x: x in cluster.df.index)
@@ -389,8 +391,9 @@ class SnaHinter(Hinter):
             if self.optimization_break_condition(cluster.centroid):
                 break
             self.clean_cluster(cluster)
-            nodes = self.board_df2nodes(centroid)
-            centroid = step_from_forces(centroid, nodes, arc_radians=0.1)
+            nodes = self.board_df2nodes(cluster.centroid)
+            cluster.centroid = step_from_forces(cluster.centroid, nodes, arc_radians=0.1)
+        return cluster
 
     # flake8: noqa: F841
     def grade_cluster(self, cluster: Cluster) -> float:
