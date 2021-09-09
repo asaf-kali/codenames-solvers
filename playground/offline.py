@@ -1,8 +1,6 @@
 # %%
 import os
 
-import pandas as pd
-
 from codenames.game.base import TeamColor
 from codenames.game.builder import words_to_random_board
 from codenames.game.manager import GameManager
