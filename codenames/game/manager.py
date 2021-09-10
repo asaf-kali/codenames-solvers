@@ -17,6 +17,7 @@ from codenames.game.base import (
     GuesserGameState,
 )
 from codenames.game.player import Guesser, Hinter, Player
+from codenames.solvers.utils.models import WordGroup
 from codenames.utils import wrap
 
 log = logging.getLogger(__name__)
@@ -152,7 +153,7 @@ class GameManager:
         return self.winner is not None
 
     @property
-    def given_hint_words(self) -> Tuple[str, ...]:
+    def given_hint_words(self) -> WordGroup:
         return tuple(hint.word for hint in self.given_hints)
 
     def _reset_state(self, language: str, board: Board):
