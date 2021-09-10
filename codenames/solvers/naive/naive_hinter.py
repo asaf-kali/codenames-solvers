@@ -87,7 +87,6 @@ def calculate_proposal_grade(proposal: Proposal) -> float:
     """
     return (
         1.5 * len(proposal.word_group)
-        + 2.0 * proposal.hint_word_frequency
         - 2.5 * proposal.distance_group
         + 1.0 * proposal.distance_gray
         + 1.5 * proposal.distance_opponent

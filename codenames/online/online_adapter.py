@@ -49,6 +49,8 @@ def _parse_card(card_element: WebElement) -> Card:
 class NamecodingPlayerAdapter:
     def __init__(self, player: Player, implicitly_wait: int = 1, headless: bool = True):
         options = webdriver.ChromeOptions()
+        if player.is_human:
+            headless = False
         if headless:
             options.add_argument("headless")
         self.driver = webdriver.Chrome(f"{WEBDRIVER_FOLDER}/chromedriver", options=options)

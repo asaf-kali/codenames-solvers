@@ -3,6 +3,10 @@ from codenames.game.player import Guesser, Hinter
 
 
 class CliHinter(Hinter):
+    @property
+    def is_human(self) -> bool:
+        return True
+
     def pick_hint(self, game_state: HinterGameState) -> Hint:
         # print(f"State is: {state}")
         while True:
@@ -18,6 +22,10 @@ class CliHinter(Hinter):
 
 
 class CliGuesser(Guesser):
+    @property
+    def is_human(self) -> bool:
+        return True
+
     def guess(self, game_state: GuesserGameState) -> Guess:
         # print(f"State is: {state}")
         while True:
