@@ -12,12 +12,10 @@ from codenames.game.base import TeamColor, HinterGameState, Hint, Board, CardCol
 from codenames.game.player import Hinter
 from codenames.solvers.utils.algebra import cosine_distance
 from codenames.solvers.utils.model_loader import load_language
-from codenames.solvers.utils.models import Similarity
+from codenames.solvers.utils.models import Similarity, WordGroup
 from codenames.utils import wrap
 
 log = logging.getLogger(__name__)
-
-WordGroup = Tuple[str, ...]
 
 
 def should_filter_word(word: str, filter_expressions: Iterable[str]) -> bool:
