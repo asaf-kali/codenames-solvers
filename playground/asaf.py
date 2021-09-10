@@ -61,10 +61,6 @@ blue_guesser = CliGuesser("Bard", team_color=TeamColor.BLUE)
 red_hinter = NaiveHinter("Adam", team_color=TeamColor.RED)
 red_guesser = NaiveGuesser("Eve", team_color=TeamColor.RED)
 
-# %% Offline
-game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
-game_manager.run_game(language="english", board=board)
-
 # %% Online
 online_manager = None
 try:
@@ -80,3 +76,7 @@ finally:
         log.info(f"Winner: {online_manager.winner}")
         online_manager.close()
 log.info("Done")
+
+# %% Offline
+game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
+game_manager.run_game(language="english", board=board)
