@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
-from typing import Tuple, List, Optional
+from typing import Tuple, List, Optional, Callable
 
 from codenames.game.base import (
     TeamColor,
@@ -17,6 +17,7 @@ from codenames.game.base import (
     GuesserGameState,
 )
 from codenames.game.player import Guesser, Hinter, Player
+from codenames.solvers.utils.models import WordGroup
 from codenames.utils import wrap
 
 log = logging.getLogger(__name__)
@@ -95,6 +96,8 @@ class GameManager:
         self.bonus_given = False
         self.left_guesses = 0
         self.winner: Optional[Winner] = None
+        self.hint_given_subscribers: List[Callable[[Hinter, Hint], None]] = []
+        self.guess_given_subscribers: List[Callable[[Guesser, Guess], None]] = []
 
     @staticmethod
     def from_teams(blue_team: Team, red_team: Team):
@@ -111,10 +114,7 @@ class GameManager:
 
     @cached_property
     def guessers(self) -> Tuple[Guesser, Guesser]:
-        return (
-            self.blue_guesser,
-            self.red_guesser,
-        )
+        return self.blue_guesser, self.red_guesser
 
     @cached_property
     def players(self) -> Tuple[Player, ...]:
@@ -152,8 +152,20 @@ class GameManager:
         return self.winner is not None
 
     @property
-    def given_hint_words(self) -> Tuple[str, ...]:
+    def given_hint_words(self) -> WordGroup:
         return tuple(hint.word for hint in self.given_hints)
+
+    def initialize_game(self, language: str, board: Board):
+        self._reset_state(language=language, board=board)
+        self._notify_game_starts()
+
+    def run_game(self, language: str, board: Board) -> TeamColor:
+        self.initialize_game(language=language, board=board)
+        self._run_rounds()
+        log.info(
+            f"{SEPARATOR}{self.winner.reason.value}, {wrap(self.winner.team_color.value)} team wins!"  # type: ignore
+        )
+        return self.winner  # type: ignore
 
     def _reset_state(self, language: str, board: Board):
         log.info(f"\n{SEPARATOR}Reset state with {wrap(len(board))} cards, {wrap(language)} language")
@@ -175,59 +187,28 @@ class GameManager:
         for guesser in self.guessers:
             guesser.notify_game_starts(language=self.language, board=censored_board)
 
+    def _run_rounds(self):
+        while not self.is_game_over:
+            current_team = self.blue_team if self.current_team_color == TeamColor.BLUE else self.red_team
+            self._run_team_turn(team=current_team)
+
     def _run_team_turn(self, team: Team) -> bool:
         """
         :param team: the team to play this turn.
         :return: True if the game has ended.
         """
-        self.get_hint_from(hinter=team.hinter)
+        self._get_hint_from(hinter=team.hinter)
         while self.left_guesses > 0:
-            self.get_guess_from(guesser=team.guesser)
+            self._get_guess_from(guesser=team.guesser)
         return self.is_game_over
 
-    def _reveal_guessed_card(self, guess: Guess) -> Card:
-        if guess.card_index < 0 or guess.card_index >= len(self.board):
-            raise InvalidGuess("Given card index is out of range!")
-        guessed_card = self.board[guess.card_index]
-        if guessed_card.revealed:
-            raise InvalidGuess("Given card is already revealed!")
-        guessed_card.revealed = True
-        return guessed_card
-
-    def _end_turn(self):
-        self.left_guesses = 0
-        self.bonus_given = False
-        self.current_team_color = self.current_team_color.opponent
-
-    def _run_rounds(self):
-        while True:
-            if self.current_team_color == TeamColor.BLUE:
-                if self._run_team_turn(team=self.blue_team):
-                    break
-            else:
-                if self._run_team_turn(team=self.red_team):
-                    break
-
-    def _check_winner(self) -> bool:
-        score_target = {TeamColor.BLUE: len(self.board.blue_cards), TeamColor.RED: len(self.board.red_cards)}
-        for guess in self.given_guesses:
-            card_color = guess.guessed_card.color
-            if card_color == CardColor.GRAY:
-                continue
-            if card_color == CardColor.BLACK:
-                winner_color = guess.team.opponent
-                self.winner = Winner(team_color=winner_color, reason=WinningReason.OPPONENT_HITS_BLACK)
-                return True
-            team_color = card_color.as_team_color  # type: ignore
-            score_target[team_color] -= 1
-            if score_target[team_color] == 0:
-                self.winner = Winner(team_color=team_color, reason=WinningReason.TARGET_SCORE)
-                return True
-        return False
-
-    def initialize_game(self, language: str, board: Board):
-        self._reset_state(language=language, board=board)
-        self._notify_game_starts()
+    def _get_hint_from(self, hinter: Hinter) -> Hint:
+        log.info(f"{SEPARATOR}{wrap(self.current_team_color.value)} turn.")
+        hint = hinter.pick_hint(game_state=self.hinter_state)
+        self._process_hint(hint)
+        for subscriber in self.hint_given_subscribers:
+            subscriber(hinter, hint)
+        return hint
 
     def _process_hint(self, hint: Hint) -> GivenHint:
         if hint.word in self.given_hint_words:
@@ -238,11 +219,20 @@ class GameManager:
         self.left_guesses = given_hint.card_amount
         return given_hint
 
-    def get_hint_from(self, hinter: Hinter) -> Hint:
-        log.info(f"{SEPARATOR}{wrap(self.current_team_color.value)} turn.")
-        hint = hinter.pick_hint(game_state=self.hinter_state)
-        self._process_hint(hint)
-        return hint
+    def _get_guess_from(self, guesser: Guesser) -> Guess:
+        while True:
+            guess = guesser.guess(game_state=self.guesser_state)
+            try:
+                self._process_guess(guess)
+            except InvalidGuess:
+                continue
+            except QuitGame:
+                winner_color = guesser.team_color.opponent
+                self.winner = Winner(team_color=winner_color, reason=WinningReason.OPPONENT_QUIT)
+                self._end_turn()
+            for subscriber in self.guess_given_subscribers:
+                subscriber(guesser, guess)
+            return guess
 
     def _process_guess(self, guess: Guess):
         if guess.card_index == PASS_GUESS:
@@ -267,23 +257,33 @@ class GameManager:
             self.bonus_given = True
             self.left_guesses += 1
 
-    def get_guess_from(self, guesser: Guesser) -> Guess:
-        while True:
-            guess = guesser.guess(game_state=self.guesser_state)
-            try:
-                self._process_guess(guess)
-            except InvalidGuess:
-                continue
-            except QuitGame:
-                winner_color = guesser.team_color.opponent
-                self.winner = Winner(team_color=winner_color, reason=WinningReason.OPPONENT_QUIT)
-                self._end_turn()
-            return guess
+    def _reveal_guessed_card(self, guess: Guess) -> Card:
+        if guess.card_index < 0 or guess.card_index >= len(self.board):
+            raise InvalidGuess("Given card index is out of range!")
+        guessed_card = self.board[guess.card_index]
+        if guessed_card.revealed:
+            raise InvalidGuess("Given card is already revealed!")
+        guessed_card.revealed = True
+        return guessed_card
 
-    def run_game(self, language: str, board: Board) -> TeamColor:
-        self.initialize_game(language=language, board=board)
-        self._run_rounds()
-        log.info(
-            f"{SEPARATOR}{self.winner.reason.value}, {wrap(self.winner.team_color.value)} team wins!"  # type: ignore
-        )
-        return self.winner  # type: ignore
+    def _end_turn(self):
+        self.left_guesses = 0
+        self.bonus_given = False
+        self.current_team_color = self.current_team_color.opponent
+
+    def _check_winner(self) -> bool:
+        score_target = {TeamColor.BLUE: len(self.board.blue_cards), TeamColor.RED: len(self.board.red_cards)}
+        for guess in self.given_guesses:
+            card_color = guess.guessed_card.color
+            if card_color == CardColor.GRAY:
+                continue
+            if card_color == CardColor.BLACK:
+                winner_color = guess.team.opponent
+                self.winner = Winner(team_color=winner_color, reason=WinningReason.OPPONENT_HITS_BLACK)
+                return True
+            team_color = card_color.as_team_color  # type: ignore
+            score_target[team_color] -= 1
+            if score_target[team_color] == 0:
+                self.winner = Winner(team_color=team_color, reason=WinningReason.TARGET_SCORE)
+                return True
+        return False

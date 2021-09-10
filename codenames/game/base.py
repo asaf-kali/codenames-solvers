@@ -3,6 +3,8 @@ from enum import Enum
 from functools import cached_property
 from typing import List, Optional, Tuple
 
+from codenames.solvers.utils.models import WordGroup
+
 BLACK_AMOUNT = 1
 
 
@@ -69,7 +71,7 @@ class Board(List[Card]):
         return len(self)
 
     @cached_property
-    def all_words(self) -> Tuple[str, ...]:
+    def all_words(self) -> WordGroup:
         return tuple(card.word for card in self)
 
     @property
@@ -149,7 +151,7 @@ class HinterGameState:
     given_guesses: List[GivenGuess]
 
     @property
-    def given_hint_words(self) -> Tuple[str, ...]:
+    def given_hint_words(self) -> WordGroup:
         return tuple(hint.word for hint in self.given_hints)
 
 
@@ -166,5 +168,5 @@ class GuesserGameState:
         return self.given_hints[-1]
 
     @property
-    def given_hint_words(self) -> Tuple[str, ...]:
+    def given_hint_words(self) -> WordGroup:
         return tuple(hint.word for hint in self.given_hints)

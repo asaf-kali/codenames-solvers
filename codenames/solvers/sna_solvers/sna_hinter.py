@@ -14,6 +14,7 @@ from codenames.game.base import TeamColor, Hint, Board, HinterGameState, CardCol
 from codenames.game.player import Hinter
 from codenames.solvers.utils.algebra import cosine_distance, single_gram_schmidt
 from codenames.solvers.utils.model_loader import load_language
+from codenames.solvers.utils.models import WordGroup
 
 log = logging.getLogger(__name__)
 SIMILARITY_LOWER_BOUNDARY = 0.25
@@ -143,7 +144,7 @@ class Cluster:
     grade: float = 0
 
     @property
-    def words(self) -> Tuple[str, ...]:
+    def words(self) -> WordGroup:
         return tuple(self.df.index)
 
     @property
