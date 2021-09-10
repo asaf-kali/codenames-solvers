@@ -15,9 +15,9 @@ from codenames.game.base import (
     Board,
     Hint,
     GuesserGameState,
+    WordGroup,
 )
 from codenames.game.player import Guesser, Hinter, Player
-from codenames.solvers.utils.models import WordGroup
 from codenames.utils import wrap
 
 log = logging.getLogger(__name__)

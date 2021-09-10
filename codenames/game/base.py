@@ -3,9 +3,10 @@ from enum import Enum
 from functools import cached_property
 from typing import List, Optional, Tuple
 
-from codenames.solvers.utils.models import WordGroup
-
 BLACK_AMOUNT = 1
+
+Similarity = Tuple[str, float]
+WordGroup = Tuple[str, ...]
 
 
 class CardColor(Enum):
