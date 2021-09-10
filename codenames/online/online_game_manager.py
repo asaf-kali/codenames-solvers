@@ -24,8 +24,8 @@ class NamecodingGameManager:
         self._running_game_id: Optional[str] = None
         self._auto_start_semaphore = Semaphore()
         self._language: NamecodingLanguage = NamecodingLanguage.HEBREW
-        self._game_manager.hint_given_subscribers.append(self.handle_hint_given)
-        self._game_manager.guess_given_subscribers.append(self.handle_guess_given)
+        self._game_manager.hint_given_subscribers.append(self._handle_hint_given)
+        self._game_manager.guess_given_subscribers.append(self._handle_guess_given)
 
     @property
     def adapters(self) -> Iterable[NamecodingPlayerAdapter]:
@@ -36,7 +36,7 @@ class NamecodingGameManager:
     def winner(self) -> Optional[Winner]:
         return self._game_manager.winner
 
-    def get_adapter_for_player(self, player: Player) -> NamecodingPlayerAdapter:
+    def _get_adapter_for_player(self, player: Player) -> NamecodingPlayerAdapter:
         for adapter in self.adapters:
             if adapter.player == player:
                 return adapter
@@ -57,7 +57,7 @@ class NamecodingGameManager:
         if not self._running_game_id:
             log.warning("Game not running after auto start.")
             return self
-        self.configure(language=language, clock=clock)
+        self.configure_game(language=language, clock=clock)
         for i in range(number_of_guests):
             self._auto_start_semaphore.acquire()
             log.debug(f"Thread {i} done.")
@@ -88,12 +88,12 @@ class NamecodingGameManager:
         t.start()
         return self
 
-    def bulk_join_game(self, *guests: Player) -> "NamecodingGameManager":
+    def bulk_add_to_game(self, *guests: Player) -> "NamecodingGameManager":
         for guest in guests:
             self.add_to_game(guest=guest)
         return self
 
-    def configure(
+    def configure_game(
         self, language: NamecodingLanguage = NamecodingLanguage.ENGLISH, clock: bool = True
     ) -> "NamecodingGameManager":
         if not self.host:
@@ -103,7 +103,12 @@ class NamecodingGameManager:
         self.host.set_clock(clock=clock)
         return self
 
-    def start_game(self) -> "NamecodingGameManager":
+    def run_game(self):
+        self._start_game()
+        board = self.host.parse_board()
+        self._game_manager.run_game(language=self._language.value, board=board)
+
+    def _start_game(self) -> "NamecodingGameManager":
         if not self.host:
             raise IllegalOperation("Can't start game before hosting initiated. Call host_game() first.")
         self.host.ready()
@@ -112,17 +117,12 @@ class NamecodingGameManager:
         self.host.start_game()
         return self
 
-    def run_game(self):
-        self.start_game()
-        board = self.host.parse_board()
-        self._game_manager.run_game(language=self._language.value, board=board)
-
-    def handle_hint_given(self, hinter: Hinter, hint: Hint):
-        adapter = self.get_adapter_for_player(player=hinter)
+    def _handle_hint_given(self, hinter: Hinter, hint: Hint):
+        adapter = self._get_adapter_for_player(player=hinter)
         adapter.transmit_hint(hint=hint)
 
-    def handle_guess_given(self, guesser: Guesser, guess: Guess):
-        adapter = self.get_adapter_for_player(player=guesser)
+    def _handle_guess_given(self, guesser: Guesser, guess: Guess):
+        adapter = self._get_adapter_for_player(player=guesser)
         adapter.transmit_guess(guess=guess)
 
     def close(self):
