@@ -57,11 +57,9 @@ class Card:
         result += " V" if self.revealed else " X"
         return result
 
-    def censor(self):
-        if self.revealed:
-            censored_color = self.color
-        else:
-            censored_color = None
+    @property
+    def censored(self) -> "Card":
+        censored_color = self.color if self.revealed else None
         return Card(word=self.word, color=censored_color, revealed=self.revealed)
 
 
@@ -99,7 +97,7 @@ class Board(List[Card]):
 
     @property
     def censured(self) -> "Board":
-        return Board([card.censor() for card in self])
+        return Board([card.censored for card in self])
 
 
 @dataclass(frozen=True)

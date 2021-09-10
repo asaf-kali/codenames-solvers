@@ -47,7 +47,7 @@ words = [
     "spiderman",
 ]
 
-board = words_to_random_board(words=words, seed=5)
+board = words_to_random_board(words=words, seed=3)
 
 # %% Run game - SNA
 from codenames.solvers.sna_solvers.sna_hinter import SnaHinter  # noqa: E402
