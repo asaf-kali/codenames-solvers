@@ -15,12 +15,20 @@ class OnlineGameError(Exception):
 
 
 class NamecodingGameManager:
-    def __init__(self, blue_hinter: Hinter, red_hinter: Hinter, blue_guesser: Guesser, red_guesser: Guesser):
+    def __init__(
+        self,
+        blue_hinter: Hinter,
+        red_hinter: Hinter,
+        blue_guesser: Guesser,
+        red_guesser: Guesser,
+        show_host: bool = False,
+    ):
         self.host: Optional[NamecodingPlayerAdapter] = None
         self.guests: List[NamecodingPlayerAdapter] = []
         self._game_manager = GameManager(
             blue_hinter=blue_hinter, red_hinter=red_hinter, blue_guesser=blue_guesser, red_guesser=red_guesser
         )
+        self._show_host = show_host
         self._running_game_id: Optional[str] = None
         self._auto_start_semaphore = Semaphore()
         self._language: NamecodingLanguage = NamecodingLanguage.HEBREW
@@ -49,11 +57,11 @@ class NamecodingGameManager:
         self._auto_start_semaphore = Semaphore(value=number_of_guests)
         for player in self._game_manager.players:
             if not self.host:
-                self.host_game(host=player)
+                self.host_game(host_player=player)
             else:
                 self._auto_start_semaphore.acquire()
                 log.debug("Semaphore acquired.")
-                self.add_to_game(guest=player, multithreaded=True)
+                self.add_to_game(guest_player=player, multithreaded=True)
         if not self._running_game_id:
             log.warning("Game not running after auto start.")
             return self
@@ -65,32 +73,32 @@ class NamecodingGameManager:
         self.run_game()
         return self
 
-    def host_game(self, host: Player) -> "NamecodingGameManager":
+    def host_game(self, host_player: Player) -> "NamecodingGameManager":
         if self.host:
             raise IllegalOperation("A game is already running.")
-        host_adapter = NamecodingPlayerAdapter(player=host)
-        host_adapter.open().host_game().choose_role()
-        self._running_game_id = host_adapter.get_game_id()
-        self.host = host_adapter
+        host = NamecodingPlayerAdapter(player=host_player, headless=not self._show_host)
+        host.open().host_game().choose_role()
+        self._running_game_id = host.get_game_id()
+        self.host = host
         return self
 
-    def add_to_game(self, guest: Player, multithreaded: bool = False) -> "NamecodingGameManager":
+    def add_to_game(self, guest_player: Player, multithreaded: bool = False) -> "NamecodingGameManager":
         if not self._running_game_id:
             raise IllegalOperation("Can't join game before hosting initiated. Call host_game() first.")
         if not multithreaded:
-            guest_adapter = NamecodingPlayerAdapter(player=guest)
-            guest_adapter.open().join_game(game_id=self._running_game_id).choose_role()
-            self.guests.append(guest_adapter)
+            guest = NamecodingPlayerAdapter(player=guest_player)
+            guest.open().join_game(game_id=self._running_game_id).choose_role()
+            self.guests.append(guest)
             self._auto_start_semaphore.release()
             log.debug("Semaphore release")
             return self
-        t = Thread(target=self.add_to_game, args=[guest, False], daemon=True)
+        t = Thread(target=self.add_to_game, args=[guest_player, False], daemon=True)
         t.start()
         return self
 
     def bulk_add_to_game(self, *guests: Player) -> "NamecodingGameManager":
         for guest in guests:
-            self.add_to_game(guest=guest)
+            self.add_to_game(guest_player=guest)
         return self
 
     def configure_game(
