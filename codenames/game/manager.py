@@ -112,10 +112,7 @@ class GameManager:
 
     @cached_property
     def guessers(self) -> Tuple[Guesser, Guesser]:
-        return (
-            self.blue_guesser,
-            self.red_guesser,
-        )
+        return self.blue_guesser, self.red_guesser
 
     @cached_property
     def players(self) -> Tuple[Player, ...]:
@@ -201,13 +198,9 @@ class GameManager:
         self.current_team_color = self.current_team_color.opponent
 
     def _run_rounds(self):
-        while True:
-            if self.current_team_color == TeamColor.BLUE:
-                if self._run_team_turn(team=self.blue_team):
-                    break
-            else:
-                if self._run_team_turn(team=self.red_team):
-                    break
+        while not self.is_game_over:
+            current_team = self.blue_team if self.current_team_color == TeamColor.BLUE else self.red_team
+            self._run_team_turn(team=current_team)
 
     def _check_winner(self) -> bool:
         score_target = {TeamColor.BLUE: len(self.board.blue_cards), TeamColor.RED: len(self.board.red_cards)}
