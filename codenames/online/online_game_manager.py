@@ -112,7 +112,7 @@ class NamecodingGameManager:
             if player.is_my_turn():
                 log.debug(f"Found player turn: {player}.")
                 return player
-        log.warning("Not current turn found.")
+        log.warning("Current turn not found.")
         raise OnlineGameError("Couldn't find current player turn.")
 
     def run_game(self):
