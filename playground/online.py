@@ -9,7 +9,7 @@ from codenames.game.manager import QuitGame
 from codenames.game.player import Hinter, Guesser
 from codenames.online.online_adapter import NamecodingPlayerAdapter, NamecodingLanguage
 from codenames.online.online_game_manager import NamecodingGameManager
-from codenames.solvers.cli_players import CliGuesser
+from codenames.solvers.naive.naive_guesser import NaiveGuesser
 from codenames.solvers.naive.naive_hinter import NaiveHinter
 from codenames.solvers.sna_solvers.sna_hinter import SnaHinter  # type: ignore  # noqa
 from codenames.solvers.utils.model_loader import MODEL_NAME_ENV_KEY
@@ -23,9 +23,9 @@ def online_game():
     online_manager = None
     try:
         blue_hinter = NaiveHinter("Leonardo", team_color=TeamColor.BLUE)
-        blue_guesser = CliGuesser("Bard", team_color=TeamColor.BLUE)
+        blue_guesser = NaiveGuesser("Bard", team_color=TeamColor.BLUE)
         red_hinter = NaiveHinter("Adam", team_color=TeamColor.RED)
-        red_guesser = CliGuesser("Eve", team_color=TeamColor.RED)
+        red_guesser = NaiveGuesser("Eve", team_color=TeamColor.RED)
         online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
         online_manager.auto_start(language=NamecodingLanguage.ENGLISH, clock=False)
         sleep(1)

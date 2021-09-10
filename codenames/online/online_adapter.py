@@ -47,7 +47,7 @@ def _parse_card(card_element: WebElement) -> Card:
 
 
 class NamecodingPlayerAdapter:
-    def __init__(self, player: Player, implicitly_wait: int = 1, headless: bool = False):
+    def __init__(self, player: Player, implicitly_wait: int = 1, headless: bool = True):
         options = webdriver.ChromeOptions()
         if headless:
             options.add_argument("headless")
@@ -207,7 +207,7 @@ class NamecodingPlayerAdapter:
         sleep(0.5)
         return self
 
-    def approve_alert(self, max_tries: int = 10, interval_seconds: float = 0.3):
+    def approve_alert(self, max_tries: int = 20, interval_seconds: float = 0.5):
         log.debug("Approve alert called.")
         tries = 0
         while True:

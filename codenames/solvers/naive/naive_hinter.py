@@ -243,7 +243,7 @@ class NaiveHinter(Hinter):
         best_5_repr = "\n".join(str(p) for p in proposals[:5])
         log.info(f"Best 5 proposals: \n{best_5_repr}")
         best_proposal = proposals[0]
-        log.info(f"Picked proposal: {best_proposal}")
+        log.info(f"Picked proposal: {repr(best_proposal)}")
         return best_proposal
 
     def pick_hint(self, game_state: HinterGameState, thresholds_filter_active: bool = True) -> Hint:
@@ -259,7 +259,7 @@ class NaiveHinter(Hinter):
             proposal = self.pick_best_proposal(proposals=proposals)
             return Hint(proposal.hint_word, proposal.card_count)
         except NoProposalsFound:
-            log.info("No legal proposals found.")
+            log.warning("No legal proposals found.")
             if not thresholds_filter_active:
                 return Hint("IDK", 2)
             log.info("Trying without thresholds filtering.")
