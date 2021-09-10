@@ -23,6 +23,10 @@ class Player:
     def role(self) -> PlayerRole:
         raise NotImplementedError()
 
+    @property
+    def is_human(self) -> bool:
+        return False
+
     def notify_game_starts(self, language: str, board: Board):
         pass
 
