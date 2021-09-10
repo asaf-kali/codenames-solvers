@@ -8,11 +8,10 @@ import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 
-from codenames.game.base import TeamColor, HinterGameState, Hint, Board, CardColor, Card
+from codenames.game.base import TeamColor, HinterGameState, Hint, Board, CardColor, Card, Similarity, WordGroup
 from codenames.game.player import Hinter
 from codenames.solvers.utils.algebra import cosine_distance
 from codenames.solvers.utils.model_loader import load_language
-from codenames.solvers.utils.models import Similarity, WordGroup
 from codenames.utils import wrap
 
 log = logging.getLogger(__name__)
