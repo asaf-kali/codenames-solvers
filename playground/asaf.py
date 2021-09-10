@@ -8,6 +8,7 @@ from codenames.game.builder import words_to_random_board
 from codenames.game.manager import GameManager, QuitGame
 from codenames.online.online_adapter import NamecodingLanguage
 from codenames.online.online_game_manager import NamecodingGameManager
+from codenames.solvers.cli_players import CliGuesser
 from codenames.solvers.naive.naive_guesser import NaiveGuesser
 from codenames.solvers.naive.naive_hinter import NaiveHinter
 from codenames.solvers.utils.model_loader import MODEL_NAME_ENV_KEY
@@ -56,7 +57,7 @@ words = [
 board = words_to_random_board(words=words, seed=3)
 
 blue_hinter = NaiveHinter("Leonardo", team_color=TeamColor.BLUE)
-blue_guesser = NaiveGuesser("Bard", team_color=TeamColor.BLUE)
+blue_guesser = CliGuesser("Bard", team_color=TeamColor.BLUE)
 red_hinter = NaiveHinter("Adam", team_color=TeamColor.RED)
 red_guesser = NaiveGuesser("Eve", team_color=TeamColor.RED)
 
