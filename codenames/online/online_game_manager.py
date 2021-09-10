@@ -61,7 +61,7 @@ class NamecodingGameManager:
     def host_game(self, host: Player) -> "NamecodingGameManager":
         if self.host:
             raise IllegalOperation("A game is already running.")
-        host_adapter = NamecodingPlayerAdapter(player=host, headless=False)
+        host_adapter = NamecodingPlayerAdapter(player=host)
         host_adapter.open().host_game().choose_role()
         self._running_game_id = host_adapter.get_game_id()
         self.host = host_adapter
@@ -112,7 +112,7 @@ class NamecodingGameManager:
             if player.is_my_turn():
                 log.debug(f"Found player turn: {player}.")
                 return player
-        log.warning("Not current turn found.")
+        log.warning("Current turn not found.")
         raise OnlineGameError("Couldn't find current player turn.")
 
     def run_game(self):

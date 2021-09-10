@@ -180,7 +180,6 @@ class GameManager:
         :param team: the team to play this turn.
         :return: True if the game has ended.
         """
-        log.info(f"{SEPARATOR}{wrap(self.current_team_color.value)} turn")
         self.get_hint_from(hinter=team.hinter)
         while self.left_guesses > 0:
             self.get_guess_from(guesser=team.guesser)
@@ -240,6 +239,7 @@ class GameManager:
         return given_hint
 
     def get_hint_from(self, hinter: Hinter) -> Hint:
+        log.info(f"{SEPARATOR}{wrap(self.current_team_color.value)} turn.")
         hint = hinter.pick_hint(game_state=self.hinter_state)
         self._process_hint(hint)
         return hint
