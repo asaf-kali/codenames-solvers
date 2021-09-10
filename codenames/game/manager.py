@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
-from typing import Tuple, List, Optional
+from typing import Tuple, List, Optional, Callable
 
 from codenames.game.base import (
     TeamColor,
@@ -96,6 +96,8 @@ class GameManager:
         self.bonus_given = False
         self.left_guesses = 0
         self.winner: Optional[Winner] = None
+        self.hint_given_subscribers: List[Callable[[Hinter, Hint], None]] = []
+        self.guess_given_subscribers: List[Callable[[Guesser, Guess], None]] = []
 
     @staticmethod
     def from_teams(blue_team: Team, red_team: Team):
@@ -236,6 +238,8 @@ class GameManager:
         log.info(f"{SEPARATOR}{wrap(self.current_team_color.value)} turn.")
         hint = hinter.pick_hint(game_state=self.hinter_state)
         self._process_hint(hint)
+        for subscriber in self.hint_given_subscribers:
+            subscriber(hinter, hint)
         return hint
 
     def _process_guess(self, guess: Guess):
@@ -272,6 +276,8 @@ class GameManager:
                 winner_color = guesser.team_color.opponent
                 self.winner = Winner(team_color=winner_color, reason=WinningReason.OPPONENT_QUIT)
                 self._end_turn()
+            for subscriber in self.guess_given_subscribers:
+                subscriber(guesser, guess)
             return guess
 
     def run_game(self, language: str, board: Board) -> TeamColor:
