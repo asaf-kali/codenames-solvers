@@ -12,7 +12,7 @@ from codenames.online.online_game_manager import NamecodingGameManager
 from codenames.solvers.naive.naive_guesser import NaiveGuesser
 from codenames.solvers.naive.naive_hinter import NaiveHinter
 from codenames.solvers.sna_solvers.sna_hinter import SnaHinter  # type: ignore  # noqa
-from codenames.solvers.utils.model_loader import MODEL_NAME_ENV_KEY
+from language_data.model_loader import MODEL_NAME_ENV_KEY
 from codenames.utils import configure_logging
 
 configure_logging()
