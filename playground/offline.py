@@ -6,7 +6,7 @@ import os
 from codenames.game.base import TeamColor
 from codenames.game.builder import words_to_random_board
 from codenames.game.manager import GameManager
-from codenames.solvers.utils.model_loader import MODEL_NAME_ENV_KEY
+from language_data.model_loader import MODEL_NAME_ENV_KEY
 from codenames.utils import configure_logging
 
 configure_logging()

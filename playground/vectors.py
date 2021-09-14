@@ -1,5 +1,5 @@
 import numpy as np
-from codenames.solvers.utils.model_loader import load_language
+from language_data.model_loader import load_language
 from codenames.visualizer import pretty_print_similarities
 
 # %%

@@ -6,7 +6,7 @@ from codenames.game.base import GuesserGameState, Guess, TeamColor, Board
 from codenames.game.manager import PASS_GUESS
 from codenames.game.player import Guesser
 from codenames.solvers.naive.naive_hinter import format_word
-from codenames.solvers.utils.model_loader import load_language
+from language_data.model_loader import load_language
 
 log = logging.getLogger(__name__)
 

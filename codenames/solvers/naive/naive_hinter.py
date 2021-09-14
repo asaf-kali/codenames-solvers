@@ -11,8 +11,8 @@ from gensim.models import KeyedVectors
 from codenames.game.base import TeamColor, HinterGameState, Hint, Board, CardColor, Card, Similarity, WordGroup
 from codenames.game.player import Hinter
 from codenames.solvers.utils.algebra import cosine_distance
-from codenames.solvers.utils.model_loader import load_language
 from codenames.utils import wrap
+from language_data.model_loader import load_language
 
 log = logging.getLogger(__name__)
 
@@ -76,6 +76,19 @@ class Proposal:
     @property
     def card_count(self) -> int:
         return len(self.word_group)
+
+    @property
+    def detailed_string(self) -> str:
+        return (
+            f"Proposal(word_group={self.word_group}, "
+            f"hint_word={self.hint_word}, "
+            f"hint_word_frequency={self.hint_word_frequency:.3f}, "
+            f"distance_group={self.distance_group:.3f}, "
+            f"distance_gray={self.distance_gray:.3f}, "
+            f"distance_opponent={self.distance_opponent:.3f}, "
+            f"distance_black={self.distance_black:.3f}, "
+            f"grade={self.grade:.3f})"
+        )
 
 
 def calculate_proposal_grade(proposal: Proposal) -> float:
@@ -222,7 +235,7 @@ def pick_best_proposal(proposals: List[Proposal]) -> Proposal:
     best_5_repr = "\n".join(str(p) for p in proposals[:5])
     log.info(f"Best 5 proposals: \n{best_5_repr}")
     best_proposal = proposals[0]
-    log.info(f"Picked proposal: {repr(best_proposal)}")
+    log.info(f"Picked proposal: {best_proposal.detailed_string}")
     return best_proposal
 
 
