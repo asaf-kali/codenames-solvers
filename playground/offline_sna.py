@@ -54,9 +54,9 @@ words = [
 board = words_to_random_board(words=words)
 
 # %% Run game - SNA
-blue_hinter = SnaHinter("Leonardo", team_color=TeamColor.BLUE, debug_mode=False)
+blue_hinter = SnaHinter("Leonardo", team_color=TeamColor.BLUE, debug_mode=True)
 blue_guesser = NaiveGuesser("Bard", team_color=TeamColor.BLUE)
-red_hinter = SnaHinter("Adam", team_color=TeamColor.RED, debug_mode=False)
+red_hinter = SnaHinter("Adam", team_color=TeamColor.RED, debug_mode=True)
 red_guesser = NaiveGuesser("Eve", team_color=TeamColor.RED)
 game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
 game_manager.run_game(language="english", board=board)
