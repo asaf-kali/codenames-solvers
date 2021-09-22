@@ -50,7 +50,7 @@ words = [
 board = words_to_random_board(words=words, seed=3)
 
 # %% Run game - SNA
-from codenames.solvers.sna_solvers.sna_hinter import SnaHinter  # noqa: E402
+from codenames.solvers.sna_solvers.sna_phys_hinter import SnaHinter  # noqa: E402
 from codenames.solvers.naive.naive_guesser import NaiveGuesser  # noqa: E402
 
 blue_hinter = SnaHinter("Leonardo", team_color=TeamColor.BLUE)

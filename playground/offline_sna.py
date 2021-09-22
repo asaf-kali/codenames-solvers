@@ -2,7 +2,7 @@
 
 # %%
 import os
-from codenames.solvers.sna_solvers.sna_hinter import SnaHinter  # noqa: E402
+from codenames.solvers.sna_solvers.sna_phys_hinter import SnaHinter  # noqa: E402
 from codenames.solvers.naive.naive_guesser import NaiveGuesser  # noqa: E402
 from codenames.game.base import TeamColor
 from codenames.game.builder import words_to_random_board
