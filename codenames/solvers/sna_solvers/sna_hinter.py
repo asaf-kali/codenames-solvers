@@ -256,48 +256,7 @@ class SnaHinter(Hinter):
         self.graded_clusters.sort(key=lambda c: -c.grade)
 
     def optimize_cluster(self, cluster: Cluster, method: str = "Geometric") -> Cluster:
-        # Initiate the middle of the cluster as the initial cluster's centroid
-        initial_centroid = cluster.default_centroid
-        # Rank words by their distance to the centroid:
-        cluster.df["centroid_distance"] = cluster.df["vector"].apply(lambda v: cosine_distance(v, initial_centroid))
-        cluster.df.sort_values("centroid_distance", inplace=True)
-        cluster = self.optimize_centroid_phys(cluster)
-        # Generate list of optional sub_clusters within the cluster:
-        # sub_clusters = []
-        # for sub_cluster_size in range(1,len(cluster.df)+1):
-        #     sub_df = cluster.df.iloc[0:sub_cluster_size, :]
-        #     sub_cluster = Cluster(id=sub_cluster_size, df=sub_df)
-        #     # For each sub_cluster, optimize it's centroid and grade it:
-        #     if method == 'Geometric':
-        #         optimized_sub_cluster = self.optimize_centroid_lin(sub_cluster)
-        #     elif method == 'Physical':
-        #         optimized_sub_cluster = self.optimize_centroid_phys(sub_cluster)
-        #     # noinspection PyUnboundLocalVariable
-        #     sub_clusters.append(optimized_sub_cluster)
-        # best_cluster = max(sub_clusters)
-        return cluster
-
-    def color2force(self, centroid, row):
-        d = cosine_distance(centroid, row["vector"])
-        if row["color"] == self.team_color.opponent.as_card_color:
-            return opponent_force(d)
-        elif row["color"] == CardColor.BLACK:
-            return black_force(d)
-        elif row["color"] == CardColor.GRAY:
-            return gray_force(d)
-        elif row["color"] == self.team_color.as_card_color:
-            return friendly_force(d)
-        else:
-            raise ValueError(f"color{row['color']} is not a valid color")
-
-    def board_df2nodes(self, centroid: np.array):  # -> List[Tuple[np.array, float], ...]:
-        relevant_df = self.board_data[self.board_data["is_revealed"] == False]
-        relevant_df["force"] = relevant_df.apply(lambda row: self.color2force(centroid, row), axis=1)
-        relevant_df = relevant_df[["vector", "force"]]
-        return list(relevant_df.itertuples(index=False, name=None))
-
-    def optimize_centroid_lin(self, cluster: Cluster) -> Cluster:
-        return cluster
+        raise NotImplementedError()
 
     def extract_centroid_distances(self, color: CardColor):
         relevant_df = self.board_data[self.board_data["is_revealed"] == False]
@@ -317,44 +276,11 @@ class SnaHinter(Hinter):
             raise ValueError(f"No such color as {color}")
         return relevant_df.loc[color_rows, "distance_to_centroid"]
 
-    # MIN_BLACK_DISTANCE = 0.5
-    # MIN_SELF_BLACK_DELTA = 0.3
-    # MIN_SELF_OPPONENT_DELTA = 0.2
-    # MIN_SELF_GRAY_DELTA = 0.1
-    # MAX_SELF_DISTANCE = 0.6
-    # OPPONENT_FORCE_CUTOFF = 0.4
-    # OPPONENT_FORCE_FACTOR = 10
-    # FRIENDLY_FORCE_CUTOFF = 0.4
-    # FRIENDLY_FORCE_FACTOR = 1
-    # FRIENDLY_FORCE_FACTOR = 0.5
-    # BLACK_FORCE_FACTOR = 2
 
     def update_distances(self, centroid):
-        # relevant_idx = self.board_data['is_revealed'].apply(lambda x: not x)
-        # relevant_rows = self.board_data[relevant_idx]
-        # self.board_data.loc[relevant_rows, 'distance_to_centroid'] =\
-        # self.board_data.loc[relevant_rows, 'vector'].apply(lambda v: cosine_distance(v, centroid))
         self.board_data["distance_to_centroid"] = self.board_data["vector"].apply(
             lambda v: cosine_distance(v, centroid)
         )
-
-    def optimization_break_condition(self, cluster: Cluster) -> bool:
-        self.update_distances(cluster.centroid)
-        distances2opponent = self.extract_centroid_distances(self.team_color.opponent.as_card_color)
-        distances2own = self.extract_centroid_distances(self.team_color.as_card_color)
-        distances2own = distances2own[distances2own.index.isin(cluster.df.index.to_list())]
-        distance2black = self.extract_centroid_distances(CardColor.BLACK)
-        distances2gray = self.extract_centroid_distances(CardColor.GRAY)
-        max_distance2own = max(distances2own)
-        if (
-            (min(distances2opponent) - max_distance2own > MIN_SELF_OPPONENT_DELTA)
-            and (distance2black[0] - max_distance2own > MIN_SELF_OPPONENT_DELTA)
-            and (min(distances2gray) - max_distance2own > MIN_SELF_GRAY_DELTA)
-            and (max_distance2own < MAX_SELF_DISTANCE)
-        ):
-            return True
-        else:
-            return False
 
     def clean_cluster(self, cluster: Cluster):
         cluster.df["centroid_distance"] = cluster.df["vector"].apply(lambda v: cosine_distance(v, cluster.centroid))
@@ -362,25 +288,6 @@ class SnaHinter(Hinter):
         central_word = (cluster.df["centroid_distance"] < MAX_SELF_DISTANCE) | (cluster.df["centroid_distance"] != max_distance)
         cluster.df = cluster.df[central_word]
         cluster.centroid = cluster.default_centroid
-
-    def optimize_centroid_phys(self, cluster: Cluster) -> Cluster:
-        # temp_board = self.board_data.copy()
-        # temp_board['centroid_distance'] = cluster.df['vector'].apply(lambda v: cosine_distance(v, centroid))
-        # temp_board['in_current_cluster'] = temp_board.index.map(lambda x: x in cluster.df.index)
-        cluster.centroid = cluster.default_centroid
-        if self.debug_mode is True:
-            self.draw_guesser_view(cluster)
-        for i in range(100):
-            self.clean_cluster(cluster)
-            if self.debug_mode is True:
-                self.draw_guesser_view(cluster)
-            if self.optimization_break_condition(cluster):
-                break
-            nodes = self.board_df2nodes(cluster.centroid)
-            cluster.centroid = step_from_forces(cluster.centroid, nodes, arc_radians=5e-2)
-            if self.debug_mode is True:
-                self.draw_guesser_view(cluster)
-        return cluster
 
     # flake8: noqa: F841
     def grade_cluster(self, cluster: Cluster) -> float:
@@ -398,7 +305,6 @@ class SnaHinter(Hinter):
             )
         )
         return np.mean(distances)  # type: ignore
-        # closest_opponent_card = self.model.most_similar_to_given("king", ["queen", "prince"])
 
     def draw_guesser_view(self, cluster: Cluster):
         self.update_distances(cluster.centroid)
@@ -423,24 +329,6 @@ class SnaHinter(Hinter):
         )
         plt.title(best_similarity)
         plt.show()
-        # n = len(relevant_df)
-        # G = nx.Graph()
-        # G.add_node('centroid', color='green')
-        # nodes_list = [(index, {'color': row['color'].value.lower()}) for index, row in relevant_df.iterrows()]
-        # G.add_nodes_from(nodes_list)
-        # edges_list = [('centroid', index, (1+row['distance_to_centroid'])**5) for index, row in relevant_df.iterrows()]
-        # G.add_weighted_edges_from(edges_list)
-        # # relevant_df['source'] = 'centroid_node'
-        # # relevant_df['target'] = relevant_df.index
-        # # relevant_df['color'] = relevant_df['color'].apply(lambda x: x.value.lower())
-        # # relevant_df.rename(columns={'distance_to_centroid': 'length'}, inplace=True)
-        # # relevant_df['length'] = relevant_df['length'].apply(lambda x: 1 / x**3)
-        # # relevant_df = relevant_df[['source', 'target', 'length', 'color']]
-        # pos = nx.spring_layout(G)
-        # nx.draw(G, pos, with_labels=True)
-        # plt.show()
-        # render(G)
-        # print('plottet')
 
     def divide_to_clusters(self, df: pd.DataFrame, resolution_parameter=1):
         board_size = len(df)
