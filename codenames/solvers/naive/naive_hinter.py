@@ -85,13 +85,14 @@ def calculate_proposal_grade(proposal: Proposal) -> float:
     """
     High grade is good.
     """
-    return (
+    grade = (
         1.5 * len(proposal.word_group)
         - 2.5 * proposal.distance_group
         + 1.0 * proposal.distance_gray
         + 1.5 * proposal.distance_opponent
         + 2.0 * proposal.distance_black
     )
+    return np.nan_to_num(grade, nan=-100)
 
 
 @dataclass
