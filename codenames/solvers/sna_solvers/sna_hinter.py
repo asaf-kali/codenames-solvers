@@ -19,8 +19,8 @@ from codenames.solvers.utils.model_loader import load_language
 log = logging.getLogger(__name__)
 SIMILARITY_LOWER_BOUNDARY = 0.25
 MIN_BLACK_DISTANCE = 0.25
-MIN_SELF_BLACK_DELTA = 0.15
-MIN_SELF_OPPONENT_DELTA = 0.1
+MIN_SELF_BLACK_DELTA = 0.05
+MIN_SELF_OPPONENT_DELTA = 0.05
 MIN_SELF_GRAY_DELTA = 0.05
 MAX_SELF_DISTANCE = 0.2
 OPPONENT_FORCE_CUTOFF = 0.275
@@ -129,7 +129,6 @@ class Cluster:
     id: int
     df: pd.DataFrame
     centroid: Optional[np.array] = None
-    hint: Optional[Hint] = None
     grade: float = 0
 
     @property
@@ -223,10 +222,20 @@ class SnaHinter(Hinter):
             self.board_data["color"].isin([CardColor.GRAY, CardColor.BLAC, self.team_color.opponent.as_card_color])
         ]
 
+    def update_reveals(self, game_state):
+        mapper = {card.word: card.revealed for card in game_state.board}
+        self.board_data["is_revealed"] = self.board_data.index.map(mapper)
+
+
     def pick_hint(self, game_state: HinterGameState) -> Hint:
         self.game_state = game_state
+        self.update_reveals(game_state)
         graded_proposals = self.generate_graded_proposals()
         best_proposal = graded_proposals[0]
+        draw_cluster = Cluster(-1,
+                               self.board_data[self.board_data.index.isin(best_proposal.word_group)],
+                               self.model.get_vector(best_proposal.hint_word))
+        self.draw_guesser_view(draw_cluster, best_proposal.hint_word, self.model.get_vector(best_proposal.hint_word))
         hint = Hint(best_proposal.hint_word, best_proposal.card_count)
         return hint
 
@@ -265,14 +274,14 @@ class SnaHinter(Hinter):
             filtered_proposals.append(proposal)
         if len(filtered_proposals) == 0:
             return None
-        filtered_proposals.sort(key=lambda p: -p.grade)
-        return filtered_proposals[0]
+        best_proposal = min(filtered_proposals, key=lambda p: -p.grade)
+        return best_proposal
 
     def vec2proposal(self, word, vector) -> Proposal:
         self.update_distances(vector)
         temp_df = self.unrevealed_cards.sort_values("distance_to_centroid")
-        centroid_to_black = cosine_distance(
-            vector, temp_df[temp_df["color"] == CardColor.BLACK]["vector"]
+        centroid_to_black = np.min( # This min is required for the float type
+            cosine_distance(vector, temp_df[temp_df["color"] == CardColor.BLACK]["vector"])
         )
         centroid_to_gray = np.min(
             cosine_distance(vector, temp_df[temp_df["color"] == CardColor.GRAY]["vector"])
@@ -293,6 +302,11 @@ class SnaHinter(Hinter):
                                (temp_df["color"] == self.team_color.as_card_color)]
 
         distance_group = np.max(chosen_cards["distance_to_centroid"])
+
+        if self.debug_mode is True:
+            draw_cluster = Cluster(0, chosen_cards)
+            draw_cluster.reset()
+            self.draw_guesser_view(cluster=draw_cluster, word=word, vector=vector)
 
         proposal = Proposal(word_group=chosen_cards.index.to_list(),
                             hint_word=word,
@@ -408,20 +422,19 @@ class SnaHinter(Hinter):
             edgecolor=edge_color,
             linewidth=line_width
         )
-        plt.setp(ax.get_xticklabels(), rotation="vertical")
+        plt.setp(ax.get_xticklabels(), rotation=45)
         ax.set_title(title)
 
-    def draw_guesser_view(self, cluster: Cluster):
-        fig, ax = plt.subplots(2, 1, figsize=(15, 8))
-        similarities: List[Similarity] = self.model.most_similar(cluster.centroid)
-        cluster_words = cluster.df.index.to_list()
-        proposal = self.pick_best_similarity(
-            similarities=similarities, words_to_filter_out={*cluster_words}
-        )
-        picked_word_vec = self.model.get_vector(proposal.hint_word)
-        self.draw_centroid_distances(ax[0], cluster, title='Actual Centroid distances')
-        self.draw_centroid_distances(ax[1], cluster, centroid=picked_word_vec, title=proposal.hint_word)
-        plt.show()
+    def draw_guesser_view(self, cluster: Cluster, word=None, vector=None):
+        if word is None:
+            fig, ax = plt.subplots(1, 1, figsize=(15, 8))
+            self.draw_centroid_distances(ax, cluster, title='Cluster centroid')
+            plt.show()
+        else:
+            fig, ax = plt.subplots(2, 1, figsize=(15, 8))
+            self.draw_centroid_distances(ax[0], cluster, centroid=vector, title=word)
+            self.draw_centroid_distances(ax[1], cluster, title='Cluster centroid')
+            plt.show()
 
     def divide_to_clusters(self, df: pd.DataFrame, resolution_parameter=1):
         board_size = len(df)
