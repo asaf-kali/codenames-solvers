@@ -2,7 +2,7 @@
 
 # %%
 import os
-from codenames.solvers.sna_solvers.sna_phys_hinter import SnaHinter  # noqa: E402
+from codenames.solvers.sna_solvers.sna_hinter import SnaHinter  # noqa: E402
 from codenames.solvers.naive.naive_guesser import NaiveGuesser  # noqa: E402
 from codenames.game.base import TeamColor
 from codenames.game.builder import words_to_random_board
@@ -51,7 +51,7 @@ words = [
     "spiderman",
 ]
 
-board = words_to_random_board(words=words)
+board = words_to_random_board(words=words, seed=100)
 
 # %% Run game - SNA
 blue_hinter = SnaHinter("Leonardo", team_color=TeamColor.BLUE, debug_mode=True)
@@ -60,3 +60,4 @@ red_hinter = SnaHinter("Adam", team_color=TeamColor.RED, debug_mode=True)
 red_guesser = NaiveGuesser("Eve", team_color=TeamColor.RED)
 game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
 game_manager.run_game(language="english", board=board)
+
