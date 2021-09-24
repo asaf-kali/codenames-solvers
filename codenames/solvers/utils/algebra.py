@@ -25,7 +25,7 @@ def cosine_similarity(
         return cosine_similarity_with_vector(u, v)  # type: ignore
 
 
-def cosine_distance(u: np.ndarray, v: Union[np.ndarray, Sequence[np.ndarray]]) -> np.ndarray:  # type: ignore
+def cosine_distance(u: np.ndarray, v: Union[np.ndarray, Sequence[np.ndarray]]) -> Union[np.ndarray, float]:  # type: ignore
     return (1 - cosine_similarity(u, v)) / 2  # type: ignore
 
 
