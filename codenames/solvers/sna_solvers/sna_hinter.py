@@ -12,16 +12,15 @@ from gensim.models import KeyedVectors
 
 from codenames.game.base import TeamColor, Hint, Board, HinterGameState, CardColor, WordGroup
 from codenames.game.player import Hinter
+from codenames.solvers.naive.naive_hinter import Proposal, calculate_proposal_grade
 from codenames.solvers.utils.algebra import cosine_distance, single_gram_schmidt
 from language_data.model_loader import load_language
 
 log = logging.getLogger(__name__)
-SIMILARITY_LOWER_BOUNDARY = 0.25
-MIN_BLACK_DISTANCE = 0.25
-MIN_SELF_BLACK_DELTA = 0.15
-MIN_SELF_OPPONENT_DELTA = 0.1
-MIN_SELF_GRAY_DELTA = 0.05
-MAX_SELF_DISTANCE = 0.2
+MIN_SELF_BLACK_DELTA = 0.07
+MIN_SELF_OPPONENT_DELTA = 0.04
+MIN_SELF_GRAY_DELTA = 0.01
+MAX_SELF_DISTANCE = 0.225
 OPPONENT_FORCE_CUTOFF = 0.275
 OPPONENT_FORCE_FACTOR = 1.6
 FRIENDLY_FORCE_CUTOFF = 0.2
@@ -53,20 +52,6 @@ def should_filter_word(word: str, filter_expressions: Iterable[str]) -> bool:
     return False
 
 
-def pick_best_similarity(similarities: List[Similarity], words_to_filter_out: Iterable[str]) -> Optional[Similarity]:
-    words_to_filter_out = {word.lower() for word in words_to_filter_out}
-    filtered_similarities = []
-    for similarity in similarities:
-        word, grade = similarity
-        word = word.lower()
-        if should_filter_word(word, words_to_filter_out):
-            continue
-        filtered_similarities.append(similarity)
-    if len(filtered_similarities) == 0:
-        return None
-    return filtered_similarities[0]
-
-
 def step_away(starting_point: np.array, step_away_from: np.array, arc_radians: float) -> np.array:
     step_away_from, normed_o = single_gram_schmidt(step_away_from, starting_point)
 
@@ -94,7 +79,7 @@ def sum_forces(starting_point: np.array, nodes) -> np.array:  # : List[Tuple([)n
 
 
 def step_from_forces(
-    starting_point: np.array, nodes, arc_radians: float
+        starting_point: np.array, nodes, arc_radians: float
 ) -> np.array:  #: List[Tuple[np.array, float], ...]
     net_force = sum_forces(starting_point, nodes)
     force_size = np.linalg.norm(net_force)
@@ -109,7 +94,7 @@ def friendly_force(d):
     else:
         # Parabola with 0 at d=0, 1 at d=FRIENDLY_FORCE_CUTOFF and else outherwise:
         return FRIENDLY_FORCE_FACTOR * (
-            1 - (d / FRIENDLY_FORCE_CUTOFF - 1) ** 2
+                1 - (d / FRIENDLY_FORCE_CUTOFF - 1) ** 2
         )  # FRIENDLY_FORCE_FACTOR * d / FRIENDLY_FORCE_CUTOFF
 
 
@@ -154,6 +139,17 @@ class Cluster:
         normalized_v = non_normalized_v / np.linalg.norm(non_normalized_v)
         return normalized_v
 
+    def update_distances(self):
+        self.df["centroid_distance"] = self.df["vector"].apply(lambda v: cosine_distance(v, self.centroid))
+
+    def sort_by_distances(self):
+        self.df.sort_values("centroid_distance", inplace=True)
+
+    def reset(self):
+        self.centroid = self.default_centroid
+        self.update_distances()
+        self.sort_by_distances()
+
     def __gt__(self, cluster_2):
         return self.grade > cluster_2.grade
 
@@ -162,13 +158,15 @@ class Cluster:
 
 
 class SnaHinter(Hinter):
-    def __init__(self, name: str, team_color: TeamColor, debug_mode=True):
+    def __init__(self, name: str, team_color: TeamColor, debug_mode=True, physics_optimization=True):
         super().__init__(name=name, team_color=team_color)
         self.model: Optional[KeyedVectors] = None
         self.language_length: Optional[int] = None
         self.board_data: Optional[pd.DataFrame] = None
-        self.graded_clusters: List[Cluster] = []
+        self.graded_proposals: List[Cluster] = []
         self.debug_mode = debug_mode
+        self.physics_optimization = physics_optimization
+        self.game_state = None
 
     def notify_game_starts(self, language: str, board: Board):
         self.model = load_language(language=language)
@@ -194,6 +192,13 @@ class SnaHinter(Hinter):
         return self.board_data[self.board_data["is_revealed"] == False]
 
     @property
+    def own_unrevealed_cards(self) -> pd.DataFrame:
+        own_unrevealed_idx = (self.board_data.is_revealed == False) & (  # noqa: E712
+                self.board_data.color == self.team_color.as_card_color
+        )
+        return self.board_data[own_unrevealed_idx]
+
+    @property
     def opponent_cards(self) -> pd.DataFrame:
         return self.board_data[self.board_data["color"] == self.team_color.opponent.as_card_color]
 
@@ -215,67 +220,102 @@ class SnaHinter(Hinter):
             self.board_data["color"].isin([CardColor.GRAY, CardColor.BLAC, self.team_color.opponent.as_card_color])
         ]
 
+    def update_reveals(self, game_state):
+        mapper = {card.word: card.revealed for card in game_state.board}
+        self.board_data["is_revealed"] = self.board_data.index.map(mapper)
+
+
     def pick_hint(self, game_state: HinterGameState) -> Hint:
-        # self.board_data.is_revealed = state.board.all_reveals
-        self.generate_graded_clusters()
-        for cluster in self.graded_clusters:
-            cluster_size = len(cluster.df)
-            similarities: List[Similarity] = self.model.most_similar(cluster.centroid)
-            cluster_words = cluster.df.index.to_list()
-            best_similarity = pick_best_similarity(
-                similarities=similarities, words_to_filter_out={*cluster_words, *game_state.given_hint_words}
-            )
-            if best_similarity is None:
-                log.info("No legal similarity found")
-                continue
-            word, grade = best_similarity
-            log.info(f"Cluster words: {cluster.words}, best word: ({word}, {grade})")
-            self.draw_guesser_view(cluster)
-            if grade < SIMILARITY_LOWER_BOUNDARY:
-                log.info(f"Grade wasn't good enough (below {SIMILARITY_LOWER_BOUNDARY})")
-                continue
-            hint = Hint(word, cluster_size)
-            return hint
-        return Hint("IDK", 2)
+        self.game_state = game_state
+        self.update_reveals(game_state)
+        graded_proposals = self.generate_graded_proposals()
+        best_proposal = graded_proposals[0]
+        draw_cluster = Cluster(-1,
+                               self.board_data[self.board_data.index.isin(best_proposal.word_group)],
+                               self.model.get_vector(best_proposal.hint_word))
+        self.draw_guesser_view(draw_cluster, best_proposal.hint_word, self.model.get_vector(best_proposal.hint_word))
+        hint = Hint(best_proposal.hint_word, best_proposal.card_count)
+        return hint
 
-    def generate_graded_clusters(self, resolution_parameter=1):
-        unrevealed_self_index = (self.board_data.is_revealed == False) & (  # noqa: E712
-            self.board_data.color == self.team_color.as_card_color
-        )
-        unrevealed_cards = self.board_data[unrevealed_self_index]
-        self.divide_to_clusters(df=unrevealed_cards, resolution_parameter=resolution_parameter)
-        unrevealed_cards = self.board_data[unrevealed_self_index]  # Now updated with cluster columns
-        self.graded_clusters = []
-        unique_clusters_ids = pd.unique(unrevealed_cards.cluster)
+    def generate_graded_proposals(self, resolution_parameter=1):
+        self.divide_to_clusters(df=self.own_unrevealed_cards, resolution_parameter=resolution_parameter)
+        graded_proposals = []
+        unique_clusters_ids = pd.unique(self.own_unrevealed_cards.cluster)
         for cluster_id in unique_clusters_ids:
-            df = unrevealed_cards.loc[unrevealed_cards.cluster == cluster_id, :]
+            df = self.own_unrevealed_cards.loc[self.own_unrevealed_cards.cluster == cluster_id, :]
             cluster = Cluster(id=cluster_id, df=df.copy(deep=True))
-            optimized_cluster = self.optimize_cluster(cluster)
+            proposal = self.cluster2proposal(cluster)
+            graded_proposals.append(proposal)
+        graded_proposals.sort(key=lambda c: -c.grade)
+        return graded_proposals
 
-            self.graded_clusters.append(optimized_cluster)
-        self.graded_clusters.sort(key=lambda c: -c.grade)
+    def cluster2proposal(self, cluster: Cluster):
+        self.optimize_cluster(cluster)
+        similarities: List[Similarity] = self.model.most_similar(cluster.centroid, topn=100)
+        best_proposal = self.pick_best_similarity(
+            similarities=similarities, words_to_filter_out={*self.board_data.index.to_list(),
+                                                            *self.game_state.given_hint_words}
+        )
+        return best_proposal
 
-    def optimize_cluster(self, cluster: Cluster, method: str = "Geometric") -> Cluster:
-        # Initiate the middle of the cluster as the initial cluster's centroid
-        initial_centroid = cluster.default_centroid
-        # Rank words by their distance to the centroid:
-        cluster.df["centroid_distance"] = cluster.df["vector"].apply(lambda v: cosine_distance(v, initial_centroid))
-        cluster.df.sort_values("centroid_distance", inplace=True)
-        cluster = self.optimize_centroid_phys(cluster)
-        # Generate list of optional sub_clusters within the cluster:
-        # sub_clusters = []
-        # for sub_cluster_size in range(1,len(cluster.df)+1):
-        #     sub_df = cluster.df.iloc[0:sub_cluster_size, :]
-        #     sub_cluster = Cluster(id=sub_cluster_size, df=sub_df)
-        #     # For each sub_cluster, optimize it's centroid and grade it:
-        #     if method == 'Geometric':
-        #         optimized_sub_cluster = self.optimize_centroid_lin(sub_cluster)
-        #     elif method == 'Physical':
-        #         optimized_sub_cluster = self.optimize_centroid_phys(sub_cluster)
-        #     # noinspection PyUnboundLocalVariable
-        #     sub_clusters.append(optimized_sub_cluster)
-        # best_cluster = max(sub_clusters)
-        return cluster
+    def pick_best_similarity(self, similarities: List[Similarity], words_to_filter_out: Iterable[str]) -> Optional[
+        Proposal]:
+        words_to_filter_out = {word.lower() for word in words_to_filter_out}
+        filtered_proposals = []
+        for similarity in similarities:
+            word, grade = similarity
+            word = word.lower()
+            if should_filter_word(word, words_to_filter_out):
+                continue
+            vector = self.model.get_vector(word)
+            proposal = self.vec2proposal(word, vector)
+            filtered_proposals.append(proposal)
+        if len(filtered_proposals) == 0:
+            return None
+        best_proposal = min(filtered_proposals, key=lambda p: -p.grade)
+        return best_proposal
+
+    def vec2proposal(self, word, vector) -> Proposal:
+        self.update_distances(vector)
+        temp_df = self.unrevealed_cards.sort_values("distance_to_centroid")
+        centroid_to_black = np.min( # This min is required for the float type
+            cosine_distance(vector, temp_df[temp_df["color"] == CardColor.BLACK]["vector"])
+        )
+        centroid_to_gray = np.min(
+            cosine_distance(vector, temp_df[temp_df["color"] == CardColor.GRAY]["vector"])
+        )
+        centroid_to_opponent = np.min(
+            cosine_distance(
+                vector,
+                temp_df[temp_df["color"] == self.team_color.opponent.as_card_color]["vector"],
+            )
+        )
+
+        bad_cards_limitation = np.min([centroid_to_black - MIN_SELF_BLACK_DELTA,
+                                       centroid_to_gray - MIN_SELF_GRAY_DELTA,
+                                       centroid_to_opponent - MIN_SELF_OPPONENT_DELTA])
+
+        chosen_cards = temp_df[(temp_df["distance_to_centroid"] < bad_cards_limitation) &
+                               (temp_df["distance_to_centroid"] < MAX_SELF_DISTANCE) &
+                               (temp_df["color"] == self.team_color.as_card_color)]
+
+        distance_group = np.max(chosen_cards["distance_to_centroid"])
+
+        if self.debug_mode is True:
+            draw_cluster = Cluster(0, chosen_cards)
+            draw_cluster.reset()
+            self.draw_guesser_view(cluster=draw_cluster, word=word, vector=vector)
+
+        proposal = Proposal(word_group=chosen_cards.index.to_list(),
+                            hint_word=word,
+                            hint_word_frequency=0,
+                            distance_group=distance_group,
+                            distance_gray=centroid_to_gray,
+                            distance_opponent=centroid_to_opponent,
+                            distance_black=centroid_to_black)
+        proposal.grade = calculate_proposal_grade(proposal)
+
+        return proposal
 
     def color2force(self, centroid, row):
         d = cosine_distance(centroid, row["vector"])
@@ -296,7 +336,39 @@ class SnaHinter(Hinter):
         relevant_df = relevant_df[["vector", "force"]]
         return list(relevant_df.itertuples(index=False, name=None))
 
-    def optimize_centroid_lin(self, cluster: Cluster) -> Cluster:
+    def optimization_break_condition(self, cluster: Cluster) -> bool:
+        self.update_distances(cluster.centroid)
+        distances2opponent = self.extract_centroid_distances(self.team_color.opponent.as_card_color)
+        distances2own = self.extract_centroid_distances(self.team_color.as_card_color)
+        distances2own = distances2own[distances2own.index.isin(cluster.df.index.to_list())]
+        distance2black = self.extract_centroid_distances(CardColor.BLACK)
+        distances2gray = self.extract_centroid_distances(CardColor.GRAY)
+        max_distance2own = max(distances2own)
+        if (
+                (min(distances2opponent) - max_distance2own > MIN_SELF_OPPONENT_DELTA)
+                and (distance2black[0] - max_distance2own > MIN_SELF_OPPONENT_DELTA)
+                and (min(distances2gray) - max_distance2own > MIN_SELF_GRAY_DELTA)
+                and (max_distance2own < MAX_SELF_DISTANCE)
+        ):
+            return True
+        else:
+            return False
+
+    def optimize_cluster(self, cluster: Cluster) -> Cluster:
+        cluster.reset()
+        if self.debug_mode is True:
+            self.draw_guesser_view(cluster)
+        for i in range(100):
+            self.clean_cluster(cluster)
+            if self.debug_mode is True:
+                self.draw_guesser_view(cluster)
+            if self.optimization_break_condition(cluster):
+                break
+            if self.physics_optimization:
+                nodes = self.board_df2nodes(cluster.centroid)
+                cluster.centroid = step_from_forces(cluster.centroid, nodes, arc_radians=5e-2)
+            if self.debug_mode is True:
+                self.draw_guesser_view(cluster)
         return cluster
 
     def extract_centroid_distances(self, color: CardColor):
@@ -317,130 +389,50 @@ class SnaHinter(Hinter):
             raise ValueError(f"No such color as {color}")
         return relevant_df.loc[color_rows, "distance_to_centroid"]
 
-    # MIN_BLACK_DISTANCE = 0.5
-    # MIN_SELF_BLACK_DELTA = 0.3
-    # MIN_SELF_OPPONENT_DELTA = 0.2
-    # MIN_SELF_GRAY_DELTA = 0.1
-    # MAX_SELF_DISTANCE = 0.6
-    # OPPONENT_FORCE_CUTOFF = 0.4
-    # OPPONENT_FORCE_FACTOR = 10
-    # FRIENDLY_FORCE_CUTOFF = 0.4
-    # FRIENDLY_FORCE_FACTOR = 1
-    # FRIENDLY_FORCE_FACTOR = 0.5
-    # BLACK_FORCE_FACTOR = 2
-
     def update_distances(self, centroid):
-        # relevant_idx = self.board_data['is_revealed'].apply(lambda x: not x)
-        # relevant_rows = self.board_data[relevant_idx]
-        # self.board_data.loc[relevant_rows, 'distance_to_centroid'] =\
-        # self.board_data.loc[relevant_rows, 'vector'].apply(lambda v: cosine_distance(v, centroid))
         self.board_data["distance_to_centroid"] = self.board_data["vector"].apply(
             lambda v: cosine_distance(v, centroid)
         )
 
-    def optimization_break_condition(self, cluster: Cluster) -> bool:
-        self.update_distances(cluster.centroid)
-        distances2opponent = self.extract_centroid_distances(self.team_color.opponent.as_card_color)
-        distances2own = self.extract_centroid_distances(self.team_color.as_card_color)
-        distances2own = distances2own[distances2own.index.isin(cluster.df.index.to_list())]
-        distance2black = self.extract_centroid_distances(CardColor.BLACK)
-        distances2gray = self.extract_centroid_distances(CardColor.GRAY)
-        max_distance2own = max(distances2own)
-        if (
-            (min(distances2opponent) - max_distance2own > MIN_SELF_OPPONENT_DELTA)
-            and (distance2black[0] - max_distance2own > MIN_SELF_OPPONENT_DELTA)
-            and (min(distances2gray) - max_distance2own > MIN_SELF_GRAY_DELTA)
-            and (max_distance2own < MAX_SELF_DISTANCE)
-        ):
-            return True
-        else:
-            return False
-
     def clean_cluster(self, cluster: Cluster):
-        cluster.df["centroid_distance"] = cluster.df["vector"].apply(lambda v: cosine_distance(v, cluster.centroid))
+        cluster.update_distances()
         max_distance = max(cluster.df["centroid_distance"])
-        central_word = (cluster.df["centroid_distance"] < MAX_SELF_DISTANCE) | (cluster.df["centroid_distance"] != max_distance)
-        cluster.df = cluster.df[central_word]
+        central_words = (cluster.df["centroid_distance"] < MAX_SELF_DISTANCE) | (
+                cluster.df["centroid_distance"] != max_distance)
+        cluster.df = cluster.df[central_words]
         cluster.centroid = cluster.default_centroid
 
-    def optimize_centroid_phys(self, cluster: Cluster) -> Cluster:
-        # temp_board = self.board_data.copy()
-        # temp_board['centroid_distance'] = cluster.df['vector'].apply(lambda v: cosine_distance(v, centroid))
-        # temp_board['in_current_cluster'] = temp_board.index.map(lambda x: x in cluster.df.index)
-        cluster.centroid = cluster.default_centroid
-        if self.debug_mode is True:
-            self.draw_guesser_view(cluster)
-        for i in range(100):
-            self.clean_cluster(cluster)
-            if self.debug_mode is True:
-                self.draw_guesser_view(cluster)
-            if self.optimization_break_condition(cluster):
-                break
-            nodes = self.board_df2nodes(cluster.centroid)
-            cluster.centroid = step_from_forces(cluster.centroid, nodes, arc_radians=5e-2)
-            if self.debug_mode is True:
-                self.draw_guesser_view(cluster)
-        return cluster
+    def draw_centroid_distances(self, ax, cluster: Cluster, centroid=None, title=None):
+        if centroid is None:
+            self.update_distances(cluster.centroid)
+        else:
+            self.update_distances(centroid)
 
-    # flake8: noqa: F841
-    def grade_cluster(self, cluster: Cluster) -> float:
-        distances = cosine_distance(cluster.centroid, cluster.df.vector)
-        centroid_to_black = cosine_distance(
-            cluster.centroid, self.board_data[self.board_data.color == CardColor.Black]["vector"]
-        )
-        centroid_to_gray = np.min(
-            cosine_distance(cluster.centroid, self.board_data[self.board_data.color == CardColor.Gray]["vector"])
-        )
-        centroid_to_opponent = centroid_to_gray = np.min(
-            cosine_distance(
-                cluster.centroid,
-                self.board_data[self.board_data.color == self.team_color.opponent.as_card_color]["vector"],
-            )
-        )
-        return np.mean(distances)  # type: ignore
-        # closest_opponent_card = self.model.most_similar_to_given("king", ["queen", "prince"])
-
-    def draw_guesser_view(self, cluster: Cluster):
-        self.update_distances(cluster.centroid)
         temp_df = self.unrevealed_cards.sort_values("distance_to_centroid")
         colors = temp_df["color"].apply(lambda x: x.value.lower())
         temp_df["is_in_cluster"] = temp_df.index.isin(cluster.df.index)
         edge_color = temp_df["is_in_cluster"].apply(lambda x: 'yellow' if x else 'black')
         line_width = temp_df["is_in_cluster"].apply(lambda x: 3 if x else 1)
-        plt.bar(
+        ax.bar(
             x=temp_df.index,
             height=temp_df["distance_to_centroid"],
             color=colors,
             edgecolor=edge_color,
             linewidth=line_width
         )
-        ax = plt.gca()
-        plt.setp(ax.get_xticklabels(), rotation="vertical")
-        similarities: List[Similarity] = self.model.most_similar(cluster.centroid)
-        cluster_words = cluster.df.index.to_list()
-        best_similarity = pick_best_similarity(
-            similarities=similarities, words_to_filter_out={*cluster_words}
-        )
-        plt.title(best_similarity)
-        plt.show()
-        # n = len(relevant_df)
-        # G = nx.Graph()
-        # G.add_node('centroid', color='green')
-        # nodes_list = [(index, {'color': row['color'].value.lower()}) for index, row in relevant_df.iterrows()]
-        # G.add_nodes_from(nodes_list)
-        # edges_list = [('centroid', index, (1+row['distance_to_centroid'])**5) for index, row in relevant_df.iterrows()]
-        # G.add_weighted_edges_from(edges_list)
-        # # relevant_df['source'] = 'centroid_node'
-        # # relevant_df['target'] = relevant_df.index
-        # # relevant_df['color'] = relevant_df['color'].apply(lambda x: x.value.lower())
-        # # relevant_df.rename(columns={'distance_to_centroid': 'length'}, inplace=True)
-        # # relevant_df['length'] = relevant_df['length'].apply(lambda x: 1 / x**3)
-        # # relevant_df = relevant_df[['source', 'target', 'length', 'color']]
-        # pos = nx.spring_layout(G)
-        # nx.draw(G, pos, with_labels=True)
-        # plt.show()
-        # render(G)
-        # print('plottet')
+        plt.setp(ax.get_xticklabels(), rotation=45)
+        ax.set_title(title)
+
+    def draw_guesser_view(self, cluster: Cluster, word=None, vector=None):
+        if word is None:
+            fig, ax = plt.subplots(1, 1, figsize=(15, 8))
+            self.draw_centroid_distances(ax, cluster, title='Cluster centroid')
+            plt.show()
+        else:
+            fig, ax = plt.subplots(2, 1, figsize=(15, 8))
+            self.draw_centroid_distances(ax[0], cluster, centroid=vector, title=word)
+            self.draw_centroid_distances(ax[1], cluster, title='Cluster centroid')
+            plt.show()
 
     def divide_to_clusters(self, df: pd.DataFrame, resolution_parameter=1):
         board_size = len(df)
@@ -461,35 +453,3 @@ class SnaHinter(Hinter):
         word_to_group: Dict[str, int] = community.best_partition(louvain)
         self.board_data.cluster = self.board_data.index.map(word_to_group)
 
-        # board_size = state.board_size#
-        # vis_graph = nx.Graph()
-        # vis_graph.add_nodes_from(state.all_words)
-        # louvain = nx.Graph(vis_graph)
-        # for i in range(board_size):
-        #     v = state.all_words[i]
-        #     for j in range(i + 1, board_size):
-        #         u = state.all_words[j]
-        #         distance = self.model.similarity(v, u) + 1
-        #         if distance > 1.1:
-        #             vis_graph.add_edge(v, u, weight=distance)
-        #         louvain_weight = distance ** 10
-        #         louvain.add_edge(v, u, weight=louvain_weight)
-        #
-        # word_to_group: Dict[str, int] = community.best_partition(louvain)
-        # # self.board_data.cluster = self.board_data.index.map(word_to_group)
-        #
-        # group_to_words = _invert_dict(word_to_group)
-        # # group_grades = {}
-        # for group, words in group_to_words.items():
-        #     vectors = self.model[words]
-        #     average = sum(vectors)
-        #     similarities = self.model.most_similar(average)
-        #     filtered_similarities = filter_similarities(similarities=similarities, words_to_filter_out=words)
-        #     print(f"\n\nFor the word group: {words}, got:")
-        #     pretty_print_similarities(filtered_similarities)
-        # # values = [partition_object.get(node) for node in louvain.nodes()]
-        # # print(f"Values are: {values}")
-        #
-        # nx.set_node_attributes(vis_graph, word_to_group, "group")
-        # render(vis_graph)
-        # return Hint("hi", 2)
