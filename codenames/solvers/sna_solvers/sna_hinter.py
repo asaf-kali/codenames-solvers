@@ -17,12 +17,10 @@ from codenames.solvers.utils.algebra import cosine_distance, single_gram_schmidt
 from codenames.solvers.utils.model_loader import load_language
 
 log = logging.getLogger(__name__)
-SIMILARITY_LOWER_BOUNDARY = 0.25
-MIN_BLACK_DISTANCE = 0.25
-MIN_SELF_BLACK_DELTA = 0.05
-MIN_SELF_OPPONENT_DELTA = 0.05
-MIN_SELF_GRAY_DELTA = 0.05
-MAX_SELF_DISTANCE = 0.2
+MIN_SELF_BLACK_DELTA = 0.07
+MIN_SELF_OPPONENT_DELTA = 0.04
+MIN_SELF_GRAY_DELTA = 0.01
+MAX_SELF_DISTANCE = 0.225
 OPPONENT_FORCE_CUTOFF = 0.275
 OPPONENT_FORCE_FACTOR = 1.6
 FRIENDLY_FORCE_CUTOFF = 0.2
@@ -397,11 +395,11 @@ class SnaHinter(Hinter):
         )
 
     def clean_cluster(self, cluster: Cluster):
-        cluster.df["centroid_distance"] = cluster.df["vector"].apply(lambda v: cosine_distance(v, cluster.centroid))
+        cluster.update_distances()
         max_distance = max(cluster.df["centroid_distance"])
-        central_word = (cluster.df["centroid_distance"] < MAX_SELF_DISTANCE) | (
+        central_words = (cluster.df["centroid_distance"] < MAX_SELF_DISTANCE) | (
                 cluster.df["centroid_distance"] != max_distance)
-        cluster.df = cluster.df[central_word]
+        cluster.df = cluster.df[central_words]
         cluster.centroid = cluster.default_centroid
 
     def draw_centroid_distances(self, ax, cluster: Cluster, centroid=None, title=None):
