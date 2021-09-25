@@ -8,14 +8,15 @@ def random_ints(n, k):
     return ints_list
 
 
-def generate_random_subsets(list, average_subset_size):
-    k = len(list)
+def generate_random_subsets(elements_list, average_subset_size):
+    k = len(elements_list)
     n = int(k / average_subset_size)
     subsets_map = random_ints(n, k)
-    mapper = {element: subset_id for element, subset_id in list, subsets_map}
+    zip_iterator = zip(elements_list, subsets_map)
+    mapper = list(zip_iterator)
     subsets_list = []
-    for j, s in set(subsets_map):
-        subset_elements = [element for element, subset_id in mapper.items() if subset_id == s]
+    for s in set(subsets_map):
+        subset_elements = [element[0] for element in mapper if element[1] == s]
         subsets_list.append(subset_elements)
     return subsets_list
 
@@ -23,23 +24,23 @@ def generate_random_subsets(list, average_subset_size):
 def generate_cluster_connections(cluster_vectors):
     n = len(cluster_vectors)
     connections_list = []
-    for i in range(n):
-        for j in range(i, n):
+    if n < 2:
+        return connections_list
+    for i in range(n-1):
+        for j in range(i+1, n):
             geodesic_function = geodesic(cluster_vectors[i], cluster_vectors[j])
             connection = ParametricFunction(geodesic_function, t_range=[0, 1])
             connections_list.append(connection)
     return connections_list
 
 
-def random_clusters(vectors_list, average_cluster_size=2):
+def generate_random_connections(vectors_list, average_cluster_size=2):
     vectors_clusters = generate_random_subsets(vectors_list, average_subset_size=average_cluster_size)
     connections_list = []
     for cluster in vectors_clusters:
         cluster_connections = generate_cluster_connections(cluster)
         connections_list.extend(cluster_connections)
-
-
-
+    return connections_list
 
 
 def polar_to_cartesian(r, phi, theta):
@@ -68,6 +69,10 @@ NEWTON_VEC = polar_to_cartesian(SPHERE_RADIUS, 0.27 * PI, -0.11 * PI)
 TEACHER_VEC = polar_to_cartesian(SPHERE_RADIUS, 0.3 * PI, -0.2 * PI)
 
 vectors_list = [KING_VEC, QUEEN_VEC, BEACH_VEC, PARK_VEC, JUPITER_VEC, NEWTON_VEC, TEACHER_VEC]
+
+generate_random_connections(vectors_list)
+
+
 labels_list = ['king', 'queen', 'beach', 'park', 'jupiter', 'newton', 'teacher']
 list_len = len(vectors_list)
 sna_connections_list = [ParametricFunction(geodesic(KING_VEC, QUEEN_VEC), t_range=[0, 1]),
@@ -175,10 +180,14 @@ class KalirmozExplanation(ThreeDScene):
         texts_list[5].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[5])))
         texts_list[6].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[6])))
         self.add(*arrows_list[0:list_len])
-        self.wait(4)
-        self.play(*[Create(connection, run_time=5) for connection in sna_connections_list])
-        self.wait(2)
+        # self.play(*[Create(connection, run_time=5) for connection in sna_connections_list])
 
+    def animate_random_connections(self, vectors_list, number_of_examples, example_length):
+        for i in range(number_of_examples):
+            connections = generate_random_connections(vectors_list)
+            self.add(connections)
+            self.wait(example_length)
+            self.remove(connections)
 
     def coords_to_point(self, coords):
         theta = -self.camera.get_theta()
