@@ -1,14 +1,34 @@
 from manim import *
 import numpy as np
 import random
-from codenames.solvers.utils.algebra import single_gram_schmidt, geodesic
+from typing import Callable, List
+# from codenames.solvers.utils.algebra import single_gram_schmidt, geodesic
 
-def random_ints(n, k):
+def single_gram_schmidt(v: np.ndarray, u: np.ndarray):
+    v = v / np.linalg.norm(v)
+    u = u / np.linalg.norm(u)
+
+    projection_norm = u.T @ v
+
+    o = u - projection_norm * v
+
+    normed_o = o / np.linalg.norm(o)
+    return v, normed_o
+
+
+def geodesic(v: np.ndarray, u: np.ndarray) -> Callable:
+    v, normed_o = single_gram_schmidt(v, u)
+    theta = np.arccos(v.T @ u)
+    f = lambda t: np.cos(t * theta) * v + np.sin(t * theta) * normed_o
+    return f
+
+
+def random_ints(n: int, k: int) -> List[int]:
     ints_list = [random.randint(0, n) for i in range(k)]
     return ints_list
 
 
-def generate_random_subsets(elements_list, average_subset_size):
+def generate_random_subsets(elements_list: List, average_subset_size: int) -> List[List]:
     k = len(elements_list)
     n = int(k / average_subset_size)
     subsets_map = random_ints(n, k)
@@ -21,7 +41,7 @@ def generate_random_subsets(elements_list, average_subset_size):
     return subsets_list
 
 
-def generate_cluster_connections(cluster_vectors):
+def generate_cluster_connections(cluster_vectors: List[np.ndarray]) -> List[ParametricFunction]:
     n = len(cluster_vectors)
     connections_list = []
     if n < 2:
@@ -82,6 +102,17 @@ sna_connections_list = [ParametricFunction(geodesic(KING_VEC, QUEEN_VEC), t_rang
                         ParametricFunction(geodesic(NEWTON_VEC, TEACHER_VEC), t_range=[0, 1])
                         ]
 script = {
+    'The algorithm uses...':  'The algorithm uses a Word2Vec model for the linguistic knowledge',
+    'In a nutshell...':       'In a nutshell, the Word2Vec assign each word with an n-dimensional\n'
+                              'vector (usually n=50, 100, 300), in a way such that words that\n'
+                              'tent to appear in the same context have small angle between them',
+    'For the sake of...':     'For the sake of this video, we will represent the words vectors\n'
+                              'as 3-dimensional vectors',
+    'Here are some...':       'Here are some words and their corresponding vectors.',
+    'The word X...':          'The word X is close to the words Y, Z and far from the word W\n'
+                              'as indeed semantically, the words X,Y,Z all appear in the\n'
+                              'of bla bla, while the word W usually appears in the context of\b'
+                              'blu blue',
     'In each turn...':        'In each turn, the first task of the hinter is to find a\n'
                               'proper subset of words (usually two to four words), on\n'
                               'which to hint',
@@ -138,7 +169,6 @@ script = {
                               'hinted word as the good word, which might confuse the guesser,\n'
                               'and lead him to pick up the bad word.',
     'Such a hint will...':    'Such a hint will not be chosen.'
-
 }
 
 texts_script = {k: Text(t, font_size=FONT_SIZE_TEXT).to_corner(UL) for k, t in script.items()}
@@ -180,14 +210,15 @@ class KalirmozExplanation(ThreeDScene):
         texts_list[5].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[5])))
         texts_list[6].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[6])))
         self.add(*arrows_list[0:list_len])
+        self.animate_random_connections(vectors_list, 10, 0.3)
         # self.play(*[Create(connection, run_time=5) for connection in sna_connections_list])
 
     def animate_random_connections(self, vectors_list, number_of_examples, example_length):
         for i in range(number_of_examples):
-            connections = generate_random_connections(vectors_list)
-            self.add(connections)
+            connections = generate_random_connections(vectors_list, average_cluster_size=3)
+            self.add(*connections)
             self.wait(example_length)
-            self.remove(connections)
+            self.remove(*connections)
 
     def coords_to_point(self, coords):
         theta = -self.camera.get_theta()
