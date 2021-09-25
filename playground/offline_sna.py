@@ -14,7 +14,7 @@ from logging import getLogger
 
 configure_logging()
 os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
-getLogger('matplotlib.font_manager').disabled = True
+getLogger("matplotlib.font_manager").disabled = True
 
 
 words = [

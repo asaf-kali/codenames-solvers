@@ -5,10 +5,9 @@ from codenames.game.builder import words_to_random_board
 from codenames.visualizer import render
 from language_data.model_loader import load_language
 import community
-from typing import Dict, List, Tuple, Optional, Iterable
-import numpy as np
-import pandas as pd
-model = load_language('english', 'google-300')
+from typing import Dict
+
+model = load_language("english", "google-300")
 words = [
     "cloak",
     "kiss",
@@ -37,7 +36,7 @@ words = [
     "gymnast",
 ]
 board = words_to_random_board(words=words)
-print('kaki')
+print("kaki")
 board_size = len(board)
 vis_graph = nx.Graph()
 vis_graph.add_nodes_from(board.all_words)
