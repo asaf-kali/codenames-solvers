@@ -39,3 +39,9 @@ def single_gram_schmidt(v: np.ndarray, u: np.ndarray) -> Tuple[np.ndarray, np.nd
 
     normed_o = o / np.linalg.norm(o)
     return v, normed_o
+
+def geodesic(v, u):
+    v, normed_o = single_gram_schmidt(v, u)
+    theta = np.arccos(v.T @ u)
+    f = lambda t: np.cos(t * theta) * v + np.sin(t * theta) * normed_o
+    return f
