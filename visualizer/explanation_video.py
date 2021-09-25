@@ -1,17 +1,45 @@
 from manim import *
 import numpy as np
+import random
+from codenames.solvers.utils.algebra import single_gram_schmidt, geodesic
+
+def random_ints(n, k):
+    ints_list = [random.randint(0, n) for i in range(k)]
+    return ints_list
 
 
-class Intro(Scene):
-    def construct(self):
-        t1 = Text("Code Names Algorithm", color=BLUE)
-        t2 = Text("by the Kali brothers", color=RED).scale(0.8).next_to(t1, DOWN)
-        self.play(Write(t1))
-        self.wait()
-        self.play(Write(t2))
-        self.wait()
-        self.remove(t1, t2)
-        self.wait()
+def generate_random_subsets(list, average_subset_size):
+    k = len(list)
+    n = int(k / average_subset_size)
+    subsets_map = random_ints(n, k)
+    mapper = {element: subset_id for element, subset_id in list, subsets_map}
+    subsets_list = []
+    for j, s in set(subsets_map):
+        subset_elements = [element for element, subset_id in mapper.items() if subset_id == s]
+        subsets_list.append(subset_elements)
+    return subsets_list
+
+
+def generate_cluster_connections(cluster_vectors):
+    n = len(cluster_vectors)
+    connections_list = []
+    for i in range(n):
+        for j in range(i, n):
+            geodesic_function = geodesic(cluster_vectors[i], cluster_vectors[j])
+            connection = ParametricFunction(geodesic_function, t_range=[0, 1])
+            connections_list.append(connection)
+    return connections_list
+
+
+def random_clusters(vectors_list, average_cluster_size=2):
+    vectors_clusters = generate_random_subsets(vectors_list, average_subset_size=average_cluster_size)
+    connections_list = []
+    for cluster in vectors_clusters:
+        cluster_connections = generate_cluster_connections(cluster)
+        connections_list.extend(cluster_connections)
+
+
+
 
 
 def polar_to_cartesian(r, phi, theta):
@@ -25,25 +53,6 @@ def polar_to_cartesian(r, phi, theta):
 #   c = v.T @ u
 #   f = lambda t: (t*v+(1-t)*u) / np.sqrt(t**2+(1-t**2) + 2*t*(1-t)*c)
 #   return f
-
-def single_gram_schmidt(v: np.ndarray, u: np.ndarray):
-    v = v / np.linalg.norm(v)
-    u = u / np.linalg.norm(u)
-
-    projection_norm = u.T @ v
-
-    o = u - projection_norm * v
-
-    normed_o = o / np.linalg.norm(o)
-    return v, normed_o
-
-
-def connecting_line(v, u):
-    v, normed_o = single_gram_schmidt(v, u)
-    theta = np.arccos(v.T @ u)
-    f = lambda t: np.cos(t * theta) * v + np.sin(t * theta) * normed_o
-    return f
-
 
 SPHERE_RADIUS = 1
 FONT_SIZE_LABELS = 12
@@ -61,19 +70,78 @@ TEACHER_VEC = polar_to_cartesian(SPHERE_RADIUS, 0.3 * PI, -0.2 * PI)
 vectors_list = [KING_VEC, QUEEN_VEC, BEACH_VEC, PARK_VEC, JUPITER_VEC, NEWTON_VEC, TEACHER_VEC]
 labels_list = ['king', 'queen', 'beach', 'park', 'jupiter', 'newton', 'teacher']
 list_len = len(vectors_list)
-connections_list = [ParametricFunction(connecting_line(KING_VEC, QUEEN_VEC), t_range=[0, 1]),
-                    ParametricFunction(connecting_line(BEACH_VEC, PARK_VEC), t_range=[0, 1]),
-                    ParametricFunction(connecting_line(JUPITER_VEC, NEWTON_VEC), t_range=[0, 1]),
-                    ParametricFunction(connecting_line(TEACHER_VEC, JUPITER_VEC), t_range=[0, 1]),
-                    ParametricFunction(connecting_line(NEWTON_VEC, TEACHER_VEC), t_range=[0, 1])
+sna_connections_list = [ParametricFunction(geodesic(KING_VEC, QUEEN_VEC), t_range=[0, 1]),
+                        ParametricFunction(geodesic(BEACH_VEC, PARK_VEC), t_range=[0, 1]),
+                        ParametricFunction(geodesic(JUPITER_VEC, NEWTON_VEC), t_range=[0, 1]),
+                        ParametricFunction(geodesic(TEACHER_VEC, JUPITER_VEC), t_range=[0, 1]),
+                        ParametricFunction(geodesic(NEWTON_VEC, TEACHER_VEC), t_range=[0, 1])
+                        ]
+script = {
+    'In each turn...':        'In each turn, the first task of the hinter is to find a\n'
+                              'proper subset of words (usually two to four words), on\n'
+                              'which to hint',
+    'Two methods...':         'Two methods of clustering where implemented.',
+    'In the first method...': 'In the first clustering method, the words are considered\n'
+                              'as nodes in a graph, with edges weights correlated to their\n'
+                              'cosine similarity',
+    'This graph is divid...': 'This graph is divided into communities using the louvain\n'
+                              'SNA algorithm, and each community is taken as an optional\n'
+                              'cluster of words to hint about.',
+    'Here is an example...':  'Here is an example of 25 words and their louvain\n'
+                              'clustering result:',
+    'As can be seen...':      'As can be seen, semantically close words are put within the\n'
+                              'same cluster.',
+    'The second clusteri...': 'The second clustering method is much simpler:',
+    'Since there are...':     'Since there are at most 9 cards to hint about, it is feasible\n'
+                              'to just iterate over all possible subsets and choose the best\n'
+                              'one.',
+    'The second task...':     'The second task of the hinter is to choose a hinting word for\n'
+                              'the cluster.',
+    'In order to find...':    'In order to find a hinting word for a cluster, the hinter\n'
+                              'generates a "centroid" vector for the cluster, to search real\n'
+                              'words near by.',
+    'An initial centroid...': 'An initial "centroid" is proposed as the Center of Mass of\n'
+                              "the cluster's vectors",
+    'Ideally, the centro...': "Ideally, the centroid would be close to all the cluster's words\n"
+                              'and far from words of other colors. (where "close" and "far")\n'
+                              'are considered in the cosine distance metric.',
+    'to optimize the...':     'To optimize the centroid, the words in the board (from\n'
+                              ' all colors) are considered as a physical system, where\n'
+                              'every vector from the color of the hinter is an attractor,\n'
+                              'and every word from other color is a repeller.',
+    'The centroid is the...': 'The centroid is then being pushed and pulled by the words\n'
+                              'of the board until converging to a point where it is both\n'
+                              'far away from bad words, and close to close words.',
+    'The attraction forc...': 'The attraction force acts like a spring, where if the\n'
+                              'centroid is to far, the spring can be "torn" apart and is\n'
+                              'no longer considered as part of the cluster.',
+    'This is done in ord...': 'This is done in order to allow outliers in the cluster to be\n'
+                              'neglected.',
+    'After convergence...':   'After convergence, all there needs to be done is to pick up a\n'
+                              "word near-by the optimized cluster's centroid",
+    'The top n words wit...': "The top n words with the lowest cosine distance are examined\n"
+                              "and the best one is chosen and the cluster's hint",
+    'The best hint from ...': 'The best hint from all clusters is picked and being hinter\n'
+                              'to the gruesser!',
+    'Here is a graph of...':  "Here is a graph of the guesser's view of a good hinted word",
+    'As can be seen2...':     'As can be seen, the closest words on board to the hinted word\n'
+                              "are all from the team's color, while words from other colors\n"
+                              "are far from the hinted word",
+    'With such a hint,':      'With such a hint, victory is guaranteed!',
+    'Here is a graph of2...': "Here is a graph of the guesser's view of a bad hinted word\n",
+    'As can be seen3...':     'As can be seen, there is a bad word just as close to the\n'
+                              'hinted word as the good word, which might confuse the guesser,\n'
+                              'and lead him to pick up the bad word.',
+    'Such a hint will...':    'Such a hint will not be chosen.'
 
-                    ]
+}
 
+texts_script = {k: Text(t, font_size=FONT_SIZE_TEXT).to_corner(UL) for k, t in script.items()}
 
 class KalirmozExplanation(ThreeDScene):
     def construct(self):
-        theta = 1.3 * PI / 2
-        phi = 0.8 * PI
+        theta = 30*DEGREES
+        phi = 75*DEGREES
         axes = ThreeDAxes(x_range=[-2, 2, 1], x_length=4, y_length=4)
         # labels = axes.get_axis_labels(
         #     x_label=Tex("x"), y_label=Tex("y")
@@ -85,16 +153,9 @@ class KalirmozExplanation(ThreeDScene):
             u_range=[0.001, PI - 0.001],
             v_range=[0, TAU]
         ).set_opacity(0.3)
-        t1 = Text('In each turn, the first task of the hinter is to\nfind a proper subset of words (usualy '
-                  'two to four words), on which to hint', font_size=FONT_SIZE_TEXT).to_corner(UL)
-        t2 = Text('Two methods of clustering where implemented.', font_size=FONT_SIZE_TEXT).to_corner(UL)
-        t3 = Text('In the first clustering method, the words are considered as\n nodes in a graph, with edges '
-                  'wheigt corrolated\n to their cosine similarity', font_size=FONT_SIZE_TEXT).to_corner(UL)
-        t4 = Text('This graph is devided into communities using\nthe louvain algorithm, and each community is taken'
-                  '\nas an optional cluster of words to hint about.', font_size=FONT_SIZE_TEXT).to_corner(UL)
         arrows_list = [Arrow3D(start=[0, 0, 0], end=vector) for vector in vectors_list]
-        camera_vectos = [self.coords_to_point(vector * 1.2) for vector in vectors_list]
-        texts_list = [Text(labels_list[i], font_size=FONT_SIZE_LABELS, ).move_to(camera_vectos[i]) for i in
+        camera_vectors = [self.coords_to_point(vector * 1.2) for vector in vectors_list]
+        texts_list = [Text(labels_list[i], font_size=FONT_SIZE_LABELS).move_to(camera_vectors[i]) for i in
                       range(list_len)]
         # dots_list = [Dot(point=vector, radius=DOT_SIZE) for vector in vectors_list]
 
@@ -103,7 +164,6 @@ class KalirmozExplanation(ThreeDScene):
 
         self.add(axes, sphere)
         # self.play(*[Create(arrows_list[i]) for i in range(list_len)])
-        self.add_fixed_in_frame_mobjects(t1, t2, t3, t4)
         updaters = [lambda mob: self.update_position_to_camera(mob, vector) for vector in vectors_list]
         for i in range(list_len):
             self.add_fixed_in_frame_mobjects(texts_list[i])
@@ -115,19 +175,10 @@ class KalirmozExplanation(ThreeDScene):
         texts_list[5].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[5])))
         texts_list[6].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[6])))
         self.add(*arrows_list[0:list_len])
-        self.play(Write(t1))
-        self.play(FadeOut(t1))
-        self.play(Write(t2))
-        self.play(FadeOut(t2))
-        self.play(Write(t3))
-        self.play(FadeOut(t3))
-        self.play(Write(t4))
-        self.play(FadeOut(t4))
-        # self.begin_ambient_camera_rotation(rate=1)
-        # self.wait(1)
+        self.wait(4)
+        self.play(*[Create(connection, run_time=5) for connection in sna_connections_list])
+        self.wait(2)
 
-        # self.play(*[Create(connection, run_time=5) for connection in connections_list])
-        # self.wait(2)
 
     def coords_to_point(self, coords):
         theta = -self.camera.get_theta()
@@ -141,3 +192,29 @@ class KalirmozExplanation(ThreeDScene):
 
     def update_position_to_camera(self, mob, coordinate):
         mob.move_to(self.coords_to_point(coordinate))
+
+    def write_3d_text(self, text_object, fade_out=True, waiting_time=3, simple_mode=True):
+        self.add_fixed_in_frame_mobjects(text_object)
+        if simple_mode:
+            self.add(text_object)
+            if fade_out:
+                self.wait(waiting_time)
+                self.remove(text_object)
+        else:
+            self.play(Write(text_object))
+            if fade_out:
+                self.wait(waiting_time)
+                self.play(FadeOut(text_object))
+
+
+
+class Intro(Scene):
+    def construct(self):
+        t1 = Text("Code Names Algorithm", color=BLUE)
+        t2 = Text("by the Kali brothers", color=RED).scale(0.8).next_to(t1, DOWN)
+        self.play(Write(t1))
+        self.wait()
+        self.play(Write(t2))
+        self.wait()
+        self.remove(t1, t2)
+        self.wait()
