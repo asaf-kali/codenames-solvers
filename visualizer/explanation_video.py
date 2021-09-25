@@ -70,6 +70,10 @@ def polar_to_cartesian(r, phi, theta):
     return np.array([x, y, z])
 
 
+def text_len_to_time(text, min_time=2, seconds_per_char=0.1):
+    n = len(text)
+    return np.max([min_time, n*seconds_per_char])
+
 # def connecting_line(v, u):
 #   c = v.T @ u
 #   f = lambda t: (t*v+(1-t)*u) / np.sqrt(t**2+(1-t**2) + 2*t*(1-t)*c)
@@ -101,8 +105,9 @@ sna_connections_list = [ParametricFunction(geodesic(KING_VEC, QUEEN_VEC), t_rang
                         ParametricFunction(geodesic(TEACHER_VEC, JUPITER_VEC), t_range=[0, 1]),
                         ParametricFunction(geodesic(NEWTON_VEC, TEACHER_VEC), t_range=[0, 1])
                         ]
+
 script = {
-    'The algorithm uses...':  'The algorithm uses a Word2Vec model for the linguistic knowledge',
+    'The algorithm uses...':  'The Kalirmoz algorithm uses a Word2Vec model for the linguistic knowledge',
     'In a nutshell...':       'In a nutshell, the Word2Vec assign each word with an n-dimensional\n'
                               'vector (usually n=50, 100, 300), in a way such that words that\n'
                               'tent to appear in the same context have small angle between them',
@@ -117,7 +122,7 @@ script = {
                               'proper subset of words (usually two to four words), on\n'
                               'which to hint',
     'Two methods...':         'Two methods of clustering where implemented.',
-    'In the first method...': 'In the first clustering method, the words are considered\n'
+    'In the first cluste...': 'In the first clustering method, the words are considered\n'
                               'as nodes in a graph, with edges weights correlated to their\n'
                               'cosine similarity',
     'This graph is divid...': 'This graph is divided into communities using the louvain\n'
@@ -171,12 +176,39 @@ script = {
     'Such a hint will...':    'Such a hint will not be chosen.'
 }
 
-texts_script = {k: Text(t, font_size=FONT_SIZE_TEXT).to_corner(UL) for k, t in script.items()}
+texts_script = {k: Text(t, font_size=FONT_SIZE_TEXT) for k, t in script.items()}
+texts_script['In a nutshell...'].next_to(texts_script['The algorithm uses...'], DOWN)
+texts_script['For the sake of...'].to_corner(UL)
+texts_script['The word X...'].next_to(texts_script['Here are some...'], DOWN)
+texts_script['Two methods...'].next_to(texts_script['In each turn...'], DOWN)
+texts_script['This graph is divid...'].next_to(texts_script['In the first cluste...'], DOWN)
+texts_script['Here is an example...'].next_to(texts_script['This graph is divid...'], DOWN)
+texts_script['As can be seen...'].next_to(texts_script['Here is an example...'], DOWN)
+texts_script['Since there are...'].next_to(texts_script['The second clusteri...'], DOWN)
+texts_script['In order to find...'].next_to(texts_script['The second task...'], DOWN)
+texts_script['An initial centroid...'].next_to(texts_script['In order to find...'], DOWN)
+texts_script['to optimize the...'].next_to(texts_script['Ideally, the centro...'], DOWN)
+texts_script['The centroid is the...'].next_to(texts_script['to optimize the...'], DOWN)
+texts_script['This is done in ord...'].next_to(texts_script['The attraction forc...'], DOWN)
+texts_script['The top n words wit...'].next_to(texts_script['After convergence...'], DOWN)
+texts_script['The best hint from ...'].next_to(texts_script['The top n words wit...'], DOWN)
+texts_script['As can be seen2...'].next_to(texts_script['Here is a graph of...'], DOWN)
+texts_script['With such a hint,'].next_to(texts_script['As can be seen2...'], DOWN)
+texts_script['As can be seen3...'].next_to(texts_script['Here is a graph of2...'], DOWN)
+texts_script['Such a hint will...'].next_to(texts_script['As can be seen3...'], DOWN)
+
+
+
 
 class KalirmozExplanation(ThreeDScene):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.simple_mode=True
+
     def construct(self):
         theta = 30*DEGREES
         phi = 75*DEGREES
+        seconds_per_character = 0.02
         axes = ThreeDAxes(x_range=[-2, 2, 1], x_length=4, y_length=4)
         # labels = axes.get_axis_labels(
         #     x_label=Tex("x"), y_label=Tex("y")
@@ -193,13 +225,16 @@ class KalirmozExplanation(ThreeDScene):
         texts_list = [Text(labels_list[i], font_size=FONT_SIZE_LABELS).move_to(camera_vectors[i]) for i in
                       range(list_len)]
         # dots_list = [Dot(point=vector, radius=DOT_SIZE) for vector in vectors_list]
-
+        self.write_3d_text(texts_script['The algorithm uses...'], fade_out=False)
+        self.write_3d_text(texts_script['In a nutshell...'], fade_out=False)
+        self.wait(3)
+        self.remove_3d_text(texts_script['The algorithm uses...'], texts_script['In a nutshell...'])
         self.renderer.camera.light_source.move_to(3 * IN)  # changes the source of the light
         self.set_camera_orientation(phi=phi, theta=theta)  # 75 * DEGREES, theta=30 * DEGREES
-
         self.add(axes, sphere)
+        self.write_3d_text(texts_script['For the sake of...'], fade_out=True)
         # self.play(*[Create(arrows_list[i]) for i in range(list_len)])
-        updaters = [lambda mob: self.update_position_to_camera(mob, vector) for vector in vectors_list]
+        self.add(*arrows_list[0:list_len])
         for i in range(list_len):
             self.add_fixed_in_frame_mobjects(texts_list[i])
         texts_list[0].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[0])))
@@ -209,9 +244,60 @@ class KalirmozExplanation(ThreeDScene):
         texts_list[4].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[4])))
         texts_list[5].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[5])))
         texts_list[6].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[6])))
-        self.add(*arrows_list[0:list_len])
+        self.remove_3d_text(texts_script['For the sake of...'])
+        self.write_3d_text(texts_script['Here are some...'])
+        self.write_3d_text(texts_script['The word X...'])
+        self.remove_3d_text(texts_script['Here are some...'], texts_script['The word X...'])
+        self.write_3d_text(texts_script['In each turn...'])
+        self.write_3d_text(texts_script['Two methods...'])
+        self.remove_3d_text(texts_script['In each turn...'], texts_script['Two methods...'])
+        self.write_3d_text(texts_script['In the first cluste...'])
+        self.write_3d_text(texts_script['This graph is divid...'])
+        self.play(*[Create(connection, run_time=3) for connection in sna_connections_list])
+        self.write_3d_text(texts_script['Here is an example...'])
+        self.write_3d_text(texts_script['As can be seen...'])
+        self.wait(3)
+        self.remove_3d_text(['In the first cluste...'],
+                            ['This graph is divid...'],
+                            ['Here is an example...'],
+                            ['As can be seen...'])
+        self.write_3d_text(texts_script['The second clusteri...'])
+        self.write_3d_text(texts_script['Since there are...'])
+        self.animate_random_connections(vectors_list=vectors_list, number_of_examples=15, example_length=0.3)
+        self.remove_3d_text(['The second clusteri...'],
+                            ['Since there are...'])
+        self.write_3d_text(texts_script['The second task...'])
+        self.write_3d_text(texts_script['In order to find...'])
+        self.write_3d_text(texts_script['An initial centroid...'])
+        self.remove_3d_text(['The second task...'],
+                            ['In order to find...'],
+                            ['An initial centroid...'])
+        self.write_3d_text(texts_script['Ideally, the centro...'])
+        self.write_3d_text(texts_script['to optimize the...'])
+        self.write_3d_text(texts_script['The centroid is the...'])
+        self.remove_3d_text(['Ideally, the centro...'],
+                            ['to optimize the...'],
+                            ['The centroid is the...'])
+        self.write_3d_text(texts_script['The attraction forc...'])
+        self.write_3d_text(texts_script['This is done in ord...'])
+        self.remove_3d_text(['The attraction forc...'],
+                            ['This is done in ord...'])
+        self.write_3d_text(texts_script['After convergence...'])
+        self.write_3d_text(texts_script['The top n words wit...'])
+        self.write_3d_text(texts_script['The best hint from ...'])
+        self.remove_3d_text(['After convergence...'],
+                            ['The top n words wit...'],
+                            ['The best hint from ...'])
+        self.write_3d_text(texts_script['Here is a graph of...'])
+        self.write_3d_text(texts_script['As can be seen2...'])
+        self.write_3d_text(texts_script['Such a hint will...'])
+        self.remove_3d_text(['Here is a graph of...'],
+                            ['As can be seen2...'],
+                            ['Such a hint will...'])
+        self.write_3d_text(texts_script['Here is a graph of2...'])
+        self.write_3d_text(texts_script['As can be seen3...'])
         self.animate_random_connections(vectors_list, 10, 0.3)
-        # self.play(*[Create(connection, run_time=5) for connection in sna_connections_list])
+
 
     def animate_random_connections(self, vectors_list, number_of_examples, example_length):
         for i in range(number_of_examples):
@@ -233,9 +319,11 @@ class KalirmozExplanation(ThreeDScene):
     def update_position_to_camera(self, mob, coordinate):
         mob.move_to(self.coords_to_point(coordinate))
 
-    def write_3d_text(self, text_object, fade_out=True, waiting_time=3, simple_mode=True):
+    def write_3d_text(self, text_object, fade_out=False, waiting_time=None):
+        if waiting_time is None:
+            waiting_time = text_len_to_time(text_object.original_text)
         self.add_fixed_in_frame_mobjects(text_object)
-        if simple_mode:
+        if self.simple_mode:
             self.add(text_object)
             if fade_out:
                 self.wait(waiting_time)
@@ -247,6 +335,11 @@ class KalirmozExplanation(ThreeDScene):
                 self.play(FadeOut(text_object))
 
 
+    def remove_3d_text(self, *text_objects):
+        if self.simple_mode:
+            self.remove(*text_objects)
+        else:
+            self.play([FadeOut(text_object) for text_object in text_objects])
 
 class Intro(Scene):
     def construct(self):

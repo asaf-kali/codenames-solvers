@@ -51,9 +51,10 @@ words = [
     "london",
     "spiderman",
 ]
+board = words_to_random_board(words=words)
 # %%
 for i in range(10):
-    board = words_to_random_board(words=words)
+
     blue_hinter = SnaHinter("Leonardo", team_color=TeamColor.BLUE, debug_mode=False)
     blue_guesser = NaiveGuesser("Bard", team_color=TeamColor.BLUE)
     red_hinter = NaiveHinter("Adam", team_color=TeamColor.RED)
