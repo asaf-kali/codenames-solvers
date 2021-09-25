@@ -2,25 +2,25 @@ from manim import *
 import numpy as np
 import random
 from typing import Callable, List
-# from codenames.solvers.utils.algebra import single_gram_schmidt, geodesic
+from codenames.solvers.utils.algebra import single_gram_schmidt, geodesic
 
-def single_gram_schmidt(v: np.ndarray, u: np.ndarray):
-    v = v / np.linalg.norm(v)
-    u = u / np.linalg.norm(u)
-
-    projection_norm = u.T @ v
-
-    o = u - projection_norm * v
-
-    normed_o = o / np.linalg.norm(o)
-    return v, normed_o
-
-
-def geodesic(v: np.ndarray, u: np.ndarray) -> Callable:
-    v, normed_o = single_gram_schmidt(v, u)
-    theta = np.arccos(v.T @ u)
-    f = lambda t: np.cos(t * theta) * v + np.sin(t * theta) * normed_o
-    return f
+# def single_gram_schmidt(v: np.ndarray, u: np.ndarray):
+#     v = v / np.linalg.norm(v)
+#     u = u / np.linalg.norm(u)
+#
+#     projection_norm = u.T @ v
+#
+#     o = u - projection_norm * v
+#
+#     normed_o = o / np.linalg.norm(o)
+#     return v, normed_o
+#
+#
+# def geodesic(v: np.ndarray, u: np.ndarray) -> Callable:
+#     v, normed_o = single_gram_schmidt(v, u)
+#     theta = np.arccos(v.T @ u)
+#     f = lambda t: np.cos(t * theta) * v + np.sin(t * theta) * normed_o
+#     return f
 
 
 def random_ints(n: int, k: int) -> List[int]:
@@ -82,7 +82,7 @@ def text_len_to_time(text, min_time=2, seconds_per_char=0.1):
 SPHERE_RADIUS = 1
 FONT_SIZE_LABELS = 12
 FONT_SIZE_TEXT = 12
-ARROWS_WIDTH = 0.001
+ARROWS_THICKNESS = 0.001
 DOT_SIZE = 0.2
 KING_VEC = polar_to_cartesian(SPHERE_RADIUS, 0.5 * PI, 0)
 QUEEN_VEC = polar_to_cartesian(SPHERE_RADIUS, 0.5 * PI, 0.2 * PI)
@@ -177,28 +177,35 @@ script = {
 }
 
 texts_script = {k: Text(t, font_size=FONT_SIZE_TEXT) for k, t in script.items()}
+texts_script['The algorithm uses...'].to_corner(UL)
 texts_script['In a nutshell...'].next_to(texts_script['The algorithm uses...'], DOWN)
 texts_script['For the sake of...'].to_corner(UL)
+texts_script['Here are some...'].to_corner(UL)
 texts_script['The word X...'].next_to(texts_script['Here are some...'], DOWN)
+texts_script['In each turn...'].to_corner(UL)
 texts_script['Two methods...'].next_to(texts_script['In each turn...'], DOWN)
+texts_script['In the first cluste...'].to_corner(UL)
 texts_script['This graph is divid...'].next_to(texts_script['In the first cluste...'], DOWN)
 texts_script['Here is an example...'].next_to(texts_script['This graph is divid...'], DOWN)
 texts_script['As can be seen...'].next_to(texts_script['Here is an example...'], DOWN)
+texts_script['The second clusteri...'].to_corner(UL)
 texts_script['Since there are...'].next_to(texts_script['The second clusteri...'], DOWN)
+texts_script['The second task...'].to_corner(UL)
 texts_script['In order to find...'].next_to(texts_script['The second task...'], DOWN)
 texts_script['An initial centroid...'].next_to(texts_script['In order to find...'], DOWN)
+texts_script['Ideally, the centro...'].to_corner(UL)
 texts_script['to optimize the...'].next_to(texts_script['Ideally, the centro...'], DOWN)
 texts_script['The centroid is the...'].next_to(texts_script['to optimize the...'], DOWN)
+texts_script['The attraction forc...'].to_corner(UL)
 texts_script['This is done in ord...'].next_to(texts_script['The attraction forc...'], DOWN)
+texts_script['After convergence...'].to_corner(UL)
 texts_script['The top n words wit...'].next_to(texts_script['After convergence...'], DOWN)
 texts_script['The best hint from ...'].next_to(texts_script['The top n words wit...'], DOWN)
+texts_script['Here is a graph of...'].to_corner(UL)
 texts_script['As can be seen2...'].next_to(texts_script['Here is a graph of...'], DOWN)
 texts_script['With such a hint,'].next_to(texts_script['As can be seen2...'], DOWN)
+texts_script['Here is a graph of2...'].to_corner(UL)
 texts_script['As can be seen3...'].next_to(texts_script['Here is a graph of2...'], DOWN)
-texts_script['Such a hint will...'].next_to(texts_script['As can be seen3...'], DOWN)
-
-
-
 
 class KalirmozExplanation(ThreeDScene):
     def __init__(self, **kwargs):
@@ -220,9 +227,9 @@ class KalirmozExplanation(ThreeDScene):
             u_range=[0.001, PI - 0.001],
             v_range=[0, TAU]
         ).set_opacity(0.3)
-        arrows_list = [Arrow3D(start=[0, 0, 0], end=vector) for vector in vectors_list]
+        arrows_list = [Arrow3D(start=[0, 0, 0], end=vector, thickness=ARROWS_THICKNESS) for vector in vectors_list]
         camera_vectors = [self.coords_to_point(vector * 1.2) for vector in vectors_list]
-        texts_list = [Text(labels_list[i], font_size=FONT_SIZE_LABELS).move_to(camera_vectors[i]) for i in
+        words_labels_list = [Text(labels_list[i], font_size=FONT_SIZE_LABELS, color=DARK_BROWN).move_to(camera_vectors[i]) for i in
                       range(list_len)]
         # dots_list = [Dot(point=vector, radius=DOT_SIZE) for vector in vectors_list]
         self.write_3d_text(texts_script['The algorithm uses...'], fade_out=False)
@@ -236,14 +243,14 @@ class KalirmozExplanation(ThreeDScene):
         # self.play(*[Create(arrows_list[i]) for i in range(list_len)])
         self.add(*arrows_list[0:list_len])
         for i in range(list_len):
-            self.add_fixed_in_frame_mobjects(texts_list[i])
-        texts_list[0].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[0])))
-        texts_list[1].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[1])))
-        texts_list[2].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[2])))
-        texts_list[3].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[3])))
-        texts_list[4].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[4])))
-        texts_list[5].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[5])))
-        texts_list[6].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[6])))
+            self.add_fixed_in_frame_mobjects(words_labels_list[i])
+        words_labels_list[0].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[0])))
+        words_labels_list[1].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[1])))
+        words_labels_list[2].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[2])))
+        words_labels_list[3].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[3])))
+        words_labels_list[4].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[4])))
+        words_labels_list[5].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[5])))
+        words_labels_list[6].add_updater(lambda x: x.move_to(self.coords_to_point(vectors_list[6])))
         self.remove_3d_text(texts_script['For the sake of...'])
         self.write_3d_text(texts_script['Here are some...'])
         self.write_3d_text(texts_script['The word X...'])
@@ -257,43 +264,43 @@ class KalirmozExplanation(ThreeDScene):
         self.write_3d_text(texts_script['Here is an example...'])
         self.write_3d_text(texts_script['As can be seen...'])
         self.wait(3)
-        self.remove_3d_text(['In the first cluste...'],
-                            ['This graph is divid...'],
-                            ['Here is an example...'],
-                            ['As can be seen...'])
+        self.remove_3d_text(texts_script['In the first cluste...'],
+                            texts_script['This graph is divid...'],
+                            texts_script['Here is an example...'],
+                            texts_script['As can be seen...'])
         self.write_3d_text(texts_script['The second clusteri...'])
         self.write_3d_text(texts_script['Since there are...'])
         self.animate_random_connections(vectors_list=vectors_list, number_of_examples=15, example_length=0.3)
-        self.remove_3d_text(['The second clusteri...'],
-                            ['Since there are...'])
+        self.remove_3d_text(texts_script['The second clusteri...'],
+                            texts_script['Since there are...'])
         self.write_3d_text(texts_script['The second task...'])
         self.write_3d_text(texts_script['In order to find...'])
         self.write_3d_text(texts_script['An initial centroid...'])
-        self.remove_3d_text(['The second task...'],
-                            ['In order to find...'],
-                            ['An initial centroid...'])
+        self.remove_3d_text(texts_script['The second task...'],
+                            texts_script['In order to find...'],
+                            texts_script['An initial centroid...'])
         self.write_3d_text(texts_script['Ideally, the centro...'])
         self.write_3d_text(texts_script['to optimize the...'])
         self.write_3d_text(texts_script['The centroid is the...'])
-        self.remove_3d_text(['Ideally, the centro...'],
-                            ['to optimize the...'],
-                            ['The centroid is the...'])
+        self.remove_3d_text(texts_script['Ideally, the centro...'],
+                            texts_script['to optimize the...'],
+                            texts_script['The centroid is the...'])
         self.write_3d_text(texts_script['The attraction forc...'])
         self.write_3d_text(texts_script['This is done in ord...'])
-        self.remove_3d_text(['The attraction forc...'],
-                            ['This is done in ord...'])
+        self.remove_3d_text(texts_script['The attraction forc...'],
+                            texts_script['This is done in ord...'])
         self.write_3d_text(texts_script['After convergence...'])
         self.write_3d_text(texts_script['The top n words wit...'])
         self.write_3d_text(texts_script['The best hint from ...'])
-        self.remove_3d_text(['After convergence...'],
-                            ['The top n words wit...'],
-                            ['The best hint from ...'])
+        self.remove_3d_text(texts_script['After convergence...'],
+                            texts_script['The top n words wit...'],
+                            texts_script['The best hint from ...'])
         self.write_3d_text(texts_script['Here is a graph of...'])
         self.write_3d_text(texts_script['As can be seen2...'])
         self.write_3d_text(texts_script['Such a hint will...'])
-        self.remove_3d_text(['Here is a graph of...'],
-                            ['As can be seen2...'],
-                            ['Such a hint will...'])
+        self.remove_3d_text(texts_script['Here is a graph of...'],
+                            texts_script['As can be seen2...'],
+                            texts_script['Such a hint will...'])
         self.write_3d_text(texts_script['Here is a graph of2...'])
         self.write_3d_text(texts_script['As can be seen3...'])
         self.animate_random_connections(vectors_list, 10, 0.3)
