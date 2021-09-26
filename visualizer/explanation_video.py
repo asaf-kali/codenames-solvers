@@ -4,7 +4,6 @@ import random
 from typing import Callable, List, Optional
 from codenames.solvers.utils.algebra import geodesic, cosine_distance, normalize
 from codenames.solvers.sna_solvers.sna_hinter import step_from_forces, ForceNode  # , opponent_force, friendly_force
-from dataclasses import dataclass
 from scipy.interpolate import interp1d
 
 
