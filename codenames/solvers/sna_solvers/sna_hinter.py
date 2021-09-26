@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 MIN_SELF_BLACK_DELTA = 0.07
 MIN_SELF_OPPONENT_DELTA = 0.04
 MIN_SELF_GRAY_DELTA = 0.01
-MAX_SELF_DISTANCE = 0.225
+MAX_SELF_DISTANCE = 0.235
 OPPONENT_FORCE_CUTOFF = 0.275
 OPPONENT_FORCE_FACTOR = 1.6
 FRIENDLY_FORCE_CUTOFF = 0.2
@@ -170,7 +170,7 @@ class Cluster:
 
 
 class SnaHinter(Hinter):
-    def __init__(self, name: str, team_color: TeamColor, debug_mode=True, physics_optimization=True):
+    def __init__(self, name: str, team_color: TeamColor, debug_mode=False, physics_optimization=True):
         super().__init__(name=name, team_color=team_color)
         self.model: Optional[KeyedVectors] = None
         self.language_length: Optional[int] = None
@@ -241,12 +241,12 @@ class SnaHinter(Hinter):
         self.update_reveals(game_state)
         graded_proposals = self.generate_graded_proposals()
         best_proposal = graded_proposals[0]
-        draw_cluster = Cluster(
-            -1,
-            self.board_data[self.board_data.index.isin(best_proposal.word_group)],
-            self.model.get_vector(best_proposal.hint_word),
-        )
-        self.draw_guesser_view(draw_cluster, best_proposal.hint_word, self.model.get_vector(best_proposal.hint_word))
+        # draw_cluster = Cluster(
+        #     -1,
+        #     self.board_data[self.board_data.index.isin(best_proposal.word_group)],
+        #     self.model.get_vector(best_proposal.hint_word),
+        # )
+        # self.draw_guesser_view(draw_cluster, best_proposal.hint_word, self.model.get_vector(best_proposal.hint_word))
         hint = Hint(best_proposal.hint_word, best_proposal.card_count)
         return hint
 
@@ -259,6 +259,13 @@ class SnaHinter(Hinter):
             cluster = Cluster(id=cluster_id, df=df.copy(deep=True))
             proposal = self.cluster2proposal(cluster)
             graded_proposals.append(proposal)
+            draw_cluster = Cluster(
+                    -1,
+                    self.board_data[self.board_data.index.isin(proposal.word_group)],
+                    self.model.get_vector(proposal.hint_word),
+                )
+            self.draw_guesser_view(draw_cluster, proposal.hint_word,
+                                   self.model.get_vector(proposal.hint_word))
         graded_proposals.sort(key=lambda c: -c.grade)
         return graded_proposals
 
@@ -428,37 +435,40 @@ class SnaHinter(Hinter):
         cluster.centroid = cluster.default_centroid
 
     def draw_centroid_distances(self, ax, cluster: Cluster, centroid=None, title=None):
-        plt.style.use('dark_background')
         if centroid is None:
             self.update_distances(cluster.centroid)
         else:
             self.update_distances(centroid)
 
         temp_df = self.unrevealed_cards.sort_values("distance_to_centroid")
-        colors = temp_df["color"].apply(lambda x: x.value.lower())
+        temp_df["colors"] = temp_df["color"].apply(lambda x: x.value.lower())
         temp_df["is_in_cluster"] = temp_df.index.isin(cluster.df.index)
-        edge_color = temp_df["is_in_cluster"].apply(lambda x: "yellow" if x else "black")
-        line_width = temp_df["is_in_cluster"].apply(lambda x: 3 if x else 1)
+        temp_df["edge_color"] = temp_df["is_in_cluster"].apply(lambda x: "yellow" if x else "black")
+        temp_df["line_width"] = temp_df["is_in_cluster"].apply(lambda x: 3 if x else 1)
+
         ax.bar(
             x=temp_df.index,
             height=temp_df["distance_to_centroid"],
-            color=colors,
-            edgecolor=edge_color,
-            linewidth=line_width,
+            color=temp_df["colors"],
+            edgecolor=temp_df["edge_color"],
+            linewidth=temp_df["line_width"],
         )
         plt.setp(ax.get_xticklabels(), rotation=45)
         ax.set_title(title)
+        plt.show()
+        file_name = input("enter file name:")
+        if file_name != 'no':
+            temp_df.to_csv(f"visualizer\\graphs_data\\{file_name}.csv")
+            plt.savefig(f"visualizer\\graphs_data\\{file_name}.png")
 
     def draw_guesser_view(self, cluster: Cluster, word=None, vector=None):
         if word is None:
             fig, ax = plt.subplots(1, 1, figsize=(15, 8))
             self.draw_centroid_distances(ax, cluster, title="Cluster centroid")
-            plt.show()
         else:
             fig, ax = plt.subplots(1, 1, figsize=(15, 8))
             self.draw_centroid_distances(ax, cluster, centroid=vector, title=f'hint word: {word}')
             # self.draw_centroid_distances(ax[1], cluster, title="Cluster centroid")
-            plt.show()
 
     def divide_to_clusters(self, df: pd.DataFrame, resolution_parameter=1):
         board_size = len(df)
