@@ -3,9 +3,10 @@ import numpy as np
 import random
 from typing import Callable, List, Optional
 from codenames.solvers.utils.algebra import geodesic, cosine_distance, normalize
-from codenames.solvers.sna_solvers.sna_hinter import step_from_forces, ForceNode #, opponent_force, friendly_force
+from codenames.solvers.sna_solvers.sna_hinter import step_from_forces, ForceNode  # , opponent_force, friendly_force
 from dataclasses import dataclass
 from scipy.interpolate import interp1d
+
 
 def random_ints(n: int, k: int) -> List[int]:
     ints_list = [random.randint(0, n) for i in range(k)]
@@ -63,7 +64,7 @@ def text_len_to_time(text, min_time=2, seconds_per_char=0.1):
     return np.max([min_time, n * seconds_per_char])
 
 
-def enrich_nodes(centroid, nodes_list): #:List[ForceNode,...]
+def enrich_nodes(centroid, nodes_list):  #:List[ForceNode,...]
     nodes = []
     for node in nodes_list:
         d = cosine_distance(centroid, node.force_origin)
@@ -86,11 +87,11 @@ def record_trajectory(starting_point, nodes_list, num_of_iterations=50, arc_radi
 
 
 def attractor_force(d):
-    return - d
+    return -d
 
 
 def repeller_force(d):
-    return 0.8*(1/(d+1)-0.5)
+    return 0.8 * (1 / (d + 1) - 0.5)
 
 
 # def connecting_line(v, u):
@@ -222,6 +223,7 @@ scr["With such a hint,"].next_to(scr["As can be seen2..."], DOWN).align_to(scr["
 scr["Here is a graph of2..."].to_corner(UL)
 scr["As can be seen3..."].next_to(scr["Here is a graph of2..."], DOWN).align_to(scr["Here is a graph of2..."], LEFT)
 
+
 class KalirmozExplanation(ThreeDScene):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -231,16 +233,13 @@ class KalirmozExplanation(ThreeDScene):
         theta = 30 * DEGREES
         phi = 75 * DEGREES
         seconds_per_character = 0.02
-        axes = ThreeDAxes(x_range=[-1.5, 1.5, 1],
-                          y_range=[-1.5, 1.5, 1],
-                          z_range=[-1.5, 1.5, 1],
-                          x_length=8,
-                          y_length=8,
-                          z_length=8)
+        axes = ThreeDAxes(
+            x_range=[-1.5, 1.5, 1], y_range=[-1.5, 1.5, 1], z_range=[-1.5, 1.5, 1], x_length=8, y_length=8, z_length=8
+        )
         sphere = Sphere(
             center=(0, 0, 0), radius=SPHERE_RADIUS, resolution=(20, 20), u_range=[0.001, PI - 0.001], v_range=[0, TAU]
         ).set_opacity(0.3)
-        arrows_list = [Line(start=[0, 0, 0], end=vector) for vector in vectors_list] # stroke_width=ARROWS_THICKNESS
+        arrows_list = [Line(start=[0, 0, 0], end=vector) for vector in vectors_list]  # stroke_width=ARROWS_THICKNESS
         camera_vectors = [self.coords_to_point(vector * 1.2) for vector in vectors_list]
         words_labels_list = [
             Text(labels_list[i], font_size=FONT_SIZE_LABELS, color=LABELS_COLOR).move_to(camera_vectors[i])
@@ -296,14 +295,11 @@ class KalirmozExplanation(ThreeDScene):
         self.write_3d_text(scr["to optimize the..."])
         self.write_3d_text(scr["The centroid is the..."])
 
-        starting_point = polar_to_cartesian(1, 0.52*PI, 1.95*PI)
-        nodes_list =[ForceNode(SKI_VEC, True),
-                     ForceNode(WATER_VEC, True),
-                     ForceNode(PARK_VEC, False)]
-        self.animate_physical_system(starting_point=starting_point,
-                                     nodes_list=nodes_list,
-                                     num_of_iterations=1500,
-                                     arc_radians=0.01)
+        starting_point = polar_to_cartesian(1, 0.52 * PI, 1.95 * PI)
+        nodes_list = [ForceNode(SKI_VEC, True), ForceNode(WATER_VEC, True), ForceNode(PARK_VEC, False)]
+        self.animate_physical_system(
+            starting_point=starting_point, nodes_list=nodes_list, num_of_iterations=1500, arc_radians=0.01
+        )
 
         self.remove_3d_text(
             scr["Ideally, the centro..."],
@@ -333,22 +329,21 @@ class KalirmozExplanation(ThreeDScene):
         self.write_3d_text(scr["As can be seen3..."])
         self.animate_random_connections(vectors_list, 10, 0.3)
 
-    def animate_physical_system(self, starting_point: np.array,
-                                nodes_list,
-                                num_of_iterations=10,
-                                arc_radians=0.01): #:List[np.array,...]
-        trajectory = record_trajectory(starting_point=starting_point,
-                                       nodes_list=nodes_list,
-                                       num_of_iterations=num_of_iterations,
-                                       arc_radians=arc_radians)
+    def animate_physical_system(
+        self, starting_point: np.array, nodes_list, num_of_iterations=10, arc_radians=0.01
+    ):  #:List[np.array,...]
+        trajectory = record_trajectory(
+            starting_point=starting_point,
+            nodes_list=nodes_list,
+            num_of_iterations=num_of_iterations,
+            arc_radians=arc_radians,
+        )
         x = np.linspace(0, 1, len(trajectory))
         y = np.stack(trajectory)
         trajectory_interp = interp1d(x, y, axis=0)
         t = ValueTracker(0)
-        centroid = Line(start=[0,0,0], end=starting_point)
-        centroid.add_updater(
-            lambda x: x.become(Line(start=[0,0,0], end=normalize(trajectory_interp(t.get_value())))
-                               ))
+        centroid = Line(start=[0, 0, 0], end=starting_point)
+        centroid.add_updater(lambda x: x.become(Line(start=[0, 0, 0], end=normalize(trajectory_interp(t.get_value())))))
         # forces = []
         # for i, node in enumerate(nodes_list):
         #     force = geodesic_object(node.force_origin, normalize(centroid.get_end()))
@@ -359,13 +354,17 @@ class KalirmozExplanation(ThreeDScene):
         #     force.add_updater(lambda x, i=i: x.become(geodesic_object(node.force_origin, normalize(trajectory_interp(t.get_value())))))
         #     forces.append(force)
         park_force = geodesic_object(PARK_VEC, normalize(centroid.get_end())).set_color(RED)
-        park_force.add_updater(lambda x: x.become(geodesic_object(PARK_VEC, normalize(trajectory_interp(t.get_value())))).set_color(RED))
+        park_force.add_updater(
+            lambda x: x.become(geodesic_object(PARK_VEC, normalize(trajectory_interp(t.get_value())))).set_color(RED)
+        )
         ski_force = geodesic_object(SKI_VEC, normalize(centroid.get_end())).set_color(BLUE)
         ski_force.add_updater(
-            lambda x: x.become(geodesic_object(SKI_VEC, normalize(trajectory_interp(t.get_value())))).set_color(BLUE))
+            lambda x: x.become(geodesic_object(SKI_VEC, normalize(trajectory_interp(t.get_value())))).set_color(BLUE)
+        )
         water_force = geodesic_object(WATER_VEC, normalize(centroid.get_end())).set_color(BLUE)
         water_force.add_updater(
-            lambda x: x.become(geodesic_object(WATER_VEC, normalize(trajectory_interp(t.get_value())))).set_color(BLUE))
+            lambda x: x.become(geodesic_object(WATER_VEC, normalize(trajectory_interp(t.get_value())))).set_color(BLUE)
+        )
         self.play(Create(centroid), Create(park_force), Create(ski_force), Create(water_force))
         self.play(t.animate.set_value(1), run_time=4, rate_func=linear)
 
@@ -422,12 +421,10 @@ class Intro(Scene):
         self.remove(t1, t2)
         self.wait()
 
+
 test_scene = KalirmozExplanation()
-starting_point = polar_to_cartesian(1, 0.52*PI, 1.95*PI)
-nodes_list =[ForceNode(SKI_VEC, True),
-                     ForceNode(WATER_VEC, True),
-                     ForceNode(PARK_VEC, False)]
-test_scene.animate_physical_system(starting_point=starting_point,
-                             nodes_list=nodes_list,
-                             num_of_iterations=1500,
-                             arc_radians=0.01)
+starting_point = polar_to_cartesian(1, 0.52 * PI, 1.95 * PI)
+nodes_list = [ForceNode(SKI_VEC, True), ForceNode(WATER_VEC, True), ForceNode(PARK_VEC, False)]
+test_scene.animate_physical_system(
+    starting_point=starting_point, nodes_list=nodes_list, num_of_iterations=1500, arc_radians=0.01
+)
