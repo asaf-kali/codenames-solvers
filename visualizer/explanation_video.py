@@ -99,8 +99,8 @@ def repeller_force(d):
 #   return f
 
 SPHERE_RADIUS = 1
-FONT_SIZE_LABELS = 18
-FONT_SIZE_TEXT = 12
+FONT_SIZE_LABELS = 12
+FONT_SIZE_TEXT = 30
 ARROWS_THICKNESS = 0.001
 DOT_SIZE = 0.2
 LABELS_COLOR = GREEN_E
@@ -229,6 +229,7 @@ class KalirmozExplanation(ThreeDScene):
         self.simple_mode = False
 
     def construct(self):
+
         theta = 30 * DEGREES
         phi = 75 * DEGREES
         seconds_per_character = 0.02
@@ -238,6 +239,10 @@ class KalirmozExplanation(ThreeDScene):
         sphere = Sphere(
             center=(0, 0, 0), radius=SPHERE_RADIUS, resolution=(20, 20), u_range=[0.001, PI - 0.001], v_range=[0, TAU]
         ).set_opacity(0.3)
+
+        text_box = Rectangle(color=DARK_BROWN, fill_color=BLACK, fill_opacity=1, height=7.0, width=5.0).to_edge(LEFT).shift(0.2*LEFT)
+        self.add_fixed_in_frame_mobjects(text_box)
+        self.add(text_box)
         arrows_list = [Line(start=[0, 0, 0], end=vector) for vector in vectors_list]  # stroke_width=ARROWS_THICKNESS
         camera_vectors = [self.coords_to_point(vector * 1.2) for vector in vectors_list]
         words_labels_list = [
@@ -245,88 +250,99 @@ class KalirmozExplanation(ThreeDScene):
             for i in range(words_list_len)
         ]
 
-        self.write_3d_text(scr["The algorithm uses..."], fade_out=False)
-        self.write_3d_text(scr["In a nutshell..."], fade_out=False)
-        self.wait(3)
-        self.remove_3d_text(scr["The algorithm uses..."], scr["In a nutshell..."])
+        # self.write_3d_text(scr["The algorithm uses..."], fade_out=False)
+        # self.write_3d_text(scr["In a nutshell..."], fade_out=False)
+        # self.remove_3d_text(scr["The algorithm uses..."], scr["In a nutshell..."])
         self.renderer.camera.light_source.move_to(3 * IN)
         self.set_camera_orientation(phi=phi, theta=theta)  # 75 * DEGREES, theta=30 * DEGREES
+        self.move_camera(frame_center=np.array([-2, -2, 1]))
         self.add(axes, sphere)
-        self.write_3d_text(scr["For the sake of..."], fade_out=True)
-        self.begin_ambient_camera_rotation(rate=0.1)
-        self.remove_3d_text(scr["For the sake of..."])
-        self.write_3d_text(scr["Here are some..."])
-        self.play(*[Create(arrows_list[i]) for i in range(words_list_len)])
-        # self.add(*arrows_list[0:words_list_len])
+        # self.write_3d_text(scr["For the sake of..."], fade_out=True)
         for i in range(words_list_len):
-            self.add_fixed_in_frame_mobjects(words_labels_list[i])
-            words_labels_list[i].add_updater(lambda x, i=i: x.move_to(self.coords_to_point(vectors_list[i])))
-        self.write_3d_text(scr["The word X..."])
-        self.remove_3d_text(scr["Here are some..."], scr["The word X..."])
-        self.write_3d_text(scr["In each turn..."])
-        self.write_3d_text(scr["Two methods..."])
-        self.remove_3d_text(scr["In each turn..."], scr["Two methods..."])
-        self.write_3d_text(scr["In the first cluste..."])
-        self.write_3d_text(scr["This graph is divid..."])
-        self.play(*[Create(connection, run_time=3) for connection in sna_connections_list])
-        self.write_3d_text(scr["Here is an example..."])
-        self.write_3d_text(scr["As can be seen..."])
-        self.wait(3)
-        self.remove_3d_text(
-            scr["In the first cluste..."],
-            scr["This graph is divid..."],
-            scr["Here is an example..."],
-            scr["As can be seen..."],
-        )
-        self.write_3d_text(scr["The second clusteri..."])
-        self.write_3d_text(scr["Since there are..."])
-        self.animate_random_connections(vectors_list=vectors_list, number_of_examples=15, example_length=0.3)
-        self.remove_3d_text(scr["The second clusteri..."], scr["Since there are..."])
-        self.write_3d_text(scr["The second task..."])
-        self.write_3d_text(scr["In order to find..."])
-        self.write_3d_text(scr["An initial centroid..."])
-        self.remove_3d_text(
-            scr["The second task..."],
-            scr["In order to find..."],
-            scr["An initial centroid..."],
-        )
-        self.write_3d_text(scr["Ideally, the centro..."])
-        self.write_3d_text(scr["to optimize the..."])
-        self.write_3d_text(scr["The centroid is the..."])
+            self.add_fixed_orientation_mobjects(words_labels_list[i])
+            # words_labels_list[i].add_updater(lambda x, i=i: x.move_to(self.coords_to_point(vectors_list[i])))
+        self.add(*words_labels_list)
+        self.add(*arrows_list[0:words_list_len])
+        self.begin_ambient_camera_rotation()
+        self.wait(2)
+        # colors = [RED, GREEN, BLUE, YELLOW, ORANGE]
+        # values = [0.5, 0.6, 0.9, 0.45, 0.96, 0.73, 0.2, 0.4, 0.49, 0.75, 0.9]
+        # bar_chart = BarChart(values, bar_colors=colors)
+        # self.play(DrawBorderThenFill(bar_chart, run_time=25))
+        # self.wait(3)
 
-        starting_point = polar_to_cartesian(1, 0.52 * PI, 1.95 * PI)
-        nodes_list = [ForceNode(SKI_VEC, True), ForceNode(WATER_VEC, True), ForceNode(PARK_VEC, False)]
-        self.animate_physical_system(
-            starting_point=starting_point, nodes_list=nodes_list, num_of_iterations=1500, arc_radians=0.01
-        )
+        # self.begin_ambient_camera_rotation(rate=0.1)
+        # self.remove_3d_text(scr["For the sake of..."])
+        # self.write_3d_text(scr["Here are some..."])
+        # self.play(*[Create(arrows_list[i]) for i in range(words_list_len)])
+        # # self.add(*arrows_list[0:words_list_len])
 
-        self.remove_3d_text(
-            scr["Ideally, the centro..."],
-            scr["to optimize the..."],
-            scr["The centroid is the..."],
-        )
-        self.write_3d_text(scr["The attraction forc..."])
-        self.write_3d_text(scr["This is done in ord..."])
-        self.remove_3d_text(scr["The attraction forc..."], scr["This is done in ord..."])
-        self.write_3d_text(scr["After convergence..."])
-        self.write_3d_text(scr["The top n words wit..."])
-        self.write_3d_text(scr["The best hint from ..."])
-        self.remove_3d_text(
-            scr["After convergence..."],
-            scr["The top n words wit..."],
-            scr["The best hint from ..."],
-        )
-        self.write_3d_text(scr["Here is a graph of..."])
-        self.write_3d_text(scr["As can be seen2..."])
-        self.write_3d_text(scr["Such a hint will..."])
-        self.remove_3d_text(
-            scr["Here is a graph of..."],
-            scr["As can be seen2..."],
-            scr["Such a hint will..."],
-        )
-        self.write_3d_text(scr["Here is a graph of2..."])
-        self.write_3d_text(scr["As can be seen3..."])
-        self.animate_random_connections(vectors_list, 10, 0.3)
+        # self.write_3d_text(scr["The word X..."])
+        # self.remove_3d_text(scr["Here are some..."], scr["The word X..."])
+        # self.write_3d_text(scr["In each turn..."])
+        # self.write_3d_text(scr["Two methods..."])
+        # self.remove_3d_text(scr["In each turn..."], scr["Two methods..."])
+        # self.write_3d_text(scr["In the first cluste..."])
+        # self.write_3d_text(scr["This graph is divid..."])
+        # self.play(*[Create(connection, run_time=3) for connection in sna_connections_list])
+        # self.write_3d_text(scr["Here is an example..."])
+        # self.write_3d_text(scr["As can be seen..."])
+        # self.wait(3)
+        # self.remove_3d_text(
+        #     scr["In the first cluste..."],
+        #     scr["This graph is divid..."],
+        #     scr["Here is an example..."],
+        #     scr["As can be seen..."],
+        # )
+        # self.write_3d_text(scr["The second clusteri..."])
+        # self.write_3d_text(scr["Since there are..."])
+        # self.animate_random_connections(vectors_list=vectors_list, number_of_examples=15, example_length=0.3)
+        # self.remove_3d_text(scr["The second clusteri..."], scr["Since there are..."])
+        # self.write_3d_text(scr["The second task..."])
+        # self.write_3d_text(scr["In order to find..."])
+        # self.write_3d_text(scr["An initial centroid..."])
+        # self.remove_3d_text(
+        #     scr["The second task..."],
+        #     scr["In order to find..."],
+        #     scr["An initial centroid..."],
+        # )
+        # self.write_3d_text(scr["Ideally, the centro..."])
+        # self.write_3d_text(scr["to optimize the..."])
+        # self.write_3d_text(scr["The centroid is the..."])
+        #
+        # starting_point = polar_to_cartesian(1, 0.52 * PI, 1.95 * PI)
+        # nodes_list = [ForceNode(SKI_VEC, True), ForceNode(WATER_VEC, True), ForceNode(PARK_VEC, False)]
+        # self.animate_physical_system(
+        #     starting_point=starting_point, nodes_list=nodes_list, num_of_iterations=1500, arc_radians=0.01
+        # )
+        #
+        # self.remove_3d_text(
+        #     scr["Ideally, the centro..."],
+        #     scr["to optimize the..."],
+        #     scr["The centroid is the..."],
+        # )
+        # self.write_3d_text(scr["The attraction forc..."])
+        # self.write_3d_text(scr["This is done in ord..."])
+        # self.remove_3d_text(scr["The attraction forc..."], scr["This is done in ord..."])
+        # self.write_3d_text(scr["After convergence..."])
+        # self.write_3d_text(scr["The top n words wit..."])
+        # self.write_3d_text(scr["The best hint from ..."])
+        # self.remove_3d_text(
+        #     scr["After convergence..."],
+        #     scr["The top n words wit..."],
+        #     scr["The best hint from ..."],
+        # )
+        # self.write_3d_text(scr["Here is a graph of..."])
+        # self.write_3d_text(scr["As can be seen2..."])
+        # self.write_3d_text(scr["Such a hint will..."])
+        # self.remove_3d_text(
+        #     scr["Here is a graph of..."],
+        #     scr["As can be seen2..."],
+        #     scr["Such a hint will..."],
+        # )
+        # self.write_3d_text(scr["Here is a graph of2..."])
+        # self.write_3d_text(scr["As can be seen3..."])
+        # self.animate_random_connections(vectors_list, 10, 0.3)
 
     def animate_physical_system(
         self, starting_point: np.array, nodes_list, num_of_iterations=10, arc_radians=0.01
@@ -393,13 +409,13 @@ class KalirmozExplanation(ThreeDScene):
         self.add_fixed_in_frame_mobjects(text_object)
         if self.simple_mode:
             self.add(text_object)
+            self.wait(waiting_time)
             if fade_out:
-                self.wait(waiting_time)
                 self.remove(text_object)
         else:
             self.play(Write(text_object))
+            self.wait(waiting_time)
             if fade_out:
-                self.wait(waiting_time)
                 self.play(FadeOut(text_object))
 
     def remove_3d_text(self, *text_objects):
@@ -421,9 +437,9 @@ class Intro(Scene):
         self.wait()
 
 
-test_scene = KalirmozExplanation()
-starting_point = polar_to_cartesian(1, 0.52 * PI, 1.95 * PI)
-nodes_list = [ForceNode(SKI_VEC, True), ForceNode(WATER_VEC, True), ForceNode(PARK_VEC, False)]
-test_scene.animate_physical_system(
-    starting_point=starting_point, nodes_list=nodes_list, num_of_iterations=1500, arc_radians=0.01
-)
+# test_scene = KalirmozExplanation()
+# starting_point = polar_to_cartesian(1, 0.52 * PI, 1.95 * PI)
+# nodes_list = [ForceNode(SKI_VEC, True), ForceNode(WATER_VEC, True), ForceNode(PARK_VEC, False)]
+# test_scene.animate_physical_system(
+#     starting_point=starting_point, nodes_list=nodes_list, num_of_iterations=1500, arc_radians=0.01
+# )
