@@ -57,7 +57,7 @@ for i in range(10):
 
     blue_hinter = SnaHinter("Leonardo", team_color=TeamColor.BLUE, debug_mode=False)
     blue_guesser = NaiveGuesser("Bard", team_color=TeamColor.BLUE)
-    red_hinter = NaiveHinter("Adam", team_color=TeamColor.RED)
+    red_hinter = SnaHinter("Adam", team_color=TeamColor.RED, debug_mode=False)
     red_guesser = NaiveGuesser("Eve", team_color=TeamColor.RED)
     game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
     game_manager.run_game(language="english", board=board)

@@ -5,12 +5,22 @@ from typing import Callable, List, Optional
 from codenames.solvers.utils.algebra import geodesic, cosine_distance, normalize
 from codenames.solvers.sna_solvers.sna_hinter import step_from_forces, ForceNode  # , opponent_force, friendly_force
 from scipy.interpolate import interp1d
+import pandas as pd
 
+
+def text2color(text):
+    if text == 'blue':
+        return BLUE
+    if text == 'red':
+        return RED
+    if text == 'black':
+        return BLACK
+    if text == 'gray':
+        return GRAY
 
 def random_ints(n: int, k: int) -> List[int]:
     ints_list = [random.randint(0, n) for i in range(k)]
     return ints_list
-
 
 def geodesic_object(v, u):
     geodesic_function = geodesic(v, u)
@@ -232,42 +242,43 @@ class KalirmozExplanation(ThreeDScene):
 
         theta = 30 * DEGREES
         phi = 75 * DEGREES
-        seconds_per_character = 0.02
-        axes = ThreeDAxes(
-            x_range=[-1.5, 1.5, 1], y_range=[-1.5, 1.5, 1], z_range=[-1.5, 1.5, 1], x_length=8, y_length=8, z_length=8
-        )
-        sphere = Sphere(
-            center=(0, 0, 0), radius=SPHERE_RADIUS, resolution=(20, 20), u_range=[0.001, PI - 0.001], v_range=[0, TAU]
-        ).set_opacity(0.3)
+        # seconds_per_character = 0.02
+        # axes = ThreeDAxes(
+        #     x_range=[-1.5, 1.5, 1], y_range=[-1.5, 1.5, 1], z_range=[-1.5, 1.5, 1], x_length=8, y_length=8, z_length=8
+        # )
+        # sphere = Sphere(
+        #     center=(0, 0, 0), radius=SPHERE_RADIUS, resolution=(20, 20), u_range=[0.001, PI - 0.001], v_range=[0, TAU]
+        # ).set_opacity(0.3)
 
-        text_box = Rectangle(color=DARK_BROWN, fill_color=BLACK, fill_opacity=1, height=7.0, width=5.0).to_edge(LEFT).shift(0.2*LEFT)
-        self.add_fixed_in_frame_mobjects(text_box)
-        self.add(text_box)
-        arrows_list = [Line(start=[0, 0, 0], end=vector) for vector in vectors_list]  # stroke_width=ARROWS_THICKNESS
-        camera_vectors = [self.coords_to_point(vector * 1.2) for vector in vectors_list]
-        words_labels_list = [
-            Text(labels_list[i], font_size=FONT_SIZE_LABELS, color=LABELS_COLOR).move_to(camera_vectors[i])
-            for i in range(words_list_len)
-        ]
+        # text_box = Rectangle(color=DARK_BROWN, fill_color=BLACK, fill_opacity=1, height=7.0, width=5.0).to_edge(LEFT).shift(0.2*LEFT)
+        # self.add_fixed_in_frame_mobjects(text_box)
+        # self.add(text_box)
+        # arrows_list = [Line(start=[0, 0, 0], end=vector) for vector in vectors_list]  # stroke_width=ARROWS_THICKNESS
+        # camera_vectors = [self.coords_to_point(vector * 1.2) for vector in vectors_list]
+        # words_labels_list = [
+            # Text(labels_list[i], font_size=FONT_SIZE_LABELS, color=LABELS_COLOR).move_to(camera_vectors[i])
+            # for i in range(words_list_len)
+        # ]
 
         # self.write_3d_text(scr["The algorithm uses..."], fade_out=False)
         # self.write_3d_text(scr["In a nutshell..."], fade_out=False)
         # self.remove_3d_text(scr["The algorithm uses..."], scr["In a nutshell..."])
         self.renderer.camera.light_source.move_to(3 * IN)
         self.set_camera_orientation(phi=phi, theta=theta)  # 75 * DEGREES, theta=30 * DEGREES
-        self.move_camera(frame_center=np.array([-2, -2, 1]))
-        self.add(axes, sphere)
+        # self.add(axes, sphere)
+        # self.wait(1)
+        # self.remove(axes, sphere)
+        hint_word = "planets"
+        self.plot_guesser_view_chart(f"visualizer\\graphs_data\\{hint_word}.csv", hint_word)
+        self.plot_guesser_view_chart(r"visualizer\graphs_data\dark_bad_choose_it.csv", 'dark')
+        self.plot_guesser_view_chart(r"visualizer\graphs_data\international_good.csv", 'international')
+        # self.wait(1)
         # self.write_3d_text(scr["For the sake of..."], fade_out=True)
-        for i in range(words_list_len):
-            self.add_fixed_orientation_mobjects(words_labels_list[i])
+        # for i in range(words_list_len):
+        #     self.add_fixed_orientation_mobjects(words_labels_list[i])
             # words_labels_list[i].add_updater(lambda x, i=i: x.move_to(self.coords_to_point(vectors_list[i])))
-        self.add(*words_labels_list)
-        self.add(*arrows_list[0:words_list_len])
-        self.begin_ambient_camera_rotation()
-        self.wait(2)
-        # colors = [RED, GREEN, BLUE, YELLOW, ORANGE]
-        # values = [0.5, 0.6, 0.9, 0.45, 0.96, 0.73, 0.2, 0.4, 0.49, 0.75, 0.9]
-        # bar_chart = BarChart(values, bar_colors=colors)
+        # self.add(*words_labels_list)
+        # self.add(*arrows_list[0:words_list_len])
         # self.play(DrawBorderThenFill(bar_chart, run_time=25))
         # self.wait(3)
 
@@ -400,6 +411,68 @@ class KalirmozExplanation(ThreeDScene):
         rotated = phi_rotation @ theta_rotation @ constant_rotation @ coords_np
         return rotated
 
+    def plot_guesser_view_chart(self, data_path, title):
+        df = pd.read_csv(data_path)
+        df = df.loc[0:10, :]
+        colors = df["colors"].apply(text2color).to_list()
+        bar_names = df.iloc[:,0].to_list()
+        horizontal_factor = 1
+        CONFIG_dict = {
+            "height": 5,
+            "width": 9 * horizontal_factor,
+            # "n_ticks": 4,
+            # "tick_width": 0.2,
+            "label_y_axis": "Kaki",
+            # "y_axis_label": "Kaki",
+            # "y_axis_label_height": 0.25,
+            "max_value": 0.5,
+            "bar_colors": colors,
+            # "bar_fill_opacity": 0.8,
+            # "bar_stroke_width": 0,
+            "bar_names": bar_names,
+            "bar_label_scale_val": 0
+
+        }
+
+        chart_position_x = 2
+        chart_position_y = 0
+        labels_size = 0.55
+        labels_separation = 0.78 * horizontal_factor
+        labels_shift_x = chart_position_x-3.7
+        labels_shift_y = chart_position_y-3
+        bar_labels = VGroup()
+        for i in range(len(bar_names)):
+            label = Text(bar_names[i])
+            self.add_fixed_in_frame_mobjects(label)
+            label.scale(labels_size)
+            label.move_to(UP * labels_shift_y + (i * labels_separation + labels_shift_x) * RIGHT)
+            label.rotate(np.pi * (1.5 / 6))
+            bar_labels.add(label)
+
+        chart = BarChart(values=df["distance_to_centroid"].to_list(), **CONFIG_dict)
+        chart.shift(chart_position_y*UP + chart_position_x*RIGHT)
+        title=Text(f"Hint word: {title}")
+        y_label = Text("Cosine distance to hinted word")
+        x_label = Text("Board words")
+        self.add_fixed_in_frame_mobjects(chart, title, y_label, x_label)
+        title.next_to(chart, UP).shift(RIGHT)
+        y_label.rotate(angle=TAU / 4, axis=OUT).next_to(chart, LEFT).scale(0.6)
+        x_label.next_to(bar_labels, DOWN).scale(0.6)
+        # self.add(chart, bar_labels, title, y_label, x_label)
+        # self.wait(1)
+        self.play(DrawBorderThenFill(chart), Write(bar_labels), Write(title), Write(y_label), Write(x_label), run_time=2)
+        self.wait(5)
+        self.play(FadeOut(chart), FadeOut(bar_labels), FadeOut(title), FadeOut(y_label), FadeOut(x_label),
+                  run_time=2)
+        # bar_chart = BarChart(values= df["distance_to_centroid"].to_list(),
+        #                      height=7,
+        #                      width=9,
+        #                      label_y_axis=True,
+        #                      bar_colors=colors,
+        #                      bar_names= # This is the words
+        # self.add_fixed_in_frame_mobjects(bar_chart)
+        # self.play(DrawBorderThenFill(bar_chart))
+
     def update_position_to_camera(self, mob, coordinate):
         mob.move_to(self.coords_to_point(coordinate))
 
@@ -437,9 +510,12 @@ class Intro(Scene):
         self.wait()
 
 
-# test_scene = KalirmozExplanation()
+
+test_scene = KalirmozExplanation()
 # starting_point = polar_to_cartesian(1, 0.52 * PI, 1.95 * PI)
 # nodes_list = [ForceNode(SKI_VEC, True), ForceNode(WATER_VEC, True), ForceNode(PARK_VEC, False)]
 # test_scene.animate_physical_system(
 #     starting_point=starting_point, nodes_list=nodes_list, num_of_iterations=1500, arc_radians=0.01
 # )
+hint_word = "planets"
+test_scene.plot_guesser_view_chart(f"visualizer\graphs_data\{hint_word}.csv", hint_word)
