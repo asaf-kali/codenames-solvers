@@ -41,6 +41,7 @@ BANNED_WORDS = {"slackerjack"}
 Similarity = Tuple[str, float]
 # Test
 
+
 def _invert_dict(original: dict) -> dict:
     inverted = {}
     for new_value, new_key in original.items():
