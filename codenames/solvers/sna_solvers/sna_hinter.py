@@ -16,6 +16,14 @@ from codenames.solvers.naive.naive_hinter import Proposal, calculate_proposal_gr
 from codenames.solvers.utils.algebra import cosine_distance, single_gram_schmidt
 from language_data.model_loader import load_language
 
+
+@dataclass
+class ForceNode:
+    force_origin: np.array
+    force_sign: True
+    force_size: Optional[float] = None
+
+
 log = logging.getLogger(__name__)
 MIN_SELF_BLACK_DELTA = 0.07
 MIN_SELF_OPPONENT_DELTA = 0.04
@@ -55,7 +63,7 @@ def should_filter_word(word: str, filter_expressions: Iterable[str]) -> bool:
 def step_away(starting_point: np.array, step_away_from: np.array, arc_radians: float) -> np.array:
     step_away_from, normed_o = single_gram_schmidt(step_away_from, starting_point)
 
-    original_phase = np.arccos(starting_point.T @ step_away_from)
+    original_phase = np.arccos(np.clip(starting_point.T @ step_away_from, -1.0, 1.0))
 
     rotated = step_away_from * np.cos(original_phase + arc_radians) + normed_o * np.sin(original_phase + arc_radians)
 
@@ -68,11 +76,10 @@ def step_towards(starting_point: np.array, step_away_from: np.array, arc_radians
     return step_away(starting_point, step_away_from, -arc_radians)
 
 
-def sum_forces(starting_point: np.array, nodes) -> np.array:  # : List[Tuple([)np.array, float], ...]
-    # Nodes are vector+Force from vector pairs
-    total_force = np.zeros(nodes[0][0].shape)
+def sum_forces(starting_point: np.array, nodes) -> np.array:  # : List[ForceNode,...]
+    total_force = np.zeros(nodes[0].force_origin.shape)
     for node in nodes:
-        rotated = step_away(starting_point, node[0], node[1] * EPSILON)
+        rotated = step_away(starting_point, node.force_origin, node.force_size * EPSILON)
         contribution = rotated - starting_point
         total_force += contribution
     return total_force
@@ -342,7 +349,9 @@ class SnaHinter(Hinter):
         relevant_df = self.board_data[self.board_data["is_revealed"] == False]
         relevant_df["force"] = relevant_df.apply(lambda row: self.color2force(centroid, row), axis=1)
         relevant_df = relevant_df[["vector", "force"]]
-        return list(relevant_df.itertuples(index=False, name=None))
+        tuples_list = list(relevant_df.itertuples(index=False, name=None))
+        nodes_list = [ForceNode(force_origin=element[0], force_size=element[1]) for element in tuples_list]
+        return nodes_list
 
     def optimization_break_condition(self, cluster: Cluster) -> bool:
         self.update_distances(cluster.centroid)

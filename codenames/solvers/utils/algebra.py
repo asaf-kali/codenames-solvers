@@ -46,3 +46,11 @@ def geodesic(v, u):
     theta = np.arccos(v.T @ u)
     f = lambda t: np.cos(t * theta) * v + np.sin(t * theta) * normed_o
     return f
+
+
+def normalize(v):
+    norm = np.linalg.norm(v)
+    if norm > 0:
+        return v / norm
+    else:
+        return v
