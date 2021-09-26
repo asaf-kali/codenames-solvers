@@ -24,10 +24,10 @@ def random_ints(n: int, k: int) -> List[int]:
 
 def geodesic_object(v, u):
     geodesic_function = geodesic(v, u)
-    return ParametricFunction(geodesic_function, t_range=[0, 1])
+    return ParametricFunction(geodesic_function, t_range=[0, 1],color=ORANGE)
 
 
-def generate_random_subsets(elements_list: List, average_subset_size: int) -> List[List]:
+def generate_random_subsets(elements_list: List, average_subset_size: float) -> List[List]:
     k = len(elements_list)
     n = int(k / average_subset_size)
     subsets_map = random_ints(n, k)
@@ -52,7 +52,7 @@ def generate_cluster_connections(cluster_vectors: List[np.ndarray]) -> List[Para
     return connections_list
 
 
-def generate_random_connections(vectors_list, average_cluster_size=2):
+def generate_random_connections(vectors_list, average_cluster_size):
     vectors_clusters = generate_random_subsets(vectors_list, average_subset_size=average_cluster_size)
     connections_list = []
     for cluster in vectors_clusters:
@@ -68,7 +68,7 @@ def polar_to_cartesian(r, phi, theta):
     return np.array([x, y, z])
 
 
-def text_len_to_time(text, min_time=2, seconds_per_char=0.1):
+def text_len_to_time(text, min_time=2, seconds_per_char=0.05):
     n = len(text)
     return np.max([min_time, n * seconds_per_char])
 
@@ -109,11 +109,11 @@ def repeller_force(d):
 #   return f
 
 SPHERE_RADIUS = 1
-FONT_SIZE_LABELS = 12
-FONT_SIZE_TEXT = 30
+FONT_SIZE_LABELS = 14
+FONT_SIZE_TEXT = 25
 ARROWS_THICKNESS = 0.001
 DOT_SIZE = 0.2
-LABELS_COLOR = GREEN_E
+LABELS_COLOR = PURE_RED
 SKI_VEC = polar_to_cartesian(SPHERE_RADIUS, 0.5 * PI, 0)
 WATER_VEC = polar_to_cartesian(SPHERE_RADIUS, 0.5 * PI, 0.2 * PI)
 BEACH_VEC = polar_to_cartesian(SPHERE_RADIUS, 0.70 * PI, 0.27 * PI)
@@ -123,10 +123,6 @@ NEWTON_VEC = polar_to_cartesian(SPHERE_RADIUS, 0.27 * PI, -0.11 * PI)
 TEACHER_VEC = polar_to_cartesian(SPHERE_RADIUS, 0.3 * PI, -0.2 * PI)
 
 vectors_list = [SKI_VEC, WATER_VEC, BEACH_VEC, PARK_VEC, JUPITER_VEC, NEWTON_VEC, TEACHER_VEC]
-
-generate_random_connections(vectors_list)
-
-
 labels_list = ["ski", "water", "beach", "park", "jupiter", "newton", "teacher"]
 words_list_len = len(vectors_list)
 
@@ -145,60 +141,120 @@ script_dict = {
     "tent to appear in the same context have small angle between them",
     "For the sake of...": "For the sake of this video, we will represent the words vectors\n"
     "as 3-dimensional vectors",
-    "Here are some...": "Here are some words and their corresponding vectors.",
-    "The word X...": 'The word "water" is close to the words "ski" and "beach" and far\n'
-    "from the word newton as indeed semantically, the words water,ski and beach all appear in the\n"
-    "same contexts, while the word newton usually appears in other contexts",
-    "In each turn...": "In each turn, the first task of the hinter is to find a\n"
-    "proper subset of words (usually two to four words), on\n"
-    "which to hint",
-    "Two methods...": "Two methods of clustering where implemented.",
-    "In the first cluste...": "In the first clustering method, the words are considered\n"
-    "as nodes in a graph, with edges weights correlated to their\n"
-    "cosine similarity",
-    "This graph is divid...": "This graph is divided into communities using the louvain\n"
-    "SNA algorithm, and each community is taken as an optional\n"
-    "cluster of words to hint about.",
-    "Here is an example...": "Here is an example of 25 words and their louvain\n" "clustering result:",
-    "As can be seen...": "As can be seen, semantically close words are put within the\n" "same cluster.",
-    "The second clusteri...": "The second clustering method is much simpler:",
-    "Since there are...": "Since there are at most 9 cards to hint about, it is feasible\n"
-    "to just iterate over all possible subsets and choose the best\n"
-    "one.",
-    "The second task...": "The second task of the hinter is to choose a hinting word for\n" "the cluster.",
-    "In order to find...": "In order to find a hinting word for a cluster, the hinter\n"
-    'generates a "centroid" vector for the cluster, to search real\n'
-    "words near by.",
-    "An initial centroid...": 'An initial "centroid" is proposed as the Center of Mass of\n' "the cluster's vectors",
-    "Ideally, the centro...": "Ideally, the centroid would be close to all the cluster's words\n"
-    'and far from words of other colors. (where "close" and "far")\n'
-    "are considered in the cosine distance metric.",
-    "to optimize the...": "To optimize the centroid, the words in the board (from\n"
-    " all colors) are considered as a physical system, where\n"
-    "every vector from the color of the hinter is an attractor,\n"
-    "and every word from other color is a repeller.",
-    "The centroid is the...": "The centroid is then being pushed and pulled by the words\n"
-    "of the board until converging to a point where it is both\n"
-    "far away from bad words, and close to close words.",
-    "The attraction forc...": "The attraction force acts like a spring, where if the\n"
-    'centroid is to far, the spring can be "torn" apart and is\n'
-    "no longer considered as part of the cluster.",
-    "This is done in ord...": "This is done in order to allow outliers in the cluster to be\n" "neglected.",
-    "After convergence...": "After convergence, all there needs to be done is to pick up a\n"
-    "word near-by the optimized cluster's centroid",
-    "The top n words wit...": "The top n words with the lowest cosine distance are examined\n"
-    "and the best one is chosen and the cluster's hint",
-    "The best hint from ...": "The best hint from all clusters is picked and being hinter\n" "to the gruesser!",
-    "Here is a graph of...": "Here is a graph of the guesser's view of a good hinted word",
-    "As can be seen2...": "As can be seen, the closest words on board to the hinted word\n"
-    "are all from the team's color, while words from other colors\n"
-    "are far from the hinted word",
-    "With such a hint,": "With such a hint, victory is guaranteed!",
-    "Here is a graph of2...": "Here is a graph of the guesser's view of a bad hinted word\n",
-    "As can be seen3...": "As can be seen, there is a bad word just as close to the\n"
-    "hinted word as the good word, which might confuse the guesser,\n"
-    "and lead him to pick up the bad word.",
-    "Such a hint will...": "Such a hint will not be chosen.",
+    "Here are some...":       "Here are some words and their\n"
+                              "corresponding vectors.",
+    "The word X...":          'The word "water" is close to\n'
+                              'the words "ski" and "beach"\n'
+                              'and far from the word "newton"\n'
+                              'as indeed semantically, the\n'
+                              'words "water", "ski" and\n'
+                              '"beach" all appear in the\n'
+                              'same contexts while the word\n'
+                              'newton usually appears in\n'
+                              'other contexts',
+    "In each turn...":        "In each turn, the first task\n"
+                              "of the hinter is to find a\n"
+                              "proper subset of words\n"
+                              "(usually two to four words),\n"
+                              "on which to hint",
+    "Two methods...":         "Two methods of clustering\n"
+                              "where implemented.",
+    "In the first cluste...": "In the first clustering\n"
+                              "method, the words are\n"
+                              "considered\n"
+                              "as nodes in a graph, with\n"
+                              "edges weights correlated to\n"
+                              "their cosine similarity",
+    "This graph is divid...": "This graph is divided into\n"
+                              "communities using the louvain\n"
+                              "SNA algorithm, and each\n"
+                              "community is taken as an\n"
+                              "optional cluster of words to"
+                              "hint about.",
+    "Here is an example...":  "Here is an example of 25 words\n"
+                              "and their louvain clustering\n"
+                              "result:",
+    "As can be seen...":      "As can be seen, semantically\n"
+                              "close words are put within the\n"
+                              "same cluster.",
+    "The second clusteri...": "The second clustering method is\n"
+                              "much simpler:",
+    "Since there are...":     "Since there are at most 9 cards\n"
+                              "to hint about, it is feasible\n"
+                              "to just iterate over all possible\n"
+                              "subsets and choose the best\n"
+                              "one.",
+    "The second task...":     "The second task of the hinter is\n"
+                              "to choose a hinting word for\n"
+                              "the cluster.",
+    "In order to find...":    "In order to find a hinting word\n"
+                              "for a cluster, the hinter\n"
+                              'generates a "centroid" vector\n'
+                              'for the cluster, to search real\n'
+                              "words near by.",
+    "An initial centroid...": 'An initial "centroid" is\n'
+                              'proposed as the Center of Mass\n'
+                              "of the cluster's vectors",
+    "Ideally, the centro...": "Ideally, the centroid would be\n"
+                              "close to all the cluster's\n"
+                              'words and far from words of\n'
+                              'other colors. (where "close"\n'
+                              'and "far") are considered in\n'
+                              'the cosine distance metric.',
+    "to optimize the...":     "To optimize the centroid, the\n"
+                              "words in the board (from\n"
+                              " all colors) are considered\n"
+                              "as a physical system, where\n"
+                              "every vector from the color\n"
+                              "of the hinter is an attractor,\n"
+                              "and every word from other\n"
+                              "color is a repeller.",
+    "The centroid is the...": "The centroid is then being\n"
+                              "pushed and pulled by the words\n"
+                              "of the board until converging\n"
+                              "to a point where it is both\n"
+                              "far away from bad words, and\n"
+                              "close to close words.",
+    "The attraction forc...": "The attraction force acts like\n"
+                              'a spring, where if the centroid\n'
+                              'is to far, the spring can be\n'
+                              '"torn" apart and is no longer\n'
+                              'considered as part of the cluster.',
+    "This is done in ord...": "This is done in order to allow\n"
+                              "outliers in the cluster to be\n"
+                              "neglected.",
+    "After convergence...":   "After convergence, all there\n"
+                              "needs to be done is to pick up a\n"
+                              "word near-by the optimized\n"
+                              "cluster's centroid",
+    "The top n words wit...": "The top n words with the lowest\n"
+                              "cosine distance are examined\n"
+                              "and the best one is chosen and\n"
+                              "the cluster's hint",
+    "The best hint from ...": "The best hint from all clusters\n"
+                              "is picked and being hinter\n"
+                              "to the gruesser!",
+    "Here is a graph of...":  "Here is a graph of the\n"
+                              "guesser's view of a good\n"
+                              "hinted word.",
+    "As can be seen2...":     "As can be seen, the closest\n"
+                              "words on board to the hinted\n"
+                              "word are all from the team's\n"
+                              "color, while words from other\n"
+                              "colors are far from the hinted\n"
+                              "word.",
+    "With such a hint,":      "With such a hint, victory is\n"
+                              "guaranteed!",
+    "Here is a graph of2...": "Here is a graph of the\n"
+                              "guesser's view of a bad hinted\n"
+                              "word",
+    "As can be seen3...":     "As can be seen, there is a bad\n"
+                              "word just as close to the\n"
+                              "hinted word as the good word,\n"
+                              "which might confuse the guesser,\n"
+                              "and lead him to pick up the bad\n"
+                              "word.",
+    "Such a hint will...":    "Such a hint will not be chosen.",
 }
 
 scr = {k: Text(t, font_size=FONT_SIZE_TEXT) for k, t in script_dict.items()}
@@ -240,54 +296,46 @@ class KalirmozExplanation(ThreeDScene):
 
     def construct(self):
 
-        theta = 30 * DEGREES
-        phi = 75 * DEGREES
-        # seconds_per_character = 0.02
-        # axes = ThreeDAxes(
-        #     x_range=[-1.5, 1.5, 1], y_range=[-1.5, 1.5, 1], z_range=[-1.5, 1.5, 1], x_length=8, y_length=8, z_length=8
-        # )
-        # sphere = Sphere(
-        #     center=(0, 0, 0), radius=SPHERE_RADIUS, resolution=(20, 20), u_range=[0.001, PI - 0.001], v_range=[0, TAU]
-        # ).set_opacity(0.3)
-
-        # text_box = Rectangle(color=DARK_BROWN, fill_color=BLACK, fill_opacity=1, height=7.0, width=5.0).to_edge(LEFT).shift(0.2*LEFT)
-        # self.add_fixed_in_frame_mobjects(text_box)
-        # self.add(text_box)
-        # arrows_list = [Line(start=[0, 0, 0], end=vector) for vector in vectors_list]  # stroke_width=ARROWS_THICKNESS
-        # camera_vectors = [self.coords_to_point(vector * 1.2) for vector in vectors_list]
-        # words_labels_list = [
-            # Text(labels_list[i], font_size=FONT_SIZE_LABELS, color=LABELS_COLOR).move_to(camera_vectors[i])
-            # for i in range(words_list_len)
-        # ]
-
+        # t1 = Text("Code Names Algorithm", color=BLUE)
+        # t2 = Text("by the Kali brothers", color=RED).scale(0.8).next_to(t1, DOWN)
+        # self.write_3d_text(t1)
+        # self.write_3d_text(t2)
+        # self.play(FadeOut(t1), FadeOut(t2))
         # self.write_3d_text(scr["The algorithm uses..."], fade_out=False)
         # self.write_3d_text(scr["In a nutshell..."], fade_out=False)
         # self.remove_3d_text(scr["The algorithm uses..."], scr["In a nutshell..."])
+        # self.write_3d_text(scr["For the sake of..."], fade_out=True)
+        # self.remove_3d_text(scr["For the sake of..."])
+
+        theta = 30 * DEGREES
+        phi = 75 * DEGREES
+        axes = ThreeDAxes(
+            x_range=[-1.5, 1.5, 1], y_range=[-1.5, 1.5, 1], z_range=[-1.5, 1.5, 1], x_length=8, y_length=8, z_length=8
+        )
+        sphere = Sphere(
+            center=(0, 0, 0), radius=SPHERE_RADIUS, resolution=(20, 20), u_range=[0.001, PI - 0.001], v_range=[0, TAU]
+        ).set_opacity(0.3)
+
+        text_box = Rectangle(color=DARK_BROWN, fill_color=BLACK, fill_opacity=1, height=7.0, width=5.0).to_edge(LEFT).shift(0.2*LEFT)
+        self.add_fixed_in_frame_mobjects(text_box)
+        self.add(text_box)
         self.renderer.camera.light_source.move_to(3 * IN)
         self.set_camera_orientation(phi=phi, theta=theta)  # 75 * DEGREES, theta=30 * DEGREES
-        # self.add(axes, sphere)
-        # self.wait(1)
-        # self.remove(axes, sphere)
-        hint_word = "planets"
-        self.plot_guesser_view_chart(f"visualizer\\graphs_data\\{hint_word}.csv", hint_word)
-        self.plot_guesser_view_chart(r"visualizer\graphs_data\dark_bad_choose_it.csv", 'dark')
-        self.plot_guesser_view_chart(r"visualizer\graphs_data\international_good.csv", 'international')
-        # self.wait(1)
-        # self.write_3d_text(scr["For the sake of..."], fade_out=True)
-        # for i in range(words_list_len):
-        #     self.add_fixed_orientation_mobjects(words_labels_list[i])
+        self.begin_ambient_camera_rotation(rate=0.1)
+        self.play(Create(axes), Create(sphere))
+        self.wait(1)
+        self.write_3d_text(scr["Here are some..."])
+        # camera_vectors = [self.coords_to_point(vector * 1.2) for vector in vectors_list]
+        words_labels_list = [
+            Text(labels_list[i], font_size=FONT_SIZE_LABELS, color=LABELS_COLOR).move_to(vectors_list[i])
+            for i in range(words_list_len)
+        ]
+        arrows_list = [Line(start=[0, 0, 0], end=vector) for vector in
+                       vectors_list]  # stroke_width=ARROWS_THICKNESS
+        for i in range(words_list_len):
+            self.add_fixed_orientation_mobjects(words_labels_list[i])
             # words_labels_list[i].add_updater(lambda x, i=i: x.move_to(self.coords_to_point(vectors_list[i])))
-        # self.add(*words_labels_list)
-        # self.add(*arrows_list[0:words_list_len])
-        # self.play(DrawBorderThenFill(bar_chart, run_time=25))
-        # self.wait(3)
-
-        # self.begin_ambient_camera_rotation(rate=0.1)
-        # self.remove_3d_text(scr["For the sake of..."])
-        # self.write_3d_text(scr["Here are some..."])
-        # self.play(*[Create(arrows_list[i]) for i in range(words_list_len)])
-        # # self.add(*arrows_list[0:words_list_len])
-
+        self.play(*[Create(arrows_list[i]) for i in range(words_list_len)], *[FadeIn(words_labels_list[i]) for i in range(words_list_len)])
         # self.write_3d_text(scr["The word X..."])
         # self.remove_3d_text(scr["Here are some..."], scr["The word X..."])
         # self.write_3d_text(scr["In each turn..."])
@@ -307,7 +355,7 @@ class KalirmozExplanation(ThreeDScene):
         # )
         # self.write_3d_text(scr["The second clusteri..."])
         # self.write_3d_text(scr["Since there are..."])
-        # self.animate_random_connections(vectors_list=vectors_list, number_of_examples=15, example_length=0.3)
+        # self.animate_random_connections(vectors_list=vectors_list, number_of_examples=25, example_length=0.3)
         # self.remove_3d_text(scr["The second clusteri..."], scr["Since there are..."])
         # self.write_3d_text(scr["The second task..."])
         # self.write_3d_text(scr["In order to find..."])
@@ -346,6 +394,9 @@ class KalirmozExplanation(ThreeDScene):
         # self.write_3d_text(scr["Here is a graph of..."])
         # self.write_3d_text(scr["As can be seen2..."])
         # self.write_3d_text(scr["Such a hint will..."])
+        # self.play(FadeOut(text_box))
+        # self.plot_guesser_view_chart(r"visualizer\graphs_data\planets.csv", "planets (2 cards)")
+        # # self.plot_guesser_view_chart(r"visualizer\graphs_data\international_good.csv", 'international (two cards)')
         # self.remove_3d_text(
         #     scr["Here is a graph of..."],
         #     scr["As can be seen2..."],
@@ -353,7 +404,7 @@ class KalirmozExplanation(ThreeDScene):
         # )
         # self.write_3d_text(scr["Here is a graph of2..."])
         # self.write_3d_text(scr["As can be seen3..."])
-        # self.animate_random_connections(vectors_list, 10, 0.3)
+        # self.plot_guesser_view_chart(r"visualizer\graphs_data\dark_bad_choose_it.csv", 'dark')
 
     def animate_physical_system(
         self, starting_point: np.array, nodes_list, num_of_iterations=10, arc_radians=0.01
@@ -396,7 +447,7 @@ class KalirmozExplanation(ThreeDScene):
 
     def animate_random_connections(self, vectors_list, number_of_examples, example_length):
         for i in range(number_of_examples):
-            connections = generate_random_connections(vectors_list, average_cluster_size=3)
+            connections = generate_random_connections(vectors_list, average_cluster_size=1.2)
             self.add(*connections)
             self.wait(example_length)
             self.remove(*connections)
@@ -460,7 +511,8 @@ class KalirmozExplanation(ThreeDScene):
         x_label.next_to(bar_labels, DOWN).scale(0.6)
         # self.add(chart, bar_labels, title, y_label, x_label)
         # self.wait(1)
-        self.play(DrawBorderThenFill(chart), Write(bar_labels), Write(title), Write(y_label), Write(x_label), run_time=2)
+        self.play(Write(title))
+        self.play(DrawBorderThenFill(chart), Write(bar_labels), Write(y_label), Write(x_label), run_time=2)
         self.wait(5)
         self.play(FadeOut(chart), FadeOut(bar_labels), FadeOut(title), FadeOut(y_label), FadeOut(x_label),
                   run_time=2)
@@ -511,11 +563,11 @@ class Intro(Scene):
 
 
 
-test_scene = KalirmozExplanation()
+# test_scene = KalirmozExplanation()
 # starting_point = polar_to_cartesian(1, 0.52 * PI, 1.95 * PI)
 # nodes_list = [ForceNode(SKI_VEC, True), ForceNode(WATER_VEC, True), ForceNode(PARK_VEC, False)]
 # test_scene.animate_physical_system(
 #     starting_point=starting_point, nodes_list=nodes_list, num_of_iterations=1500, arc_radians=0.01
 # )
-hint_word = "planets"
-test_scene.plot_guesser_view_chart(f"visualizer\graphs_data\{hint_word}.csv", hint_word)
+# hint_word = "planets"
+# test_scene.plot_guesser_view_chart(f"visualizer\graphs_data\{hint_word}.csv", hint_word)
