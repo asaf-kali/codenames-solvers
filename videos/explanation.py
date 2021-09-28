@@ -152,22 +152,23 @@ tend to appear in the same context have small angle between them.""",
         font_size=FONT_SIZE_TEXT,
     )
     FOR_THE_SAKE_OF = Text(
-        """For demonstration purposes, we will represent these vectors
+        """For illustration purposes, we will represent these vectors
 in 3-dimensional space.""",
         font_size=FONT_SIZE_TEXT,
     )
 
     HERE_ARE_SOME = Text(
-        """Here are some words and their
-corresponding vectors:""",
+        """Here are some words and
+their corresponding
+vectors:""",
         font_size=FONT_SIZE_TEXT,
     )
     THE_WORD_X = Text(
-        """The word "water" is close to
-"ski" and "beach"
-and far from "newton",
-as we would semantically
-expect.""",
+        """
+The word "water" is close
+to "ski" and "beach" and
+far from "newton", as we
+would semantically expect.""",
         font_size=FONT_SIZE_TEXT,
     )
     IN_EACH_TURN = Text(
