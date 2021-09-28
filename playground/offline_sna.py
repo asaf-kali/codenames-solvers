@@ -61,4 +61,3 @@ for i in range(10):
     red_guesser = NaiveGuesser("Eve", team_color=TeamColor.RED)
     game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
     game_manager.run_game(language="english", board=board)
-
