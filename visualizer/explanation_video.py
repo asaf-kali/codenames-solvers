@@ -1,11 +1,14 @@
-from manim import *
-import numpy as np
+# flake8: noqa: E405
+# type: ignore
+
 import random
-from typing import Callable, List, Optional
-from codenames.solvers.utils.algebra import geodesic, cosine_distance, normalize
-from codenames.solvers.sna_solvers.sna_hinter import step_from_forces, ForceNode  # , opponent_force, friendly_force
+from typing import List
+
+from manim import *
 from scipy.interpolate import interp1d
-import pandas as pd
+
+from codenames.solvers.sna_solvers.sna_hinter import step_from_forces, ForceNode
+from codenames.solvers.utils.algebra import geodesic, cosine_distance, normalize
 
 
 def text2color(text):
@@ -75,7 +78,7 @@ def text_len_to_time(text, min_time=2, seconds_per_char=0.05):
     return np.max([min_time, n * seconds_per_char])
 
 
-def enrich_nodes(centroid, nodes_list):  #:List[ForceNode,...]
+def enrich_nodes(centroid, nodes_list):  # :List[ForceNode,...]
     nodes = []
     for node in nodes_list:
         d = cosine_distance(centroid, node.force_origin)

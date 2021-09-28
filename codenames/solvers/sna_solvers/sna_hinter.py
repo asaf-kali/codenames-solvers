@@ -201,7 +201,7 @@ class SnaHinter(Hinter):
 
     @property
     def unrevealed_cards(self) -> pd.DataFrame:
-        return self.board_data[self.board_data["is_revealed"] == False]
+        return self.board_data[self.board_data["is_revealed"] == False]  # noqa: E712
 
     @property
     def own_unrevealed_cards(self) -> pd.DataFrame:
@@ -357,7 +357,7 @@ class SnaHinter(Hinter):
             raise ValueError(f"color{row['color']} is not a valid color")
 
     def board_df2nodes(self, centroid: np.array):  # -> List[Tuple[np.array, float], ...]:
-        relevant_df = self.board_data[self.board_data["is_revealed"] == False]
+        relevant_df = self.board_data[self.board_data["is_revealed"] == False]  # noqa: E712
         relevant_df["force"] = relevant_df.apply(lambda row: self.color2force(centroid, row), axis=1)
         relevant_df = relevant_df[["vector", "force"]]
         tuples_list = list(relevant_df.itertuples(index=False, name=None))
@@ -402,7 +402,7 @@ class SnaHinter(Hinter):
         return cluster
 
     def extract_centroid_distances(self, color: CardColor):
-        relevant_df = self.board_data[self.board_data["is_revealed"] == False]
+        relevant_df = self.board_data[self.board_data["is_revealed"] == False]  # noqa: E712
         if color == CardColor.GRAY:
             color_rows = relevant_df.color == CardColor.GRAY
         elif color == CardColor.BLACK:
