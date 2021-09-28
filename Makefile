@@ -8,6 +8,11 @@ install:
 	pip install --upgrade pip
 	pip install -r requirements.txt -r requirements-dev.txt
 
+install-video:
+	make install
+	sudo apt-get install python3.9-dev pkg-config libcairo2-dev libpango1.0-dev
+	pip install -r requirements-video.txt
+
 tests:
 	pytest
 

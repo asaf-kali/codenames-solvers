@@ -8,6 +8,3 @@ flake8==3.9.2
 
 # Debugging
 matplotlib==3.4.3
-
-# visualizer
-manim==0.10.0
