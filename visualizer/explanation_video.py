@@ -146,140 +146,162 @@ class Scr:
     IN_A_NUTSHELL = Text(
         """In a nutshell, Word2Vec assigns each word an n-dimensional
            vector (usually n=50, 100, 300), in a way such that words that
-           tent to appear in the same context have small angle between them."""
+           tend to appear in the same context have small angle between them."""
     )
     FOR_THE_SAKE_OF = Text(
         """For demonstration purposes, we will represent these vectors
-        in 3-dimensional space."""
+           in 3-dimensional space."""
     )
 
     HERE_ARE_SOME = Text(
         """Here are some words and their
-    corresponding vectors:"""
-    )  # "Here are some"
+ corresponding vectors:"""
+    )
     THE_WORD_X = Text(
-        """The word "water" is close to' 
-                         "ski" and "beach"
-                         and far from "newton",
-                         as we would semantically
-                         expect."""
-    )  # "The word X"
+        """The word "water" is close to
+"ski" and "beach"
+and far from "newton",
+as we would semantically
+expect."""
+    )
     IN_EACH_TURN = Text(
         """In each turn, the first task
-                           of the hinter is to find a
-                           proper subset of words
-                           (usually two to four words),
-                           on which to hint"""
-    )  # "In each turn"
-    TWO_METHODS = Text("""Two methods of clustering were implemented.""")  # "Two methods"
+of the hinter is to find a
+proper subset of words
+(usually 2 to 4 words),
+on which to hint."""
+    )
+    TWO_METHODS = Text("""Two methods of clustering were implemented.""")
     FIRST_CLUSTERING_METHOD = Text(
-        """ In the first clustering\n"
-                                  "method, the words are\n"
-                                  "considered\n"
-                                  "as nodes in a graph, with\n"
-                                  "edges weights correlated to\n"
-                                  "their cosine similarity """
-    )  # "In the first cluste"
-    THIS_GRAPH_IS_DIVID = Text(
-        """ This graph is divided into\n"
-                                  "communities using the louvain\n"
-                                  "SNA algorithm, and each\n"
-                                  "community is taken as an\n"
-                                  "optional cluster of words to"
-                                  "hint about. """
+        """In the first clustering
+method, the words are
+treated as nodes in a
+graph, with edges
+weights correlated to
+their cosine similarity."""
     )
-    HERE_IS_AN_EXAMPLE = Text(""" Here is an example of 25 words\n" "and their louvain clustering\n" "result: """)
-    AS_CAN_BE_SEEN = Text(""" As can be seen, semantically\n" "close words are put within the\n" "same cluster. """)
-    THE_SECOND_CLUSTERI = Text(""" The second clustering method is\n" "much simpler: """)
+    THIS_GRAPH_IS_DIVIDED = Text(
+        """This graph is divided into
+communities using the louvain
+SNA algorithm, and each
+community is taken as an
+optional cluster of words to
+hint about."""
+    )
+    HERE_IS_AN_EXAMPLE = Text("""Here is an example of 25 words and their louvain clustering result:""")
+    AS_CAN_BE_SEEN = Text(
+        """As can be seen, semantically
+close words are put within the
+same cluster."""
+    )
+    THE_SECOND_CLUSTERING = Text("""The second clustering method is much simpler:""")
     SINCE_THERE_ARE = Text(
-        """ Since there are at most 9 cards\n"
-                              "to hint about, it is feasible\n"
-                              "to just iterate over all possible\n"
-                              "subsets and choose the best\n"
-                              "one. """
+        """Since there are at most 9 cards
+to hint about, it is feasible
+to just iterate over all possible
+subsets and choose the best
+one."""
     )
-    THE_SECOND_TASK = Text(""" The second task of the hinter is\n" "to choose a hinting word for\n" "the cluster. """)
+    THE_SECOND_TASK = Text("""The second task of the hinter is to choose a hinting word for the cluster.""")
     IN_ORDER_TO_FIND = Text(
-        """ In order to find a hinting word\n"
-                               "for a cluster, the hinter\n"
-                               'generates a "centroid" vector\n'
-                               "for the cluster, to search real\n"
-                               "words near by. """
+        """In order to find a hinting word
+for a cluster, the hinter
+generates a "centroid" vector
+for the cluster, to search real
+words near by."""
     )
     AN_INITIAL_CENTROID = Text(
-        """ An initial "centroid" is\n'
-                                  "proposed as the Center of Mass\n"
-                                  "of the cluster's vectors """
+        """An initial "centroid" is
+proposed as the Center of Mass
+of the cluster's vectors"""
     )
-    IDEALLY, THE_CENTRO = Text(
-        """ Ideally, the centroid would be\n"
-                              "close to all the cluster's\n"
-                              "words and far from words of\n"
-                              'other colors. (where "close"\n'
-                              'and "far") are considered in\n'
-                              "the cosine distance metric. """
+    IDEALLY_THE_CENTROID = Text(
+        """Ideally, the centroid would be
+close to all the cluster's
+words and far from words of
+other colors. (where "close"
+and "far") are considered in
+the cosine distance metric."""
     )
     TO_OPTIMIZE_THE = Text(
-        """ To optimize the centroid, the\n"
-                              "words in the board (from\n"
-                              " all colors) are considered\n"
-                              "as a physical system, where\n"
-                              "every vector from the color\n"
-                              "of the hinter is an attractor,\n"
-                              "and every word from other\n"
-                              "color is a repeller. """
+        """To optimize the centroid, the
+words in the board (from
+all colors) are considered
+as a physical system, where
+every vector from the color
+of the hinter is an attractor,
+and every word from other
+color is a repeller."""
     )
     THE_CENTROID_IS_THE = Text(
-        """ The centroid is then being\n"
-                                  "pushed and pulled by the words\n"
-                                  "of the board until converging\n"
-                                  "to a point where it is both\n"
-                                  "far away from bad words, and\n"
-                                  "close to close words. """
+        """The centroid is then being
+pushed and pulled by the words
+of the board until converging
+to a point where it is both
+far away from bad words, and
+still close to the cluster
+words."""
     )
-    THE_ATTRACTION_FORC = Text(
-        """ The attraction force acts like\n"
-                                  "a spring, where if the centroid\n"
-                                  "is to far, the spring can be\n"
-                                  '"torn" apart and is no longer\n'
-                                  "considered as part of the cluster. """
+    THE_ATTRACTION_FORCE = Text(
+        """The attraction force acts like
+a spring, where if the centroid
+is to far, the spring can be
+"torn" apart and is no longer
+considered part of the cluster."""
     )
-    THIS_IS_DONE_IN_ORD = Text(""" This is done in order to allow\n" "outliers in the cluster to be\n" "neglected. """)
+    THIS_IS_DONE_IN_ORD = Text(
+        """This is done in order to allow
+outliers in the cluster to be
+neglected."""
+    )
     AFTER_CONVERGENCE = Text(
-        """ After convergence, all there\n"
-                                "needs to be done is to pick up a\n"
-                                "word near-by the optimized\n"
-                                "cluster's centroid """
+        """After convergence, all there
+needs to be done is to pick up a
+word near-by the optimized
+cluster's centroid"""
     )
     THE_TOP_N_WORDS_WIT = Text(
-        """ The top n words with the lowest\n"
-                                  "cosine distance are examined\n"
-                                  "and the best one is chosen and\n"
-                                  "the cluster's hint """
+        """The top n-words with the lowest
+cosine distance are examined
+and the best one is chosen as
+the cluster's hint"""
     )
     THE_BEST_HINT_FROM = Text(
-        """ The best hint from all clusters\n" "is picked and being hinter\n" "to the gruesser! """
+        """The best hint from all clusters
+is picked and sent
+to the guesser!"""
     )
-    HERE_IS_A_GRAPH_OF = Text(""" Here is a graph of the\n" "guesser's view of a good\n" "hinted word. """)
+    HERE_IS_A_GRAPH_OF = Text(
+        """Here is a graph of the
+guesser's view of a good
+hinted word."""
+    )
     AS_CAN_BE_SEEN2 = Text(
-        """ As can be seen, the closest\n"
-                              "words on board to the hinted\n"
-                              "word are all from the team's\n"
-                              "color, while words from other\n"
-                              "colors are far from the hinted\n"
-                              "word. """
+        """As can be seen, the closest
+words on board to the hinted
+word are all from the team's
+color, while words from other
+colors are far from the hinted
+word."""
     )
-    WITH_SUCH_A_HINT = Text(""" With such a hint, victory is\n" "guaranteed! """)
-    HERE_IS_A_GRAPH_OF2 = Text(""" Here is a graph of the\n" "guesser's view of a bad hinted\n" "word """)
+    WITH_SUCH_A_HINT = Text(
+        """With such a hint, victory is
+guaranteed!"""
+    )
+    HERE_IS_A_GRAPH_OF2 = Text(
+        """Here is a graph of the
+guesser's view of a bad hinted
+word"""
+    )
     AS_CAN_BE_SEEN3 = Text(
-        """ As can be seen, there is a bad\n"
-                              "word just as close to the\n"
-                              "hinted word as the good word,\n"
-                              "which might confuse the guesser,\n"
-                              "and lead him to pick up the bad\n"
-                              "word. """
+        """As can be seen, there is a bad
+word just as close to the
+hinted word as the good word,
+which might confuse the guesser,
+and lead him to pick up the bad
+word."""
     )
-    SUCH_A_HINT_WILL = Text(""" Such a hint will not be chosen. """)
+    SUCH_A_HINT_WILL = Text("""Such a hint will not be chosen.""")
 
 
 # scr = {k: Text(t, font_size=FONT_SIZE_TEXT) for k, t in script_dict.items()}
@@ -291,19 +313,19 @@ Scr.THE_WORD_X.next_to(Scr.HERE_ARE_SOME, DOWN).align_to(Scr.HERE_ARE_SOME, LEFT
 Scr.IN_EACH_TURN.to_corner(UL)
 Scr.TWO_METHODS.next_to(Scr.IN_EACH_TURN, DOWN).align_to(Scr.IN_EACH_TURN, LEFT)
 Scr.FIRST_CLUSTERING_METHOD.to_corner(UL)
-Scr.THIS_GRAPH_IS_DIVID.next_to(Scr.FIRST_CLUSTERING_METHOD, DOWN).align_to(Scr.FIRST_CLUSTERING_METHOD, LEFT)
-Scr.HERE_IS_AN_EXAMPLE.next_to(Scr.THIS_GRAPH_IS_DIVID, DOWN).align_to(Scr.THIS_GRAPH_IS_DIVID, LEFT)
+Scr.THIS_GRAPH_IS_DIVIDED.next_to(Scr.FIRST_CLUSTERING_METHOD, DOWN).align_to(Scr.FIRST_CLUSTERING_METHOD, LEFT)
+Scr.HERE_IS_AN_EXAMPLE.next_to(Scr.THIS_GRAPH_IS_DIVIDED, DOWN).align_to(Scr.THIS_GRAPH_IS_DIVIDED, LEFT)
 Scr.AS_CAN_BE_SEEN.next_to(Scr.HERE_IS_AN_EXAMPLE, DOWN).align_to(Scr.HERE_IS_AN_EXAMPLE, LEFT)
-Scr.THE_SECOND_CLUSTERI.to_corner(UL)
-Scr.SINCE_THERE_ARE.next_to(Scr.THE_SECOND_CLUSTERI, DOWN).align_to(Scr.THE_SECOND_CLUSTERI, LEFT)
+Scr.THE_SECOND_CLUSTERING.to_corner(UL)
+Scr.SINCE_THERE_ARE.next_to(Scr.THE_SECOND_CLUSTERING, DOWN).align_to(Scr.THE_SECOND_CLUSTERING, LEFT)
 Scr.THE_SECOND_TASK.to_corner(UL)
 Scr.IN_ORDER_TO_FIND.next_to(Scr.THE_SECOND_TASK, DOWN).align_to(Scr.THE_SECOND_TASK, LEFT)
 Scr.AN_INITIAL_CENTROID.next_to(Scr.IN_ORDER_TO_FIND, DOWN).align_to(Scr.IN_ORDER_TO_FIND, LEFT)
-Scr.IDEALLY.to_corner(UL)
-Scr.TO_OPTIMIZE_THE.next_to(Scr.IDEALLY, DOWN).align_to(Scr.IDEALLY, LEFT)
+Scr.IDEALLY_THE_CENTROID.to_corner(UL)
+Scr.TO_OPTIMIZE_THE.next_to(Scr.IDEALLY_THE_CENTROID, DOWN).align_to(Scr.IDEALLY_THE_CENTROID, LEFT)
 Scr.THE_CENTROID_IS_THE.next_to(Scr.TO_OPTIMIZE_THE, DOWN).align_to(Scr.TO_OPTIMIZE_THE, LEFT)
-Scr.THE_ATTRACTION_FORC.to_corner(UL)
-Scr.THIS_IS_DONE_IN_ORD.next_to(Scr.THE_ATTRACTION_FORC, DOWN).align_to(Scr.THE_ATTRACTION_FORC, LEFT)
+Scr.THE_ATTRACTION_FORCE.to_corner(UL)
+Scr.THIS_IS_DONE_IN_ORD.next_to(Scr.THE_ATTRACTION_FORCE, DOWN).align_to(Scr.THE_ATTRACTION_FORCE, LEFT)
 Scr.AFTER_CONVERGENCE.to_corner(UL)
 Scr.THE_TOP_N_WORDS_WIT.next_to(Scr.AFTER_CONVERGENCE, DOWN).align_to(Scr.AFTER_CONVERGENCE, LEFT)
 Scr.THE_BEST_HINT_FROM.next_to(Scr.THE_TOP_N_WORDS_WIT, DOWN).align_to(Scr.THE_TOP_N_WORDS_WIT, LEFT)
@@ -344,8 +366,8 @@ class KalirmozExplanation(ThreeDScene):
 
         text_box = (
             Rectangle(color=DARK_BROWN, fill_color=BLACK, fill_opacity=1, height=7.1, width=5.1)
-                .to_edge(LEFT)
-                .shift(0.2 * LEFT)
+            .to_edge(LEFT)
+            .shift(0.2 * LEFT)
         )
         self.add_fixed_in_frame_mobjects(text_box)
         self.add(text_box)
@@ -374,21 +396,21 @@ class KalirmozExplanation(ThreeDScene):
         self.write_3d_text(Scr.TWO_METHODS)
         self.remove_3d_text(Scr.IN_EACH_TURN, Scr.TWO_METHODS)
         self.write_3d_text(Scr.FIRST_CLUSTERING_METHOD)
-        self.write_3d_text(Scr.THIS_GRAPH_IS_DIVID)
+        self.write_3d_text(Scr.THIS_GRAPH_IS_DIVIDED)
         self.play(*[Create(connection, run_time=3) for connection in sna_connections_list])
         self.write_3d_text(Scr.HERE_IS_AN_EXAMPLE)
         self.write_3d_text(Scr.AS_CAN_BE_SEEN)
         self.wait(3)
         self.remove_3d_text(
             Scr.FIRST_CLUSTERING_METHOD,
-            Scr.THIS_GRAPH_IS_DIVID,
+            Scr.THIS_GRAPH_IS_DIVIDED,
             Scr.HERE_IS_AN_EXAMPLE,
             Scr.AS_CAN_BE_SEEN,
         )
-        self.write_3d_text(Scr.THE_SECOND_CLUSTERI)
+        self.write_3d_text(Scr.THE_SECOND_CLUSTERING)
         self.write_3d_text(Scr.SINCE_THERE_ARE)
         self.animate_random_connections(vectors_list=vectors_list, number_of_examples=25, example_length=0.3)
-        self.remove_3d_text(Scr.THE_SECOND_CLUSTERI, Scr.SINCE_THERE_ARE)
+        self.remove_3d_text(Scr.THE_SECOND_CLUSTERING, Scr.SINCE_THERE_ARE)
         self.write_3d_text(Scr.THE_SECOND_TASK)
         self.write_3d_text(Scr.IN_ORDER_TO_FIND)
         self.write_3d_text(Scr.AN_INITIAL_CENTROID)
@@ -397,7 +419,7 @@ class KalirmozExplanation(ThreeDScene):
             Scr.IN_ORDER_TO_FIND,
             Scr.AN_INITIAL_CENTROID,
         )
-        self.write_3d_text(Scr.IDEALLY)
+        self.write_3d_text(Scr.IDEALLY_THE_CENTROID)
         self.write_3d_text(Scr.TO_OPTIMIZE_THE)
         self.write_3d_text(Scr.THE_CENTROID_IS_THE)
 
@@ -408,13 +430,13 @@ class KalirmozExplanation(ThreeDScene):
         )
 
         self.remove_3d_text(
-            Scr.IDEALLY,
+            Scr.IDEALLY_THE_CENTROID,
             Scr.TO_OPTIMIZE_THE,
             Scr.THE_CENTROID_IS_THE,
         )
-        self.write_3d_text(Scr.THE_ATTRACTION_FORC)
+        self.write_3d_text(Scr.THE_ATTRACTION_FORCE)
         self.write_3d_text(Scr.THIS_IS_DONE_IN_ORD)
-        self.remove_3d_text(Scr.THE_ATTRACTION_FORC, Scr.THIS_IS_DONE_IN_ORD)
+        self.remove_3d_text(Scr.THE_ATTRACTION_FORCE, Scr.THIS_IS_DONE_IN_ORD)
         self.write_3d_text(Scr.AFTER_CONVERGENCE)
         self.write_3d_text(Scr.THE_TOP_N_WORDS_WIT)
         self.write_3d_text(Scr.THE_BEST_HINT_FROM)
@@ -595,6 +617,7 @@ class Intro(Scene):
         self.wait()
         self.remove(t1, t2)
         self.wait()
+
 
 # test_scene = KalirmozExplanation()
 # starting_point = polar_to_cartesian(1, 0.52 * PI, 1.95 * PI)
