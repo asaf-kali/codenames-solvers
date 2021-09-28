@@ -1,0 +1,3 @@
+# Manim Video
+manimpango==0.3.0
+manim==0.10.0
