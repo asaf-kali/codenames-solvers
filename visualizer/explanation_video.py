@@ -2,6 +2,7 @@
 # type: ignore
 
 import random
+from enum import Enum
 from typing import List
 
 from manim import *
@@ -139,114 +140,114 @@ sna_connections_list = [
     ParametricFunction(geodesic(NEWTON_VEC, TEACHER_VEC), t_range=[0, 1]),
 ]
 
+
+class Script:
+    THE_ALGORITHM_USES = Text("The Kalirmoz algorithm uses a Word2Vec model for the linguistic knowledge.")
+
+
 script_dict = {
-    "The algorithm uses...": "The Kalirmoz algorithm uses a Word2Vec model for the linguistic knowledge",
-    "In a nutshell...": "In a nutshell, the Word2Vec assign each word with an n-dimensional\n"
-    "vector (usually n=50, 100, 300), in a way such that words that\n"
-    "tent to appear in the same context have small angle between them",
-    "For the sake of...": "For the sake of this video, we will represent the words vectors\n"
-    "as 3-dimensional vectors",
-    "Here are some...": "Here are some words and their\n" "corresponding vectors.",
+    "In a nutshell...": "In a nutshell, Word2Vec assigns each word an n-dimensional\n"
+                        "vector (usually n=50, 100, 300), in a way such that words that\n"
+                        "tent to appear in the same context have small angle between them.",
+    "For the sake of...": "For demonstration purposes, we will represent these vectors\n"
+                          "in 3-dimensional space.",
+    "Here are some...": "Here are some words and their\ncorresponding vectors:",
     "The word X...": 'The word "water" is close to\n'
-    'the words "ski" and "beach"\n'
-    'and far from the word "newton"\n'
-    "as indeed semantically, the\n"
-    'words "water", "ski" and\n'
-    '"beach" all appear in the\n'
-    "same contexts while the word\n"
-    "newton usually appears in\n"
-    "other contexts",
+                     '"ski" and "beach"\n'
+                     'and far from "newton",\n'
+                     "as we would semantically\n"
+                     "expect.",
     "In each turn...": "In each turn, the first task\n"
-    "of the hinter is to find a\n"
-    "proper subset of words\n"
-    "(usually two to four words),\n"
-    "on which to hint",
+                       "of the hinter is to find a\n"
+                       "proper subset of words\n"
+                       "(usually two to four words),\n"
+                       "on which to hint",
     "Two methods...": "Two methods of clustering\n" "where implemented.",
     "In the first cluste...": "In the first clustering\n"
-    "method, the words are\n"
-    "considered\n"
-    "as nodes in a graph, with\n"
-    "edges weights correlated to\n"
-    "their cosine similarity",
+                              "method, the words are\n"
+                              "considered\n"
+                              "as nodes in a graph, with\n"
+                              "edges weights correlated to\n"
+                              "their cosine similarity",
     "This graph is divid...": "This graph is divided into\n"
-    "communities using the louvain\n"
-    "SNA algorithm, and each\n"
-    "community is taken as an\n"
-    "optional cluster of words to"
-    "hint about.",
+                              "communities using the louvain\n"
+                              "SNA algorithm, and each\n"
+                              "community is taken as an\n"
+                              "optional cluster of words to"
+                              "hint about.",
     "Here is an example...": "Here is an example of 25 words\n" "and their louvain clustering\n" "result:",
     "As can be seen...": "As can be seen, semantically\n" "close words are put within the\n" "same cluster.",
     "The second clusteri...": "The second clustering method is\n" "much simpler:",
     "Since there are...": "Since there are at most 9 cards\n"
-    "to hint about, it is feasible\n"
-    "to just iterate over all possible\n"
-    "subsets and choose the best\n"
-    "one.",
+                          "to hint about, it is feasible\n"
+                          "to just iterate over all possible\n"
+                          "subsets and choose the best\n"
+                          "one.",
     "The second task...": "The second task of the hinter is\n" "to choose a hinting word for\n" "the cluster.",
     "In order to find...": "In order to find a hinting word\n"
-    "for a cluster, the hinter\n"
-    'generates a "centroid" vector\n'
-    "for the cluster, to search real\n"
-    "words near by.",
+                           "for a cluster, the hinter\n"
+                           'generates a "centroid" vector\n'
+                           "for the cluster, to search real\n"
+                           "words near by.",
     "An initial centroid...": 'An initial "centroid" is\n'
-    "proposed as the Center of Mass\n"
-    "of the cluster's vectors",
+                              "proposed as the Center of Mass\n"
+                              "of the cluster's vectors",
     "Ideally, the centro...": "Ideally, the centroid would be\n"
-    "close to all the cluster's\n"
-    "words and far from words of\n"
-    'other colors. (where "close"\n'
-    'and "far") are considered in\n'
-    "the cosine distance metric.",
+                              "close to all the cluster's\n"
+                              "words and far from words of\n"
+                              'other colors. (where "close"\n'
+                              'and "far") are considered in\n'
+                              "the cosine distance metric.",
     "to optimize the...": "To optimize the centroid, the\n"
-    "words in the board (from\n"
-    " all colors) are considered\n"
-    "as a physical system, where\n"
-    "every vector from the color\n"
-    "of the hinter is an attractor,\n"
-    "and every word from other\n"
-    "color is a repeller.",
+                          "words in the board (from\n"
+                          " all colors) are considered\n"
+                          "as a physical system, where\n"
+                          "every vector from the color\n"
+                          "of the hinter is an attractor,\n"
+                          "and every word from other\n"
+                          "color is a repeller.",
     "The centroid is the...": "The centroid is then being\n"
-    "pushed and pulled by the words\n"
-    "of the board until converging\n"
-    "to a point where it is both\n"
-    "far away from bad words, and\n"
-    "close to close words.",
+                              "pushed and pulled by the words\n"
+                              "of the board until converging\n"
+                              "to a point where it is both\n"
+                              "far away from bad words, and\n"
+                              "close to close words.",
     "The attraction forc...": "The attraction force acts like\n"
-    "a spring, where if the centroid\n"
-    "is to far, the spring can be\n"
-    '"torn" apart and is no longer\n'
-    "considered as part of the cluster.",
+                              "a spring, where if the centroid\n"
+                              "is to far, the spring can be\n"
+                              '"torn" apart and is no longer\n'
+                              "considered as part of the cluster.",
     "This is done in ord...": "This is done in order to allow\n" "outliers in the cluster to be\n" "neglected.",
     "After convergence...": "After convergence, all there\n"
-    "needs to be done is to pick up a\n"
-    "word near-by the optimized\n"
-    "cluster's centroid",
+                            "needs to be done is to pick up a\n"
+                            "word near-by the optimized\n"
+                            "cluster's centroid",
     "The top n words wit...": "The top n words with the lowest\n"
-    "cosine distance are examined\n"
-    "and the best one is chosen and\n"
-    "the cluster's hint",
+                              "cosine distance are examined\n"
+                              "and the best one is chosen and\n"
+                              "the cluster's hint",
     "The best hint from ...": "The best hint from all clusters\n" "is picked and being hinter\n" "to the gruesser!",
     "Here is a graph of...": "Here is a graph of the\n" "guesser's view of a good\n" "hinted word.",
     "As can be seen2...": "As can be seen, the closest\n"
-    "words on board to the hinted\n"
-    "word are all from the team's\n"
-    "color, while words from other\n"
-    "colors are far from the hinted\n"
-    "word.",
+                          "words on board to the hinted\n"
+                          "word are all from the team's\n"
+                          "color, while words from other\n"
+                          "colors are far from the hinted\n"
+                          "word.",
     "With such a hint,": "With such a hint, victory is\n" "guaranteed!",
     "Here is a graph of2...": "Here is a graph of the\n" "guesser's view of a bad hinted\n" "word",
     "As can be seen3...": "As can be seen, there is a bad\n"
-    "word just as close to the\n"
-    "hinted word as the good word,\n"
-    "which might confuse the guesser,\n"
-    "and lead him to pick up the bad\n"
-    "word.",
+                          "word just as close to the\n"
+                          "hinted word as the good word,\n"
+                          "which might confuse the guesser,\n"
+                          "and lead him to pick up the bad\n"
+                          "word.",
     "Such a hint will...": "Such a hint will not be chosen.",
 }
 
 scr = {k: Text(t, font_size=FONT_SIZE_TEXT) for k, t in script_dict.items()}
-scr["The algorithm uses..."].to_corner(UL)
-scr["In a nutshell..."].next_to(scr["The algorithm uses..."], DOWN).align_to(scr["The algorithm uses..."], LEFT)
+Script.THE_ALGORITHM_USES.to_corner(UL)
+scr["In a nutshell..."].next_to(Script.THE_ALGORITHM_USES, DOWN).align_to(Script.THE_ALGORITHM_USES, LEFT)
 scr["For the sake of..."].to_corner(UL)
 scr["Here are some..."].to_corner(UL)
 scr["The word X..."].next_to(scr["Here are some..."], DOWN).align_to(scr["Here are some..."], LEFT)
@@ -293,9 +294,9 @@ class KalirmozExplanation(ThreeDScene):
         self.write_3d_text(t1)
         self.write_3d_text(t2)
         self.play(FadeOut(t1), FadeOut(t2))
-        self.write_3d_text(scr["The algorithm uses..."], fade_out=False)
+        self.write_3d_text(Script.THE_ALGORITHM_USES, fade_out=False)
         self.write_3d_text(scr["In a nutshell..."], fade_out=False)
-        self.remove_3d_text(scr["The algorithm uses..."], scr["In a nutshell..."])
+        self.remove_3d_text(Script.THE_ALGORITHM_USES, scr["In a nutshell..."])
         self.write_3d_text(scr["For the sake of..."], fade_out=True)
         self.remove_3d_text(scr["For the sake of..."])
 
@@ -310,8 +311,8 @@ class KalirmozExplanation(ThreeDScene):
 
         text_box = (
             Rectangle(color=DARK_BROWN, fill_color=BLACK, fill_opacity=1, height=7.1, width=5.1)
-            .to_edge(LEFT)
-            .shift(0.2 * LEFT)
+                .to_edge(LEFT)
+                .shift(0.2 * LEFT)
         )
         self.add_fixed_in_frame_mobjects(text_box)
         self.add(text_box)
@@ -561,7 +562,6 @@ class Intro(Scene):
         self.wait()
         self.remove(t1, t2)
         self.wait()
-
 
 # test_scene = KalirmozExplanation()
 # starting_point = polar_to_cartesian(1, 0.52 * PI, 1.95 * PI)
