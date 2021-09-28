@@ -142,43 +142,51 @@ sna_connections_list = [
 
 
 class Scr:
-    THE_ALGORITHM_USES = Text("The Kalirmoz algorithm uses a Word2Vec model for the linguistic knowledge.")
+    THE_ALGORITHM_USES = Text(
+        "The Kalirmoz algorithm uses a Word2Vec model for the linguistic knowledge.", font_size=FONT_SIZE_TEXT
+    )
     IN_A_NUTSHELL = Text(
         """In a nutshell, Word2Vec assigns each word an n-dimensional
-           vector (usually n=50, 100, 300), in a way such that words that
-           tend to appear in the same context have small angle between them."""
+vector (usually n=50, 100, 300), in a way such that words that
+tend to appear in the same context have small angle between them.""",
+        font_size=FONT_SIZE_TEXT,
     )
     FOR_THE_SAKE_OF = Text(
         """For demonstration purposes, we will represent these vectors
-           in 3-dimensional space."""
+in 3-dimensional space.""",
+        font_size=FONT_SIZE_TEXT,
     )
 
     HERE_ARE_SOME = Text(
         """Here are some words and their
- corresponding vectors:"""
+corresponding vectors:""",
+        font_size=FONT_SIZE_TEXT,
     )
     THE_WORD_X = Text(
         """The word "water" is close to
 "ski" and "beach"
 and far from "newton",
 as we would semantically
-expect."""
+expect.""",
+        font_size=FONT_SIZE_TEXT,
     )
     IN_EACH_TURN = Text(
         """In each turn, the first task
 of the hinter is to find a
 proper subset of words
 (usually 2 to 4 words),
-on which to hint."""
+on which to hint.""",
+        font_size=FONT_SIZE_TEXT,
     )
-    TWO_METHODS = Text("""Two methods of clustering were implemented.""")
+    TWO_METHODS = Text("""Two methods of clustering were implemented.""", font_size=FONT_SIZE_TEXT)
     FIRST_CLUSTERING_METHOD = Text(
         """In the first clustering
 method, the words are
 treated as nodes in a
 graph, with edges
 weights correlated to
-their cosine similarity."""
+their cosine similarity.""",
+        font_size=FONT_SIZE_TEXT,
     )
     THIS_GRAPH_IS_DIVIDED = Text(
         """This graph is divided into
@@ -186,34 +194,43 @@ communities using the louvain
 SNA algorithm, and each
 community is taken as an
 optional cluster of words to
-hint about."""
+hint about.""",
+        font_size=FONT_SIZE_TEXT,
     )
-    HERE_IS_AN_EXAMPLE = Text("""Here is an example of 25 words and their louvain clustering result:""")
+    HERE_IS_AN_EXAMPLE = Text(
+        """Here is an example of 25 words and their louvain clustering result:""", font_size=FONT_SIZE_TEXT
+    )
     AS_CAN_BE_SEEN = Text(
         """As can be seen, semantically
 close words are put within the
-same cluster."""
+same cluster.""",
+        font_size=FONT_SIZE_TEXT,
     )
-    THE_SECOND_CLUSTERING = Text("""The second clustering method is much simpler:""")
+    THE_SECOND_CLUSTERING = Text("""The second clustering method is much simpler:""", font_size=FONT_SIZE_TEXT)
     SINCE_THERE_ARE = Text(
         """Since there are at most 9 cards
 to hint about, it is feasible
 to just iterate over all possible
 subsets and choose the best
-one."""
+one.""",
+        font_size=FONT_SIZE_TEXT,
     )
-    THE_SECOND_TASK = Text("""The second task of the hinter is to choose a hinting word for the cluster.""")
+    THE_SECOND_TASK = Text(
+        """The second task of the hinter is to choose a hinting word for the cluster.""", font_size=FONT_SIZE_TEXT
+    )
     IN_ORDER_TO_FIND = Text(
         """In order to find a hinting word
 for a cluster, the hinter
 generates a "centroid" vector
 for the cluster, to search real
-words near by."""
+words near by.""",
+        font_size=FONT_SIZE_TEXT,
     )
     AN_INITIAL_CENTROID = Text(
         """An initial "centroid" is
 proposed as the Center of Mass
-of the cluster's vectors"""
+of the cluster's vectors""",
+        font_size=FONT_SIZE_TEXT,
     )
     IDEALLY_THE_CENTROID = Text(
         """Ideally, the centroid would be
@@ -221,7 +238,8 @@ close to all the cluster's
 words and far from words of
 other colors. (where "close"
 and "far") are considered in
-the cosine distance metric."""
+the cosine distance metric.""",
+        font_size=FONT_SIZE_TEXT,
     )
     TO_OPTIMIZE_THE = Text(
         """To optimize the centroid, the
@@ -231,7 +249,8 @@ as a physical system, where
 every vector from the color
 of the hinter is an attractor,
 and every word from other
-color is a repeller."""
+color is a repeller.""",
+        font_size=FONT_SIZE_TEXT,
     )
     THE_CENTROID_IS_THE = Text(
         """The centroid is then being
@@ -240,41 +259,48 @@ of the board until converging
 to a point where it is both
 far away from bad words, and
 still close to the cluster
-words."""
+words.""",
+        font_size=FONT_SIZE_TEXT,
     )
     THE_ATTRACTION_FORCE = Text(
         """The attraction force acts like
 a spring, where if the centroid
 is to far, the spring can be
 "torn" apart and is no longer
-considered part of the cluster."""
+considered part of the cluster.""",
+        font_size=FONT_SIZE_TEXT,
     )
     THIS_IS_DONE_IN_ORD = Text(
         """This is done in order to allow
 outliers in the cluster to be
-neglected."""
+neglected.""",
+        font_size=FONT_SIZE_TEXT,
     )
     AFTER_CONVERGENCE = Text(
         """After convergence, all there
 needs to be done is to pick up a
 word near-by the optimized
-cluster's centroid"""
+cluster's centroid""",
+        font_size=FONT_SIZE_TEXT,
     )
     THE_TOP_N_WORDS_WIT = Text(
         """The top n-words with the lowest
 cosine distance are examined
 and the best one is chosen as
-the cluster's hint"""
+the cluster's hint""",
+        font_size=FONT_SIZE_TEXT,
     )
     THE_BEST_HINT_FROM = Text(
         """The best hint from all clusters
 is picked and sent
-to the guesser!"""
+to the guesser!""",
+        font_size=FONT_SIZE_TEXT,
     )
     HERE_IS_A_GRAPH_OF = Text(
         """Here is a graph of the
 guesser's view of a good
-hinted word."""
+hinted word.""",
+        font_size=FONT_SIZE_TEXT,
     )
     AS_CAN_BE_SEEN2 = Text(
         """As can be seen, the closest
@@ -282,16 +308,19 @@ words on board to the hinted
 word are all from the team's
 color, while words from other
 colors are far from the hinted
-word."""
+word.""",
+        font_size=FONT_SIZE_TEXT,
     )
     WITH_SUCH_A_HINT = Text(
         """With such a hint, victory is
-guaranteed!"""
+guaranteed!""",
+        font_size=FONT_SIZE_TEXT,
     )
     HERE_IS_A_GRAPH_OF2 = Text(
         """Here is a graph of the
 guesser's view of a bad hinted
-word"""
+word""",
+        font_size=FONT_SIZE_TEXT,
     )
     AS_CAN_BE_SEEN3 = Text(
         """As can be seen, there is a bad
@@ -299,9 +328,10 @@ word just as close to the
 hinted word as the good word,
 which might confuse the guesser,
 and lead him to pick up the bad
-word."""
+word.""",
+        font_size=FONT_SIZE_TEXT,
     )
-    SUCH_A_HINT_WILL = Text("""Such a hint will not be chosen.""")
+    SUCH_A_HINT_WILL = Text("""Such a hint will not be chosen.""", font_size=FONT_SIZE_TEXT)
 
 
 # scr = {k: Text(t, font_size=FONT_SIZE_TEXT) for k, t in script_dict.items()}
@@ -605,18 +635,6 @@ class KalirmozExplanation(ThreeDScene):
             self.remove(*text_objects)
         else:
             self.play(*[FadeOut(text_object) for text_object in text_objects])
-
-
-class Intro(Scene):
-    def construct(self):
-        t1 = Text("Code Names Algorithm", color=BLUE)
-        t2 = Text("by the Kali brothers", color=RED).scale(0.8).next_to(t1, DOWN)
-        self.play(Write(t1))
-        self.wait()
-        self.play(Write(t2))
-        self.wait()
-        self.remove(t1, t2)
-        self.wait()
 
 
 # test_scene = KalirmozExplanation()
