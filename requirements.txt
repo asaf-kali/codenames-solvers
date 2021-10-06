@@ -8,4 +8,4 @@ pandas~=1.3.2
 
 pytest~=6.2.5
 matplotlib~=3.4.3
-manim~=0.10.0
+manim~=0.11.0
