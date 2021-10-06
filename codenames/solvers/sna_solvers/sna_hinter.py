@@ -66,9 +66,12 @@ def should_filter_word(word: str, filter_expressions: Iterable[str]) -> bool:
 
 
 def step_away(starting_point: np.array, step_away_from: np.array, arc_radians: float) -> np.array:
-    step_away_from, normed_o = single_gram_schmidt(step_away_from, starting_point)
 
-    original_phase = np.arccos(np.clip(starting_point.T @ step_away_from, -1.0, 1.0))
+    cos_phase = (starting_point.T @ step_away_from) / (np.linalg.norm(step_away_from) * np.linalg.norm(starting_point))
+
+    original_phase = np.arccos(np.clip(cos_phase, -1.0, 1.0))
+
+    step_away_from, normed_o = single_gram_schmidt(step_away_from, starting_point)
 
     rotated = step_away_from * np.cos(original_phase + arc_radians) + normed_o * np.sin(original_phase + arc_radians)
 
@@ -86,6 +89,7 @@ def sum_forces(starting_point: np.array, nodes) -> np.array:  # : List[ForceNode
     for node in nodes:
         rotated = step_away(starting_point, node.force_origin, node.force_size * EPSILON)
         contribution = rotated - starting_point
+        np.set_printoptions(precision=6)
         total_force += contribution
     return total_force
 

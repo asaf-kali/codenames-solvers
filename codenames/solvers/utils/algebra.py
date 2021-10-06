@@ -5,14 +5,14 @@ import pandas as pd
 
 
 def cosine_similarity_with_vectors(u: np.ndarray, v: Sequence[np.ndarray]) -> np.ndarray:  # type: ignore
-    u = u / np.linalg.norm(u)
-    v_list = [vec / np.linalg.norm(vec) for vec in v]
+    u = normalize_vector(u)
+    v_list = [normalize_vector(vec) for vec in v]
     return np.array([u.T @ vec for vec in v_list])
 
 
 def cosine_similarity_with_vector(u: np.ndarray, v: np.ndarray) -> float:  # type: ignore
-    u = u / np.linalg.norm(u)
-    v = v / np.linalg.norm(v)
+    u = normalize_vector(u)
+    v = normalize_vector(v)
     return u.T @ v
 
 
@@ -29,28 +29,34 @@ def cosine_distance(u: np.ndarray, v: Union[np.ndarray, Sequence[np.ndarray]]) -
     return (1 - cosine_similarity(u, v)) / 2  # type: ignore
 
 
+def normalize_vector(v):
+    r = np.linalg.norm(v)
+    if r == 0:
+        return v
+    else:
+        return v / r
+
+
 def single_gram_schmidt(v: np.ndarray, u: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:  # type: ignore
-    v = v / np.linalg.norm(v)
-    u = u / np.linalg.norm(u)
+    v = normalize_vector(v)
+    u = normalize_vector(u)
 
     projection_norm = u.T @ v
 
     o = u - projection_norm * v
 
-    normed_o = o / np.linalg.norm(o)
+    normed_o = normalize_vector(o)
     return v, normed_o
 
 
 def geodesic(v, u):
+    r = np.linalg.norm(v)
+    v, u = normalize_vector(v), normalize_vector(u)
+
     v, normed_o = single_gram_schmidt(v, u)
-    theta = np.arccos(v.T @ u)
-    f = lambda t: np.cos(t * theta) * v + np.sin(t * theta) * normed_o
+    theta = np.arccos(np.clip(v.T @ u, -1.0, 1.0))
+
+    def f(t):
+        return (np.cos(t * theta) * v + np.sin(t * theta) * normed_o) * r
+
     return f
-
-
-def normalize(v):
-    norm = np.linalg.norm(v)
-    if norm > 0:
-        return v / norm
-    else:
-        return v
