@@ -330,52 +330,57 @@ class KalirmozExplanation(ThreeDScene):
 
     def construct(self):
 
-        # self.animate_game_explanation()
+        # t1 = Text("Code Names Algorithm", color=BLUE)
+        # t2 = Text("by the Kali brothers", color=RED).scale(0.8).next_to(t1, DOWN)
+        # self.write_3d_text(t1)
+        # self.write_3d_text(t2)
+        # self.play(FadeOut(t1), FadeOut(t2))
+
+        intro_title = Text("Introduction: The Codenames board game")
+        self.play(Write(intro_title))
+        self.wait(1)
+        self.play(FadeOut(intro_title))
+
         blue_hinter = SVGMobject(r"visualizer\Svgs\blue_hinter.svg").to_corner(UR).shift(DOWN).scale(0.8)
         red_hinter = SVGMobject(r"visualizer\Svgs\red_hinter.svg").to_corner(DR).scale(0.8)
-        blue_guesser = SVGMobject(r"visualizer\Svgs\blue_guesser.svg").to_corner(UL).align_to(blue_hinter, DOWN)
-        red_guesser = SVGMobject(r"visualizer\Svgs\red_guesser.svg").to_corner(DL)
+        blue_guesser = SVGMobject(r"visualizer\Svgs\blue_guesser.svg").to_corner(UL).align_to(blue_hinter, DOWN).shift(LEFT*0.2)
+        red_guesser = SVGMobject(r"visualizer\Svgs\red_guesser.svg").to_corner(DL).shift(LEFT*0.2)
 
         board = self.generate_board(BOARD_WORDS)
+        self.play(FadeIn(blue_hinter, shift=DOWN),
+                  FadeIn(blue_guesser, shift=DOWN),
+                  FadeIn(red_hinter, shift=DOWN),
+                  FadeIn(red_guesser, shift=DOWN))
         # self.add(board, blue_hinter, blue_guesser, red_hinter, red_guesser)
-        self.add(board, blue_hinter, blue_guesser, red_hinter, red_guesser)
+        self.wait(2)
+        self.play(DrawBorderThenFill(board))
+        self.wait(3)
+
         self.expose_board_colors(board)
 
         hinter_bubble = SVGMobject(r"visualizer\Svgs\centered.svg").scale(0.5).next_to(blue_hinter, UP)
         hinter_text = Text('"planets", 2', font_size=18).move_to(hinter_bubble).shift(UP * 0.2)
         self.play(FadeIn(hinter_bubble, shift=DOWN))
         self.play(Write(hinter_text))
+        self.wait(3)
 
-        guesser_bubble = SVGMobject(r"visualizer\Svgs\centered.svg").scale(0.7).next_to(blue_guesser, UP)
-        guesser_text_1 = Text('I Guess: "earth"', font_size=18).move_to(guesser_bubble).shift(UP * 0.2)
+        guesser_bubble = SVGMobject(r"visualizer\Svgs\centered.svg").scale(0.6).next_to(blue_guesser, UP).shift(DOWN*0.3)
+        guesser_text_1 = Text('I Guess: "earth"', font_size=17).move_to(guesser_bubble).shift(UP * 0.2)
         self.play(FadeIn(guesser_bubble, shift=DOWN))
         self.play(Write(guesser_text_1))
         self.play(board[22][0].animate.set_color(BLUE))
+        self.wait(1)
 
         self.play(FadeOut(guesser_text_1))
 
-        guesser_text_2 = Text('I Guess: "jupiter"', font_size=18).move_to(guesser_bubble).shift(UP * 0.2)
+        guesser_text_2 = Text('I Guess: "jupiter"', font_size=17).move_to(guesser_bubble).shift(UP * 0.2)
         self.play(Write(guesser_text_2))
         self.play(board[12][0].animate.set_color(BLUE))
         self.play(FadeOut(guesser_text_2))
-
-
-
-        # for r in range(5):
-        #     for c in range(5)
-        #     VGroup
-
-        # self.add(blue_hinter, blue_guesser, red_hinter, red_guesser)
-
-        # self.play(
-        #     FadeIn(blue_hinter), FadeIn(blue_guesser), FadeIn(red_hinter), FadeIn(red_guesser)
-        # )
-
-        # t1 = Text("Code Names Algorithm", color=BLUE)
-        # t2 = Text("by the Kali brothers", color=RED).scale(0.8).next_to(t1, DOWN)
-        # self.write_3d_text(t1)
-        # self.write_3d_text(t2)
-        # self.play(FadeOut(t1), FadeOut(t2))
+        self.wait(3)
+        self.play(
+            *[FadeOut(mob) for mob in self.mobjects]
+        )
 
         # # self.write_3d_text(scr["The algorithm uses..."], fade_out=False)
         # # self.write_3d_text(scr["In a nutshell..."], fade_out=False)
@@ -383,15 +388,16 @@ class KalirmozExplanation(ThreeDScene):
         # # self.write_3d_text(scr["For the sake of..."], fade_out=True)
         # # self.remove_3d_text(scr["For the sake of..."])
 
-        # self.animate_word2vec_explanation()
-        # theta = 210 * DEGREES
-        # phi = 75 * DEGREES
-        # axes = ThreeDAxes(
-        #     x_range=[-1.5, 1.5, 1], y_range=[-1.5, 1.5, 1], z_range=[-1.5, 1.5, 1], x_length=8, y_length=8, z_length=8
-        # )
-        # sphere = Sphere(
-        #     center=(0, 0, 0), radius=SPHERE_RADIUS, resolution=(20, 20), u_range=[0.001, PI - 0.001], v_range=[0, TAU]
-        # ).set_opacity(0.3)
+        self.animate_word2vec_explanation()
+
+        theta = 240 * DEGREES
+        phi = 75 * DEGREES
+        axes = ThreeDAxes(
+            x_range=[-1.5, 1.5, 1], y_range=[-1.5, 1.5, 1], z_range=[-1.5, 1.5, 1], x_length=8, y_length=8, z_length=8
+        )
+        sphere = Sphere(
+            center=(0, 0, 0), radius=SPHERE_RADIUS, resolution=(20, 20), u_range=[0.001, PI - 0.001], v_range=[0, TAU]
+        ).set_opacity(0.3)
 
         # # text_box = Rectangle(color=DARK_BROWN, fill_color=BLACK, fill_opacity=1, height=7.1, width=5.1).to_edge(LEFT).shift(0.2*LEFT)
         # # self.add_fixed_in_frame_mobjects(text_box)
@@ -407,18 +413,18 @@ class KalirmozExplanation(ThreeDScene):
         # # self.write_3d_text(scr["Here are some..."])
         # # camera_vectors = [self.coords_to_point(vector * 1.2) for vector in vectors_list]
 
-        # words_labels_list = [
-        #     Text(labels_list[i], font_size=FONT_SIZE_LABELS, color=LABELS_COLOR).move_to(vectors_list[i])
-        #     for i in range(words_list_len)
-        # ]
-        # arrows_list = [Line(start=[0, 0, 0], end=vector) for vector in
-        #                vectors_list]  # stroke_width=ARROWS_THICKNESS
-        # for i in range(words_list_len):
-        #     self.add_fixed_orientation_mobjects(words_labels_list[i])
-        #     # words_labels_list[i].add_updater(lambda x, i=i: x.move_to(self.coords_to_point(vectors_list[i])))
-        # self.play(*[Create(arrows_list[i]) for i in range(words_list_len)], *[FadeIn(words_labels_list[i]) for i in range(words_list_len)])
-        # # self.add(*arrows_list, *words_labels_list)
-        # self.wait(3)
+        words_labels_list = [
+            Text(labels_list[i], font_size=FONT_SIZE_LABELS, color=LABELS_COLOR).move_to(vectors_list[i])
+            for i in range(words_list_len)
+        ]
+        arrows_list = [Line(start=[0, 0, 0], end=vector) for vector in
+                       vectors_list]  # stroke_width=ARROWS_THICKNESS
+        for i in range(words_list_len):
+            self.add_fixed_orientation_mobjects(words_labels_list[i])
+            # words_labels_list[i].add_updater(lambda x, i=i: x.move_to(self.coords_to_point(vectors_list[i])))
+        self.play(*[Create(arrows_list[i]) for i in range(words_list_len)], *[FadeIn(words_labels_list[i]) for i in range(words_list_len)])
+        # self.add(*arrows_list, *words_labels_list)
+        self.wait(3)
 
         # # self.write_3d_text(scr["The word X..."])
         # # self.remove_3d_text(scr["Here are some..."], scr["The word X..."])
@@ -428,9 +434,10 @@ class KalirmozExplanation(ThreeDScene):
         # # self.write_3d_text(scr["In the first cluste..."])
         # # self.write_3d_text(scr["This graph is divid..."])
 
-        # self.play(*[Create(connection, run_time=3) for connection in sna_connections_list])
-        # self.wait(5)
-        # self.play(*[Uncreate(connection, run_time=1) for connection in sna_connections_list])
+        self.play(*[Create(connection, run_time=3) for connection in sna_connections_list])
+        self.wait(5)
+        self.play(*[Uncreate(connection, run_time=1) for connection in sna_connections_list])
+        self.wait(4)
 
         # self.write_3d_text(scr["Here is an example..."])
         # self.write_3d_text(scr["As can be seen..."])
@@ -444,7 +451,8 @@ class KalirmozExplanation(ThreeDScene):
         # # self.write_3d_text(scr["The second clusteri..."])
         # # self.write_3d_text(scr["Since there are..."])
 
-        # self.animate_random_connections(vectors_list=vectors_list, number_of_examples=15, example_length=0.3)
+        self.animate_random_connections(vectors_list=vectors_list, number_of_examples=15, example_length=0.3)
+        self.wait(4)
 
         # # self.remove_3d_text(scr["The second clusteri..."], scr["Since there are..."])
         # # self.write_3d_text(scr["The second task..."])
@@ -459,11 +467,12 @@ class KalirmozExplanation(ThreeDScene):
         # # self.write_3d_text(scr["to optimize the..."])
         # # self.write_3d_text(scr["The centroid is the..."])
 
-        # starting_point = polar_to_cartesian(SPHERE_RADIUS, 0.52 * PI, 1.95 * PI)
-        # nodes_list = [ForceNode(SKI_VEC, True), ForceNode(WATER_VEC, True), ForceNode(PARK_VEC, False), ForceNode(TEACHER_VEC, False)]
-        # self.animate_physical_system(
-        #     starting_point=starting_point, nodes_list=nodes_list, num_of_iterations=1000, arc_radians=0.01, run_time=5
-        # )
+        starting_point = polar_to_cartesian(SPHERE_RADIUS, 0.52 * PI, 1.95 * PI)
+        nodes_list = [ForceNode(SKI_VEC, True), ForceNode(WATER_VEC, True), ForceNode(PARK_VEC, False), ForceNode(TEACHER_VEC, False)]
+        self.animate_physical_system(
+            starting_point=starting_point, nodes_list=nodes_list, num_of_iterations=1000, arc_radians=0.01, run_time=5
+        )
+        self.wait(2)
 
         # # self.remove_3d_text(
         # #     scr["Ideally, the centro..."],
@@ -483,13 +492,15 @@ class KalirmozExplanation(ThreeDScene):
         # # )
         # # self.write_3d_text(scr["Here is a graph of..."])
 
-        # self.play(Uncreate(axes),
-        #           Uncreate(sphere),
-        #           *[Uncreate(arrows_list[i]) for i in range(words_list_len)],
-        #           *[FadeOut(words_labels_list[i]) for i in range(words_list_len)])  # , FadeOut(text_box)
-        # self.stop_ambient_camera_rotation()
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\planets.csv", "planets (2 cards)")
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\international_good.csv", 'international (two cards)')
+        self.play(Uncreate(axes),
+                  Uncreate(sphere),
+                  *[Uncreate(arrows_list[i]) for i in range(words_list_len)],
+                  *[FadeOut(words_labels_list[i]) for i in range(words_list_len)])  # , FadeOut(text_box)
+        self.stop_ambient_camera_rotation()
+
+
+        self.plot_guesser_view_chart(r"visualizer\graphs_data\planets.csv", "planets (2 cards)")
+        self.plot_guesser_view_chart(r"visualizer\graphs_data\international_good.csv", 'international (two cards)')
 
         # # self.write_3d_text(scr["As can be seen2..."])
         # # self.write_3d_text(scr["With such a hint,"])
@@ -500,7 +511,18 @@ class KalirmozExplanation(ThreeDScene):
         # # )
         # # self.write_3d_text(scr["Here is a graph of2..."])
 
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\dark_bad_choose_it.csv", 'dark')
+        self.plot_guesser_view_chart(r"visualizer\graphs_data\dark_bad_choose_it.csv", 'dark')
+
+        self.play(
+            *[FadeOut(mob) for mob in self.mobjects]
+        )
+
+        ending_title = Text("Thanks for watching!")
+        self.write_3d_text(ending_title)
+        self.wait(2)
+        self.play(FadeOut(ending_title))
+        self.wait(1)
+
 
         # # self.write_3d_text(scr["As can be seen3..."])
         # # self.remove_3d_text(
@@ -512,9 +534,9 @@ class KalirmozExplanation(ThreeDScene):
     def specific_color_map(self, i):
         if i in [0, 4, 9, 10, 14, 18, 23, 24]:
             return RED
-        elif i in [3, 6, 8, 13, 15, 16, 20, 21, 25]:
+        elif i in [3, 6, 8, 12, 15, 16, 20, 22, 25]:
             return BLUE
-        elif i == 12:
+        elif i == 19:
             return BLACK
         else:
             return GOLD_E
@@ -577,11 +599,11 @@ class KalirmozExplanation(ThreeDScene):
         nationalism_arrow = Arrow(start=ORIGIN,
                                   end=nationalism_vec).next_to(nationalism_text, SPACING_CONSTANT*RIGHT).set_color(NATIONAL_COLOR)
         nationalism_arrow.add_updater(lambda x: x.next_to(nationalism_text, RIGHT))
+
         self.play(FadeIn(lion_text))
         self.play(Create(lion_arrow))
-        self.wait(1)
+        self.wait(2)
         self.play(lion_text.animate.shift(1.5*UP))
-        self.wait(1)
         deer_text.next_to(lion_text, SPACING_CONSTANT*DOWN)
         nationalism_text.next_to(deer_text, SPACING_CONSTANT * DOWN)
         self.play(FadeIn(deer_text, shift=UP), FadeIn(deer_arrow, shift=UP))
@@ -593,11 +615,11 @@ class KalirmozExplanation(ThreeDScene):
         self.play(lion_arrow.animate.put_start_and_end_on(start=arrows_anchor, end=arrows_anchor+lion_vec),
                   deer_arrow.animate.put_start_and_end_on(start=arrows_anchor, end=arrows_anchor+deer_vec),
                   nationalism_arrow.animate.put_start_and_end_on(start=arrows_anchor, end=arrows_anchor+nationalism_vec))
+        self.wait(2)
         small_angle = Angle(lion_arrow, deer_arrow, radius=0.6*ARROWS_SCALE)
         big_angle = Angle(nationalism_arrow, lion_arrow, radius=0.3*ARROWS_SCALE)
         self.play(Create(small_angle))
         self.play(Create(big_angle))
-
         self.play(FadeOut(word2vec_title),
                   FadeOut(deer_text),
                   FadeOut(nationalism_text),
@@ -608,10 +630,8 @@ class KalirmozExplanation(ThreeDScene):
                   FadeOut(small_angle),
                   FadeOut(lion_text))
 
-        self.wait(1)
-
     def animate_physical_system(
-        self, starting_point: np.array, nodes_list, num_of_iterations=10, arc_radians=0.01, run_time=5
+        self, starting_point: np.array, nodes_list, num_of_iterations=10, arc_radians=0.01, run_time=7
     ):  #:List[np.array,...]
         trajectory = record_trajectory(
             starting_point=starting_point,
@@ -708,7 +728,6 @@ class KalirmozExplanation(ThreeDScene):
         bar_labels = VGroup()
         for i in range(len(bar_names)):
             label = Text(bar_names[i])
-            self.add_fixed_in_frame_mobjects(label)
             label.scale(labels_size)
             label.move_to(UP * labels_shift_y + (i * labels_separation + labels_shift_x) * RIGHT)
             label.rotate(np.pi * (1.5 / 6))
@@ -724,9 +743,10 @@ class KalirmozExplanation(ThreeDScene):
         x_label.next_to(bar_labels, DOWN).scale(0.6).shift(0.2*UP)
         # self.add(chart, bar_labels, title, y_label, x_label)
         # self.wait(1)
+
         self.add_fixed_in_frame_mobjects(title)
         self.play(Write(title))
-        self.add_fixed_in_frame_mobjects(chart, y_label, x_label)
+        self.add_fixed_in_frame_mobjects(chart, y_label, x_label, bar_labels)
         self.play(DrawBorderThenFill(chart),
                   FadeIn(bar_labels, shift=UP),
                   FadeIn(y_label, shift=UP),
