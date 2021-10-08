@@ -1,0 +1,33 @@
+﻿1
+00:00:00,000 --> 00:00:04,288
+This is an explanation video for
+an Algorithm to play the board
+
+2
+00:00:04,312 --> 00:00:06,312
+game "Codenames", writted
+by Michael and Asaf Kali.
+
+3
+00:00:06,336 --> 00:00:08,336
+Let's first describe the Codenames game
+
+4
+00:00:08,360 --> 00:00:10,360
+In the game, two groups are competing
+- The blue team and the read team
+
+5
+00:00:10,384 --> 00:00:12,384
+In each group there are two types
+of players :The spymaster and the
+
+6
+00:00:12,408 --> 00:00:14,408
+field operatives, which are often played
+by multiple people
+
+7
+00:00:14,432 --> 00:00:17,099
+asdasdasdasdasdasdasdasdasasdasdasasdasd
+
