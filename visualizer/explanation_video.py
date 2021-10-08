@@ -105,6 +105,29 @@ def repeller_force(d):
     return 0.6 * (1 / (d + 1) - 0.5)
 
 
+def generate_progression_dict(titles_texts):
+    n = len(titles_texts)
+    progression_line = Line(start=ORIGIN + DOWN + PROGRESSION_LINE_LENGTH / 2 * LEFT,
+                            end=ORIGIN + DOWN + PROGRESSION_LINE_LENGTH / 2 * RIGHT)
+    progression_dots = VGroup()
+    for i in range(4):
+        dot = AnnotationDot(point=ORIGIN + DOWN + (i - (n-1)/2) * (PROGRESSION_LINE_LENGTH / (n-1)) * RIGHT,
+                            fill_color=FUTURE_TOPICS_COLOR,
+                            stroke_width=PROGRESSION_DOTS_S_WIDTH)
+        progression_dots.add(dot)
+
+    progression_marker = Arrow(start=ORIGIN, end=ORIGIN + UP * 1.5, color=GREEN).next_to(progression_dots[0], DOWN)
+
+    titles = VGroup()
+    titles.add(*[Text(titles_texts[i]) for i in range(n)])
+
+    progression_dict = VDict([("line", progression_line),
+                              ("dots", progression_dots),
+                              ("marker", progression_marker),
+                              ("titles", titles)])
+    return progression_dict
+
+
 # def connecting_line(v, u):
 #   c = v.T @ u
 #   f = lambda t: (t*v+(1-t)*u) / np.sqrt(t**2+(1-t**2) + 2*t*(1-t)*c)
@@ -137,6 +160,9 @@ BOARD_WORDS = [
     "park", ####
     "gymnast"]
 FUTURE_TOPICS_COLOR = GRAY
+PAST_TOPICS_COLOR = GREEN
+CURRENT_TOPICS_COLOR = YELLOW
+PROGRESSION_DOTS_S_WIDTH = 2
 CARDS_HEIGHT = 1.0
 PROGRESSION_LINE_LENGTH = 8
 CARDS_WIDTH = 1.6
@@ -173,6 +199,10 @@ sna_connections_list = [
     ParametricFunction(geodesic(NEWTON_VEC, TEACHER_VEC), t_range=[0, 1]).set_color(CONNECTIONS_COLOR),
 ]
 
+TITLES_TEXTS = ["Part 1: The Codenames board game",
+                "Part 2: The Word2Vec Model",
+                "Part 3: The Algorithm",
+                "Part 4: Examples"]
 
 # script_dict = {
 #     "The algorithm uses...": "The Kalirmoz algorithm uses a Word2Vec model for the linguistic knowledge",
@@ -334,38 +364,62 @@ class KalirmozExplanation(ThreeDScene):
         super().__init__(**kwargs)
         self.simple_mode = False
 
-    def advance_progress_markers(self, i):
-        return None
+    def advance_progress_markers(self, progression_dict, i, previous_i=None):
+        if previous_i is None:
+            previous_i = i-1
+
+        progression_dict["dots"][previous_i].set_fill(CURRENT_TOPICS_COLOR)
+        for j in range(previous_i):
+            progression_dict["dots"][j].set_fill(PAST_TOPICS_COLOR)
+        for j in range(previous_i + 1, len(progression_dict["dots"])):
+            progression_dict["dots"][j].set_fill(FUTURE_TOPICS_COLOR)
+        progression_dict["marker"].next_to(progression_dict["dots"][previous_i], DOWN)
+
+        self.play(FadeIn(progression_dict["marker"]),
+                  FadeIn(progression_dict["line"]),
+                  FadeIn(progression_dict["dots"]),
+                  FadeIn(progression_dict["titles"][previous_i]))
+
+        self.wait(1)
+
+        if previous_i != i:
+            self.play(progression_dict["marker"].animate.next_to(progression_dict["dots"][i], DOWN),
+                      *[progression_dict["dots"][j].animate.set_fill(PAST_TOPICS_COLOR) for j in range(i)],
+                      *[progression_dict["dots"][j].animate.set_fill(FUTURE_TOPICS_COLOR) for j in range(i+1,len(progression_dict["dots"]))],
+                      progression_dict["dots"][i].animate.set_fill(CURRENT_TOPICS_COLOR),
+                      FadeOut(progression_dict["titles"][previous_i], shift=DOWN),
+                      FadeIn(progression_dict["titles"][i], shift=DOWN))
+            self.wait(1)
+
+        self.play(
+            *[FadeOut(mob) for mob in self.mobjects]
+        )
 
     def construct(self):
 
-        preogression_line = Line(start=ORIGIN + DOWN + PROGRESSION_LINE_LENGTH/2 * LEFT,
-                                 end=ORIGIN + DOWN + PROGRESSION_LINE_LENGTH/2 * RIGHT)
+        progression_dict = generate_progression_dict(TITLES_TEXTS)
 
-        progression_dots = VGroup()
-        for i in range(4):
-            dot = AnnotationDot(point=ORIGIN+DOWN+(i-1.5) * (PROGRESSION_LINE_LENGTH / 3) * RIGHT,
-                                fill_color=FUTURE_TOPICS_COLOR)
-            progression_dots.add(dot)
+        self.scene_intro()
 
-        progression_marker = Arrow(start=ORIGIN, end=ORIGIN+UP*1.5, color=GREEN).next_to(progression_dots[0], DOWN)
+        self.advance_progress_markers(progression_dict, 0, 0)
 
-        self.add(preogression_line, progression_dots, progression_marker)
-        # self.play(Create(preogression_line), Create(progression_dots), Create(progression_marker))
+        self.scene_game_rules()
 
-        # self.scene_intro()
+        self.advance_progress_markers(progression_dict, 1)
 
-        # self.scene_game_title()
+        self.scene_word2vec_explanation()
 
-        # self.scene_game_rules()
+        self.advance_progress_markers(progression_dict, 2)
 
-        # self.scene_word2vec_explanation()
+        self.scene_sphere()
 
-        # self.scene_sphere()
+        self.add_fixed_orientation_mobjects(progression_dict)
+        self.remove(progression_dict)
+        self.advance_progress_markers(progression_dict, 3)
 
-        # self.scene_guesser_views()
+        self.scene_guesser_views()
 
-        # self.scene_ending_title()
+        self.scene_ending_title()
 
     def scene_intro(self):
         t1 = Text("Code Names Algorithm", color=BLUE)
@@ -373,12 +427,6 @@ class KalirmozExplanation(ThreeDScene):
         self.write_3d_text(t1)
         self.write_3d_text(t2)
         self.play(FadeOut(t1), FadeOut(t2))
-
-    def scene_game_title(self):
-        intro_title = Text("Introduction: The Codenames board game")
-        self.play(Write(intro_title))
-        self.wait(1)
-        self.play(FadeOut(intro_title))
 
     def scene_game_rules(self):
         blue_hinter = SVGMobject(r"visualizer\Svgs\blue_hinter.svg").to_corner(UR).shift(DOWN).scale(0.8)
@@ -506,7 +554,7 @@ class KalirmozExplanation(ThreeDScene):
         self.begin_ambient_camera_rotation(rate=0.1)
         self.play(Create(axes), Create(sphere))
         self.add(axes, sphere)
-        self.wait(1)
+        # self.wait(1)
 
         words_labels_list = [
             self.generate_card(text=labels_list[i],
@@ -526,8 +574,8 @@ class KalirmozExplanation(ThreeDScene):
             self.add_fixed_orientation_mobjects(words_labels_list[i])
             # words_labels_list[i].add_updater(lambda x, i=i: x.move_to(self.coords_to_point(vectors_list[i])))
         self.play(*[FadeIn(words_labels_list[i]) for i in range(words_list_len)])
-        # self.add(*arrows_list, *words_labels_list)
         self.wait(3)
+        # self.add(*arrows_list, *words_labels_list)
 
         self.play(*[Create(connection, run_time=3) for connection in sna_connections_list])
         self.wait(5)
@@ -576,7 +624,8 @@ class KalirmozExplanation(ThreeDScene):
         self.play(FadeOut(ending_title))
         self.wait(1)
 
-    def specific_color_map(self, i):
+    @staticmethod
+    def specific_color_map(i):
         if i in [0, 4, 9, 10, 14, 18, 22, 24]:
             return RED
         elif i in [2, 6, 8, 11, 16, 17, 20, 23, 25]:
@@ -630,7 +679,8 @@ class KalirmozExplanation(ThreeDScene):
         board.move_to(ORIGIN)
         return board
 
-    def generate_card(self, text, height=CARDS_HEIGHT, width=CARDS_WIDTH, fill_color=CARDS_FILL_COLOR,
+    @staticmethod
+    def generate_card(text, height=CARDS_HEIGHT, width=CARDS_WIDTH, fill_color=CARDS_FILL_COLOR,
                       fill_opacity=CARDS_FILL_OPACITY, font_size=CARDS_FONT_SIZE, stroke_color=None):
         card = VGroup()
         rectangle = Rectangle(height=height,
