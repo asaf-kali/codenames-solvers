@@ -48,4 +48,4 @@ Look in the [GitHub repo](https://github.com/Ronshm/hebrew-word2vec).
 7. `git push`
 
 ### How to export explanation video:
-Run in terminal: `python -m manim visualizer/explanation_video.py KalirmozExplanation -pqh\-pqh`
+Run in terminal: `python -m manim visualizer/explanation_video.py KalirmozExplanation -pqh\-pql`

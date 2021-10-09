@@ -204,167 +204,176 @@ TITLES_TEXTS = ["Part 1: The Codenames board game",
                 "Part 3: The Algorithm",
                 "Part 4: Examples"]
 
-# script_dict = {
-#     "The algorithm uses...": "The Kalirmoz algorithm uses a Word2Vec model for the linguistic knowledge",
-#     "In a nutshell...": "In a nutshell, the Word2Vec assign each word with an n-dimensional\n"
-#     "vector (usually n=50, 100, 300), in a way such that words that\n"
-#     "tent to appear in the same context have small angle between them",
-#     "For the sake of...": "For the sake of this video, we will represent the words vectors\n"
-#     "as 3-dimensional vectors",
-#     "Here are some...":       "Here are some words and their\n"
-#                               "corresponding vectors.",
-#     "The word X...":          'The word "water" is close to\n'
-#                               'the words "ski" and "beach"\n'
-#                               'and far from the word "newton"\n'
-#                               'as indeed semantically, the\n'
-#                               'words "water", "ski" and\n'
-#                               '"beach" all appear in the\n'
-#                               'same contexts while the word\n'
-#                               'newton usually appears in\n'
-#                               'other contexts',
-#     "In each turn...":        "In each turn, the first task\n"
-#                               "of the hinter is to find a\n"
-#                               "proper subset of words\n"
-#                               "(usually two to four words),\n"
-#                               "on which to hint",
-#     "Two methods...":         "Two methods of clustering\n"
-#                               "where implemented.",
-#     "In the first cluste...": "In the first clustering\n"
-#                               "method, the words are\n"
-#                               "considered\n"
-#                               "as nodes in a graph, with\n"
-#                               "edges weights correlated to\n"
-#                               "their cosine similarity",
-#     "This graph is divid...": "This graph is divided into\n"
-#                               "communities using the louvain\n"
-#                               "SNA algorithm, and each\n"
-#                               "community is taken as an\n"
-#                               "optional cluster of words to"
-#                               "hint about.",
-#     "Here is an example...":  "Here is an example of 25 words\n"
-#                               "and their louvain clustering\n"
-#                               "result:",
-#     "As can be seen...":      "As can be seen, semantically\n"
-#                               "close words are put within the\n"
-#                               "same cluster.",
-#     "The second clusteri...": "The second clustering method is\n"
-#                               "much simpler:",
-#     "Since there are...":     "Since there are at most 9 cards\n"
-#                               "to hint about, it is feasible\n"
-#                               "to just iterate over all possible\n"
-#                               "subsets and choose the best\n"
-#                               "one.",
-#     "The second task...":     "The second task of the hinter is\n"
-#                               "to choose a hinting word for\n"
-#                               "the cluster.",
-#     "In order to find...":    "In order to find a hinting word\n"
-#                               "for a cluster, the hinter\n"
-#                               'generates a "centroid" vector\n'
-#                               'for the cluster, to search real\n'
-#                               "words near by.",
-#     "An initial centroid...": 'An initial "centroid" is\n'
-#                               'proposed as the Center of Mass\n'
-#                               "of the cluster's vectors",
-#     "Ideally, the centro...": "Ideally, the centroid would be\n"
-#                               "close to all the cluster's\n"
-#                               'words and far from words of\n'
-#                               'other colors. (where "close"\n'
-#                               'and "far") are considered in\n'
-#                               'the cosine distance metric.',
-#     "to optimize the...":     "To optimize the centroid, the\n"
-#                               "words in the board (from\n"
-#                               " all colors) are considered\n"
-#                               "as a physical system, where\n"
-#                               "every vector from the color\n"
-#                               "of the hinter is an attractor,\n"
-#                               "and every word from other\n"
-#                               "color is a repeller.",
-#     "The centroid is the...": "The centroid is then being\n"
-#                               "pushed and pulled by the words\n"
-#                               "of the board until converging\n"
-#                               "to a point where it is both\n"
-#                               "far away from bad words, and\n"
-#                               "close to close words.",
-#     "The attraction forc...": "The attraction force acts like\n"
-#                               'a spring, where if the centroid\n'
-#                               'is to far, the spring can be\n'
-#                               '"torn" apart and is no longer\n'
-#                               'considered as part of the cluster.',
-#     "This is done in ord...": "This is done in order to allow\n"
-#                               "outliers in the cluster to be\n"
-#                               "neglected.",
-#     "After convergence...":   "After convergence, all there\n"
-#                               "needs to be done is to pick up a\n"
-#                               "word near-by the optimized\n"
-#                               "cluster's centroid",
-#     "The top n words wit...": "The top n words with the lowest\n"
-#                               "cosine distance are examined\n"
-#                               "and the best one is chosen and\n"
-#                               "the cluster's hint",
-#     "The best hint from ...": "The best hint from all clusters\n"
-#                               "is picked and being hinter\n"
-#                               "to the gruesser!",
-#     "Here is a graph of...":  "Here is a graph of the\n"
-#                               "guesser's view of a good\n"
-#                               "hinted word.",
-#     "As can be seen2...":     "As can be seen, the closest\n"
-#                               "words on board to the hinted\n"
-#                               "word are all from the team's\n"
-#                               "color, while words from other\n"
-#                               "colors are far from the hinted\n"
-#                               "word.",
-#     "With such a hint,":      "With such a hint, victory is\n"
-#                               "guaranteed!",
-#     "Here is a graph of2...": "Here is a graph of the\n"
-#                               "guesser's view of a bad hinted\n"
-#                               "word",
-#     "As can be seen3...":     "As can be seen, there is a bad\n"
-#                               "word just as close to the\n"
-#                               "hinted word as the good word,\n"
-#                               "which might confuse the guesser,\n"
-#                               "and lead him to pick up the bad\n"
-#                               "word.",
-#     "Such a hint will...":    "Such a hint will not be chosen.",
-# }
-#
-# scr = {k: Text(t, font_size=FONT_SIZE_TEXT) for k, t in script_dict.items()}
-# scr["The algorithm uses..."].to_corner(UL)
-# scr["In a nutshell..."].next_to(scr["The algorithm uses..."], DOWN).align_to(scr["The algorithm uses..."], LEFT)
-# scr["For the sake of..."].to_corner(UL)
-# scr["Here are some..."].to_corner(UL)
-# scr["The word X..."].next_to(scr["Here are some..."], DOWN).align_to(scr["Here are some..."], LEFT)
-# scr["In each turn..."].to_corner(UL)
-# scr["Two methods..."].next_to(scr["In each turn..."], DOWN).align_to(scr["In each turn..."], LEFT)
-# scr["In the first cluste..."].to_corner(UL)
-# scr["This graph is divid..."].next_to(scr["In the first cluste..."], DOWN).align_to(scr["In the first cluste..."], LEFT)
-# scr["Here is an example..."].next_to(scr["This graph is divid..."], DOWN).align_to(scr["This graph is divid..."], LEFT)
-# scr["As can be seen..."].next_to(scr["Here is an example..."], DOWN).align_to(scr["Here is an example..."], LEFT)
-# scr["The second clusteri..."].to_corner(UL)
-# scr["Since there are..."].next_to(scr["The second clusteri..."], DOWN).align_to(scr["The second clusteri..."], LEFT)
-# scr["The second task..."].to_corner(UL)
-# scr["In order to find..."].next_to(scr["The second task..."], DOWN).align_to(scr["The second task..."], LEFT)
-# scr["An initial centroid..."].next_to(scr["In order to find..."], DOWN).align_to(scr["In order to find..."], LEFT)
-# scr["Ideally, the centro..."].to_corner(UL)
-# scr["to optimize the..."].next_to(scr["Ideally, the centro..."], DOWN).align_to(scr["Ideally, the centro..."], LEFT)
-# scr["The centroid is the..."].next_to(scr["to optimize the..."], DOWN).align_to(scr["to optimize the..."], LEFT)
-# scr["The attraction forc..."].to_corner(UL)
-# scr["This is done in ord..."].next_to(scr["The attraction forc..."], DOWN).align_to(scr["The attraction forc..."], LEFT)
-# scr["After convergence..."].to_corner(UL)
-# scr["The top n words wit..."].next_to(scr["After convergence..."], DOWN).align_to(scr["After convergence..."], LEFT)
-# scr["The best hint from ..."].next_to(scr["The top n words wit..."], DOWN).align_to(scr["The top n words wit..."], LEFT)
-# scr["Here is a graph of..."].to_corner(UL).scale(0.7)
-# scr["As can be seen2..."].next_to(scr["Here is a graph of..."], DOWN).align_to(scr["Here is a graph of..."], LEFT).scale(0.7)
-# scr["With such a hint,"].next_to(scr["As can be seen2..."], DOWN).align_to(scr["As can be seen2..."], LEFT).scale(0.7)
-# scr["Here is a graph of2..."].to_corner(UL).scale(0.7)
-# scr["As can be seen3..."].next_to(scr["Here is a graph of2..."], DOWN).align_to(scr["Here is a graph of2..."], LEFT).scale(0.7)
-# scr["Such a hint will..."].to_corner(UL).scale(0.7)
 
 class KalirmozExplanation(ThreeDScene):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.simple_mode = False
 
-    def advance_progress_markers(self, progression_dict, i, previous_i=None):
+    def construct(self):
+
+        progression_dict = generate_progression_dict(TITLES_TEXTS)
+
+        self.scene_intro()
+
+        self.advance_progress_markers(progression_dict, 0, 0)
+
+        self.scene_game_rules()
+
+        # self.advance_progress_markers(progression_dict, 1)
+
+        # self.scene_word2vec_explanation()
+
+        # self.advance_progress_markers(progression_dict, 2)
+
+        # self.scene_sphere()
+
+        # self.add_fixed_orientation_mobjects(progression_dict)
+        # self.remove(progression_dict)
+        # self.advance_progress_markers(progression_dict, 3)
+
+        # self.scene_guesser_views()
+
+        # self.scene_ending_title()
+
+    def scene_intro(self):
+        t1 = Text("Code Names Algorithm", color=BLUE)
+        t2 = Text("by the Kali brothers", color=RED).scale(0.8).next_to(t1, DOWN)
+        self.write_3d_text(t1)
+        self.write_3d_text(t2)
+        self.play(FadeOut(t1), FadeOut(t2))
+
+    def scene_game_rules(self):
+        blue_hinter = SVGMobject(r"visualizer\Svgs\blue_hinter.svg").to_corner(UR).shift(DOWN).scale(0.8)
+        red_hinter = SVGMobject(r"visualizer\Svgs\red_hinter.svg").to_corner(DR).scale(0.8)
+        blue_guesser = SVGMobject(r"visualizer\Svgs\blue_guesser.svg").to_corner(UL).align_to(blue_hinter, DOWN).shift(
+            LEFT * 0.2)
+        red_guesser = SVGMobject(r"visualizer\Svgs\red_guesser.svg").to_corner(DL).shift(LEFT * 0.2)
+
+        board = self.generate_board(BOARD_WORDS)
+        self.play(FadeIn(blue_hinter, shift=DOWN),
+                  FadeIn(blue_guesser, shift=DOWN),
+                  FadeIn(red_hinter, shift=DOWN),
+                  FadeIn(red_guesser, shift=DOWN))
+        # self.add(board, blue_hinter, blue_guesser, red_hinter, red_guesser)
+        self.wait(7)
+        self.play(blue_hinter.animate.scale(1.2), red_hinter.animate.scale(1.2), rate_func = there_and_back, run_time = 2)
+        self.wait(1)
+        self.play(blue_guesser.animate.scale(1.2), red_guesser.animate.scale(1.2), rate_func=there_and_back, run_time=2)
+        self.wait(6)
+        self.play(DrawBorderThenFill(board))
+        self.wait(3)
+
+        self.expose_board_colors(board)
+
+
+
+
+        blue_hinter_bubble, blue_hinter_text = self.animate_hint(blue_hinter, 'planets', 2)
+
+        self.wait(10)
+
+        blue_guesser_bubble = self.animate_guess(board=board,
+                                                 card_color=BLUE,
+                                                 word='earth',
+                                                 guesser_obj=blue_guesser,
+                                                 guesser_bubble=None,
+                                                 finish_turn=False,
+                                                 guess_reveal_wait_time=5)
+
+        self.animate_guess(board=board,
+                           card_color=BLUE,
+                           word='jupiter',
+                           guesser_bubble=blue_guesser_bubble,
+                           finish_turn=True)
+
+
+        self.play(FadeOut(blue_hinter_bubble), FadeOut(blue_hinter_text))
+
+        red_hinter_bubble, red_hinter_text = self.animate_hint(red_hinter, 'water', 4)
+
+        red_guesser_bubble = self.animate_guess(board=board,
+                                                card_color=RED,
+                                                word='flood',
+                                                guesser_obj=red_guesser,
+                                                guesser_bubble=None,
+                                                finish_turn=False)
+
+        self.animate_guess(board=board,
+                           card_color=RED,
+                           word='storm',
+                           guesser_bubble=red_guesser_bubble,
+                           finish_turn=False,
+                           quick_mode=True)
+
+        self.animate_guess(board=board,
+                           card_color=LIGHT_GRAY,
+                           word='moon',
+                           guesser_bubble=red_guesser_bubble,
+                           finish_turn=True,
+                           quick_mode=True)
+
+        self.play(FadeOut(red_hinter_bubble), FadeOut(red_hinter_text))
+
+        blue_hinter_bubble, blue_hinter_text = self.animate_hint(blue_hinter, 'costume', 2)
+
+        blue_guesser_bubble = self.animate_guess(board=board,
+                                                 card_color=BLUE,
+                                                 word='cloak',
+                                                 guesser_obj=blue_guesser,
+                                                 guesser_bubble=None,
+                                                 finish_turn=False,
+                                                 quick_mode=True)
+
+        self.animate_guess(board=board,
+                           card_color=DARK_GRAY,
+                           word='ninja',
+                           guesser_bubble=blue_guesser_bubble,
+                           finish_turn=True,
+                           quick_mode=True)
+
+        winning_title = Text('Red team Wins!', color=RED).scale(0.8).to_edge(UP).shift(UP * 0.15)
+        self.play(Write(winning_title))
+        self.wait(2)
+
+        self.play(
+            *[FadeOut(mob) for mob in self.mobjects]
+        )
+
+    def animate_hint(self, hinter_obj, hint_word, hint_number):
+        hinter_bubble = SVGMobject(r"visualizer\Svgs\centered.svg").scale(0.5).next_to(hinter_obj, UP)
+        hinter_text = Text(f'"{hint_word}", {hint_number}', font_size=18).move_to(hinter_bubble).shift(UP * 0.2)
+        self.play(FadeIn(hinter_bubble, shift=DOWN))
+        self.play(Write(hinter_text))
+        self.wait(3)
+        return hinter_bubble, hinter_text
+
+    def animate_guess(self, board, card_color, word, guesser_obj=None, guesser_bubble=None, finish_turn=False,
+                      guess_reveal_wait_time=1, quick_mode=False):
+        if quick_mode is True:
+            quick_factor = 0.5
+        else:
+            quick_factor = 1
+        if guesser_bubble is None:
+            guesser_bubble = SVGMobject(r"visualizer\Svgs\centered.svg").scale(0.6).next_to(guesser_obj, UP).shift(
+                DOWN * 0.3)
+            self.play(FadeIn(guesser_bubble, shift=DOWN), run_time=quick_factor)
+        guesser_text = Text(f'I Guess: "{word}"', font_size=17).move_to(guesser_bubble).shift(UP * 0.2)
+        if quick_mode:
+            self.play(FadeIn(guesser_text), run_time=quick_factor)
+
+        else:
+            self.play(Write(guesser_text))
+        self.wait(guess_reveal_wait_time * quick_factor)
+        self.change_card_color(board, word, card_color, annotate=quick_mode)
+        self.wait(quick_factor)
+        if finish_turn:
+            self.play(FadeOut(guesser_text), FadeOut(guesser_bubble), run_time=quick_factor)
+        else:
+            self.play(FadeOut(guesser_text), run_time=quick_factor)
+        return guesser_bubble
+
+    def advance_progress_markers(self, progression_dict, i, previous_i=None, extra_waiting_time=1):
         if previous_i is None:
             previous_i = i-1
 
@@ -390,148 +399,11 @@ class KalirmozExplanation(ThreeDScene):
                       FadeOut(progression_dict["titles"][previous_i], shift=DOWN),
                       FadeIn(progression_dict["titles"][i], shift=DOWN))
             self.wait(1)
+        self.wait(extra_waiting_time)
 
         self.play(
             *[FadeOut(mob) for mob in self.mobjects]
         )
-
-    def construct(self):
-
-        progression_dict = generate_progression_dict(TITLES_TEXTS)
-
-        self.scene_intro()
-
-        self.advance_progress_markers(progression_dict, 0, 0)
-
-        self.scene_game_rules()
-
-        self.advance_progress_markers(progression_dict, 1)
-
-        self.scene_word2vec_explanation()
-
-        self.advance_progress_markers(progression_dict, 2)
-
-        self.scene_sphere()
-
-        self.add_fixed_orientation_mobjects(progression_dict)
-        self.remove(progression_dict)
-        self.advance_progress_markers(progression_dict, 3)
-
-        self.scene_guesser_views()
-
-        self.scene_ending_title()
-
-    def scene_intro(self):
-        t1 = Text("Code Names Algorithm", color=BLUE)
-        t2 = Text("by the Kali brothers", color=RED).scale(0.8).next_to(t1, DOWN)
-        self.write_3d_text(t1)
-        self.write_3d_text(t2)
-        self.play(FadeOut(t1), FadeOut(t2))
-
-    def scene_game_rules(self):
-        blue_hinter = SVGMobject(r"visualizer\Svgs\blue_hinter.svg").to_corner(UR).shift(DOWN).scale(0.8)
-        red_hinter = SVGMobject(r"visualizer\Svgs\red_hinter.svg").to_corner(DR).scale(0.8)
-        blue_guesser = SVGMobject(r"visualizer\Svgs\blue_guesser.svg").to_corner(UL).align_to(blue_hinter, DOWN).shift(
-            LEFT * 0.2)
-        red_guesser = SVGMobject(r"visualizer\Svgs\red_guesser.svg").to_corner(DL).shift(LEFT * 0.2)
-
-        board = self.generate_board(BOARD_WORDS)
-        self.play(FadeIn(blue_hinter, shift=DOWN),
-                  FadeIn(blue_guesser, shift=DOWN),
-                  FadeIn(red_hinter, shift=DOWN),
-                  FadeIn(red_guesser, shift=DOWN))
-        # self.add(board, blue_hinter, blue_guesser, red_hinter, red_guesser)
-        self.wait(2)
-        self.play(DrawBorderThenFill(board))
-        self.wait(3)
-
-        self.expose_board_colors(board)
-
-        blue_hinter_bubble, blue_hinter_text = self.animate_hint(blue_hinter, 'planets', 2)
-
-        blue_guesser_bubble = self.animate_guess(board=board,
-                                                 card_color=BLUE,
-                                                 word='earth',
-                                                 guesser_obj=blue_guesser,
-                                                 guesser_bubble=None,
-                                                 finish_turn=False)
-
-        self.animate_guess(board=board,
-                           card_color=BLUE,
-                           word='jupiter',
-                           guesser_bubble=blue_guesser_bubble,
-                           finish_turn=True)
-
-        self.play(FadeOut(blue_hinter_bubble), FadeOut(blue_hinter_text))
-
-        red_hinter_bubble, red_hinter_text = self.animate_hint(red_hinter, 'water', 4)
-
-        red_guesser_bubble = self.animate_guess(board=board,
-                                                card_color=RED,
-                                                word='flood',
-                                                guesser_obj=red_guesser,
-                                                guesser_bubble=None,
-                                                finish_turn=False)
-
-        self.animate_guess(board=board,
-                           card_color=RED,
-                           word='storm',
-                           guesser_bubble=red_guesser_bubble,
-                           finish_turn=False)
-
-        self.animate_guess(board=board,
-                           card_color=LIGHT_GRAY,
-                           word='moon',
-                           guesser_bubble=red_guesser_bubble,
-                           finish_turn=True)
-
-        self.play(FadeOut(red_hinter_bubble), FadeOut(red_hinter_text))
-
-        blue_hinter_bubble, blue_hinter_text = self.animate_hint(blue_hinter, 'costume', 2)
-
-        blue_guesser_bubble = self.animate_guess(board=board,
-                                                 card_color=BLUE,
-                                                 word='cloak',
-                                                 guesser_obj=blue_guesser,
-                                                 guesser_bubble=None,
-                                                 finish_turn=False)
-
-        self.animate_guess(board=board,
-                           card_color=DARK_GRAY,
-                           word='ninja',
-                           guesser_bubble=blue_guesser_bubble,
-                           finish_turn=True)
-
-        winning_title = Text('Red team Wins!', color=RED).scale(0.8).to_edge(UP).shift(UP * 0.15)
-        self.play(Write(winning_title))
-        self.wait(2)
-
-        self.play(
-            *[FadeOut(mob) for mob in self.mobjects]
-        )
-
-    def animate_hint(self, hinter_obj, hint_word, hint_number):
-        hinter_bubble = SVGMobject(r"visualizer\Svgs\centered.svg").scale(0.5).next_to(hinter_obj, UP)
-        hinter_text = Text(f'"{hint_word}", {hint_number}', font_size=18).move_to(hinter_bubble).shift(UP * 0.2)
-        self.play(FadeIn(hinter_bubble, shift=DOWN))
-        self.play(Write(hinter_text))
-        self.wait(3)
-        return hinter_bubble, hinter_text
-
-    def animate_guess(self, board, card_color, word, guesser_obj=None, guesser_bubble=None, finish_turn=False):
-        if guesser_bubble is None:
-            guesser_bubble = SVGMobject(r"visualizer\Svgs\centered.svg").scale(0.6).next_to(guesser_obj, UP).shift(
-                DOWN * 0.3)
-            self.play(FadeIn(guesser_bubble, shift=DOWN))
-        guesser_text = Text(f'I Guess: "{word}"', font_size=17).move_to(guesser_bubble).shift(UP * 0.2)
-        self.play(Write(guesser_text))
-        self.change_card_color(board, word, card_color, True)
-        self.wait(1)
-        if finish_turn:
-            self.play(FadeOut(guesser_text), FadeOut(guesser_bubble))
-        else:
-            self.play(FadeOut(guesser_text))
-        return guesser_bubble
 
     def change_card_color(self, board, word, color, annotate=False):
         card_index = BOARD_WORDS.index(word)
@@ -635,37 +507,11 @@ class KalirmozExplanation(ThreeDScene):
         else:
             return LIGHT_GRAY
 
-        # BOARD_WORDS = [
-        #     "cloak",
-        #     "kiss",
-        #     "flood",  ####
-        #     "mail",
-        #     "skates",
-        #     "paper",
-        #     "frog",
-        #     "house",
-        #     "moon",  ####
-        #     "egypt",
-        #     "teacher",
-        #     "storm",  ####
-        #     "newton",
-        #     "violet",
-        #     "drill",
-        #     "fever",
-        #     "ninja",
-        #     "jupiter",
-        #     "ski",
-        #     "party",
-        #     "beach",  ####
-        #     "lock",
-        #     "earth",
-        #     "park",  ####
-        #     "gymnast"]
-
     def expose_board_colors(self, board):
         self.play(*[board[i][0].animate.set_color(self.specific_color_map(i)) for i in range(25)])
-        self.wait(3)
+        self.wait(11)
         self.play(*[board[i][0].animate.set_color(CARDS_FILL_COLOR) for i in range(25)])
+        self.wait(14)
 
     def generate_board(self, words_list):
         board = VGroup()
