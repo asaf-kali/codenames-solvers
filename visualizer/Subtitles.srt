@@ -1,33 +1,363 @@
 ﻿1
-00:00:00,000 --> 00:00:04,288
+00:00:00,651 --> 00:00:05,611
 This is an explanation video for
 an Algorithm to play the board
 
 2
-00:00:04,312 --> 00:00:06,312
+00:00:05,635 --> 00:00:09,635
 game "Codenames", writted
 by Michael and Asaf Kali.
 
 3
-00:00:06,336 --> 00:00:08,336
-Let's first describe the Codenames game
+00:00:09,659 --> 00:00:12,325
+Part 1: The board game Codenames
 
 4
-00:00:08,360 --> 00:00:10,360
+00:00:12,349 --> 00:00:15,469
+Let's first describe the Codenames game
+
+5
+00:00:15,493 --> 00:00:21,093
 In the game, two groups are competing
 - The blue team and the read team
 
-5
-00:00:10,384 --> 00:00:12,384
+6
+00:00:21,117 --> 00:00:26,397
 In each group there are two types
 of players :The spymaster and the
 
-6
-00:00:12,408 --> 00:00:14,408
+7
+00:00:26,421 --> 00:00:31,061
 field operatives, which are often played
 by multiple people
 
-7
-00:00:14,432 --> 00:00:17,099
-asdasdasdasdasdasdasdasdasasdasdasasdasd
+8
+00:00:31,085 --> 00:00:36,445
+Some cards are represent blue agents,
+and some represent red agents.
+
+9
+00:00:36,469 --> 00:00:41,499
+ one represents an assassin, and the
+others represent innocent bystanders.
+
+10
+00:00:41,523 --> 00:00:45,732
+but only the two Spymasters
+holds the map that tells which
+
+11
+00:00:45,756 --> 00:00:48,141
+card is assigned to which team.
+
+12
+00:00:48,165 --> 00:00:53,556
+The goal of the Spymasters is to
+have all the cards of their color exposed
+
+13
+00:00:53,580 --> 00:00:59,044
+to do so, in each turn the spymaster
+chooses some of the cards of his color
+
+14
+00:00:59,068 --> 00:01:01,068
+to hint about.
+
+15
+00:01:01,092 --> 00:01:05,745
+He then hint about them with a
+single word, that somehow relates
+
+16
+00:01:05,769 --> 00:01:10,495
+to each of them, and with the
+number of cards he is hinting about
+
+17
+00:01:10,519 --> 00:01:17,719
+Then, the field operatives guess which
+cards did the Spymaster hinted about.
+
+18
+00:01:17,743 --> 00:01:23,599
+with each guess, The true color
+of the card is being revealed.
+
+19
+00:01:23,623 --> 00:01:29,863
+If they accidentaly choose a card
+from the opponnent's color or a
+
+20
+00:01:29,887 --> 00:01:34,015
+Bystander's gray card,
+they loose their turn
+
+21
+00:01:34,039 --> 00:01:40,279
+If they hit the black Assasins
+card - The team immidiately looses.
+
+22
+00:01:40,303 --> 00:01:42,903
+Part 2: The Word2Vec Model
+
+23
+00:01:45,403 --> 00:01:50,123
+The Algorithm in discussion
+uses a pretrained Word2Vec model
+
+24
+00:01:50,147 --> 00:01:52,647
+for it's linguistic knowledge.
+
+25
+00:01:52,671 --> 00:01:58,431
+The Word2Vec model uses a big text
+corpus such as wikipedia or news sites
+
+26
+00:01:58,455 --> 00:02:03,655
+to assign each word in the
+vocabulary with an n-dimensional vector
+
+27
+00:02:03,679 --> 00:02:09,519
+The vectors of the various words are
+designed such that words that tend to
+
+28
+00:02:09,543 --> 00:02:14,903
+appear in the same context will
+have small angle between them, while
+
+29
+00:02:14,927 --> 00:02:19,807
+distant, unrelated words will
+have a larger angle between them
+
+30
+00:02:19,831 --> 00:02:25,351
+In this example, since both "deer"
+and "lion" appear in the context of
+
+31
+00:02:25,375 --> 00:02:30,575
+Africa, nature, hunting and such,
+they are assigned with a similar
+
+32
+00:02:31,079 --> 00:02:36,279
+vectors, with a small angle between
+them, while "nationalism", that
+
+33
+00:02:36,303 --> 00:02:41,903
+appears in completely different
+contexts has a completely other vector.
+
+34
+00:02:49,299 --> 00:02:51,882
+Part 3: The Codenames Algorithm
+
+35
+00:02:51,906 --> 00:02:56,226
+In each turn, the first task
+of the hinter is to find a
+
+36
+00:02:56,250 --> 00:03:00,170
+proper subset of words
+(usually two to four words)
+
+37
+00:03:00,194 --> 00:03:01,794
+on which to hint
+
+38
+00:03:01,818 --> 00:03:05,258
+Two methods of clustering
+where implemented.
+
+39
+00:03:05,282 --> 00:03:11,282
+In the first clustering method, the
+words are considered as nodes in a graph
+
+40
+00:03:11,306 --> 00:03:15,786
+with edges weights correlated
+to their cosine similarity.
+
+41
+00:03:15,810 --> 00:03:22,130
+This graph is divided into communities
+using the louvain SNA algorithm, and each
+
+42
+00:03:22,154 --> 00:03:27,274
+community is taken as an optional
+cluster of words to hint about.
+
+43
+00:03:27,298 --> 00:03:33,298
+A second, "greedy" method, simply
+iterates over all combinations of words to
+
+44
+00:03:33,322 --> 00:03:35,322
+choose the best one.
+
+45
+00:03:35,346 --> 00:03:40,146
+The second task of the hinter
+is to choose a hinting word for
+
+46
+00:03:40,170 --> 00:03:42,670
+each of the proposed clusters.
+
+47
+00:03:42,694 --> 00:03:49,014
+In order to find a hinting word for a
+cluster, the hinter generates a "centroid"
+
+48
+00:03:49,038 --> 00:03:53,198
+vector for the cluster, to
+search real words near by.
+
+49
+00:03:53,222 --> 00:03:59,542
+An initial "centroid" is proposed as the
+Center of Mass of the cluster's vectors
+
+50
+00:03:59,566 --> 00:04:06,286
+Ideally, the centroid would be close to all
+the cluster's words and far from words of
+
+51
+00:04:06,310 --> 00:04:12,230
+other colors. (where "close" and
+"far") are considered in the angle metric.
+
+52
+00:04:12,254 --> 00:04:18,734
+To optimize the centroid, the words in
+the board (from  all colors) are considered
+
+53
+00:04:18,758 --> 00:04:24,678
+as a physical system, where every
+vector from the color of the hinter is an
+
+54
+00:04:24,702 --> 00:04:29,262
+attractor, and every word
+from other colors is a repeller.
+
+55
+00:04:29,286 --> 00:04:34,806
+The centroid is then being pushed
+and pulled by the words of the board
+
+56
+00:04:34,830 --> 00:04:40,590
+until converging to a point where it
+is both far away from bad words, and
+
+57
+00:04:40,614 --> 00:04:42,781
+close the cluster's words.
+
+58
+00:04:42,805 --> 00:04:48,565
+The attraction force acts like a
+spring, where if the centroid is to far,
+
+59
+00:04:48,589 --> 00:04:55,149
+the spring can be "torn" apart and is no
+longer considered as part of the cluster.
+
+60
+00:04:55,173 --> 00:05:00,853
+This is done in order to allow
+outliers in the cluster to be neglected.
+
+61
+00:05:00,877 --> 00:05:06,077
+After convergence, all there
+needs to be done is to pick up a word
+
+62
+00:05:06,101 --> 00:05:09,301
+near-by the optimized
+cluster's centroid.
+
+63
+00:05:09,325 --> 00:05:14,125
+The top n words with the lowest
+cosine distance are examined
+
+64
+00:05:14,149 --> 00:05:18,069
+and the best one is
+chosen and the cluster's hint
+
+65
+00:05:18,093 --> 00:05:23,213
+The best hint from all clusters
+is picked and being hinted to the
+
+66
+00:05:23,237 --> 00:05:25,237
+Field Operators (the gruessers).
+
+67
+00:05:25,261 --> 00:05:27,961
+Part 4: Examples
+
+68
+00:05:27,985 --> 00:05:32,545
+Here is an example of a well
+hinted word by the algorithm
+
+69
+00:05:32,569 --> 00:05:37,849
+On the X-axis, lay the unrevealed
+cards, when the Spymaster hinted:
+
+70
+00:05:37,873 --> 00:05:39,553
+"Planets, 2 cards".
+
+71
+00:05:39,577 --> 00:05:44,697
+On the Y-axis, you can see the
+cosine distance between the hinted
+
+72
+00:05:44,721 --> 00:05:47,841
+word "Planet" and the unrevealed cards.
+
+73
+00:05:47,865 --> 00:05:53,225
+as can be seen when the Field
+oprator searches for the closest words
+
+74
+00:05:53,249 --> 00:05:58,689
+to "planets", "earth" and "jupiter"
+are significantly closer then the
+
+75
+00:05:58,873 --> 00:06:02,553
+other cards thus those
+will be his two guesses.
+
+76
+00:06:02,577 --> 00:06:04,577
 
