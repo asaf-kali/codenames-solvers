@@ -1,6 +1,7 @@
 # Custom
 .idea/
 nx.html
+media/
 
 # Language data files
 language_data/*.bin
