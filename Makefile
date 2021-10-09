@@ -8,13 +8,19 @@ install:
 	pip install --upgrade pip
 	pip install -r requirements.txt -r requirements-dev.txt
 
-install-video:
-	make install
-	sudo apt-get install python3.9-dev pkg-config libcairo2-dev libpango1.0-dev
-	pip install -r requirements-video.txt
-
 tests:
 	pytest
+
+# Video
+
+video-install:
+	make install
+	sudo apt-get update
+	sudo apt-get install ffmpeg pkg-config libcairo2-dev libpango1.0-dev --fix-missing
+	pip install -r requirements-video.txt
+
+video-render:
+	python -m manim render videos/explanation.py --progress_bar display -p -f
 
 # Linting
 

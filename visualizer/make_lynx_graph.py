@@ -1,4 +1,4 @@
-# %% Originaly from sna_hinter
+# %% Taken from sna_hinter
 import networkx as nx
 
 from codenames.game.builder import words_to_random_board
