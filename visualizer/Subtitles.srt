@@ -127,266 +127,270 @@ Bystander's gray card,
 they loose their turn
 
 28
-00:02:11,601 --> 00:02:16,961
+00:01:58,301 --> 00:02:03,661
 If they hit the black Assassin’s
 card - The team immediately looses.
 
 29
-00:02:16,985 --> 00:02:19,151
+00:02:15,185 --> 00:02:17,351
 Part 2: The Word2Vec Model
 
 30
-00:02:19,175 --> 00:02:23,975
+00:02:17,375 --> 00:02:22,175
 The Algorithm in discussion
 uses a pre-trained Word2Vec model
 
 31
-00:02:23,999 --> 00:02:26,499
+00:02:22,199 --> 00:02:24,699
 for it's linguistic knowledge.
 
 32
-00:02:26,523 --> 00:02:32,283
+00:02:24,723 --> 00:02:30,483
 The Word2Vec model uses a big text
 corpus such as Wikipedia or news sites
 
 33
-00:02:32,307 --> 00:02:37,507
+00:02:30,507 --> 00:02:35,707
 to assign each word in the
 vocabulary with an n-dimensional vector
 
 34
-00:02:37,531 --> 00:02:43,371
+00:02:35,731 --> 00:02:41,571
 The vectors of the various words are
 designed such that words that tend to
 
 35
-00:02:43,395 --> 00:02:48,755
+00:02:41,595 --> 00:02:46,955
 appear in the same context will
 have small angle between them, while
 
 36
-00:02:48,779 --> 00:02:53,659
+00:02:46,979 --> 00:02:51,859
 distant, unrelated words will
-have a larger angle between them
+have a larger angle between them.
 
 37
-00:02:53,683 --> 00:02:59,203
-In this example, since both "deer"
-and "lion" appear in the context of
-
-38
-00:02:59,227 --> 00:03:04,427
-Africa, nature, hunting and such,
-they are assigned with a similar
-
-39
-00:03:04,451 --> 00:03:09,731
-vectors, with a small angle between
-them, while "nationalism", that
-
-40
-00:03:09,755 --> 00:03:15,355
-appears in completely different
-contexts has a completely other vector.
-
-41
-00:03:15,379 --> 00:03:17,963
+00:02:56,579 --> 00:02:59,163
 Part 3: The Codenames Algorithm
 
+38
+00:02:59,187 --> 00:03:02,387
+Now we will describe
+the algorithm itself
+
+39
+00:03:02,411 --> 00:03:06,491
+To see the problem from
+the algorithm's perspective,
+
+40
+00:03:06,515 --> 00:03:10,435
+We will visualize the cards
+words as 3 dimensional
+
+41
+00:03:10,459 --> 00:03:12,459
+unit vectors in a 3-d space.
+
 42
-00:03:17,987 --> 00:03:22,307
+00:03:13,187 --> 00:03:17,507
 In each turn, the first task
 of the hinter is to find a
 
 43
-00:03:22,331 --> 00:03:26,251
+00:03:17,531 --> 00:03:21,451
 proper subset of words
 (usually two to four words)
 
 44
-00:03:26,275 --> 00:03:27,875
+00:03:21,475 --> 00:03:23,075
 on which to hint
 
 45
-00:03:27,899 --> 00:03:31,339
+00:03:23,099 --> 00:03:26,539
 Two methods of clustering
 where implemented.
 
 46
-00:03:31,363 --> 00:03:37,363
+00:03:26,563 --> 00:03:32,563
 In the first clustering method, the
 words are considered as nodes in a graph
 
 47
-00:03:37,387 --> 00:03:41,867
+00:03:32,587 --> 00:03:37,067
 with edges weights correlated
 to their cosine similarity.
 
 48
-00:03:41,891 --> 00:03:48,211
+00:03:37,091 --> 00:03:43,411
 This graph is divided into communities
 using the Louvain SNA algorithm, and each
 
 49
-00:03:48,235 --> 00:03:53,355
+00:03:43,435 --> 00:03:48,555
 community is taken as an optional
 cluster of words to hint about.
 
 50
-00:03:53,379 --> 00:03:59,379
+00:03:48,579 --> 00:03:53,619
+The cluster are represented here
+as groups of connected vectors.
+
+51
+00:03:54,579 --> 00:04:00,579
 A second, "greedy" method, simply
 iterates over all combinations of words to
 
-51
-00:03:59,403 --> 00:04:01,083
+52
+00:04:00,603 --> 00:04:02,283
 choose the best one.
 
-52
-00:04:01,107 --> 00:04:05,907
+53
+00:04:02,307 --> 00:04:07,107
 The second task of the hinter
 is to choose a hinting word for
 
-53
-00:04:05,931 --> 00:04:08,431
+54
+00:04:07,131 --> 00:04:09,631
 each of the proposed clusters.
 
-54
-00:04:08,455 --> 00:04:14,775
+55
+00:04:09,655 --> 00:04:15,975
 In order to find a hinting word for a
 cluster, the hinter generates a "centroid"
 
-55
-00:04:14,799 --> 00:04:18,959
+56
+00:04:15,999 --> 00:04:20,159
 vector for the cluster, to
 search real words near by.
 
-56
-00:04:18,983 --> 00:04:25,303
+57
+00:04:20,183 --> 00:04:26,503
 An initial "centroid" is proposed as the
 Center of Mass of the cluster's vectors
 
-57
-00:04:25,327 --> 00:04:32,047
+58
+00:04:26,527 --> 00:04:33,247
 Ideally, the centroid would be close to all
 the cluster's words and far from words of
 
-58
-00:04:32,071 --> 00:04:37,991
+59
+00:04:33,271 --> 00:04:39,191
 other colors. (where "close" and
 "far") are considered in the angle metric.
 
-59
-00:04:38,015 --> 00:04:44,495
+60
+00:04:39,215 --> 00:04:45,695
 To optimize the centroid, the words in
 the board (from  all colors) are considered
 
-60
-00:04:44,519 --> 00:04:50,439
+61
+00:04:45,719 --> 00:04:51,639
 as a physical system, where every
 vector from the color of the hinter is an
 
-61
-00:04:50,463 --> 00:04:55,023
+62
+00:04:51,663 --> 00:04:56,223
 attractor, and every word
 from other colors is a repeller.
 
-62
-00:04:55,047 --> 00:05:00,567
+63
+00:04:56,247 --> 00:05:01,767
 The centroid is then being pushed
 and pulled by the words of the board
 
-63
-00:05:00,591 --> 00:05:06,351
+64
+00:05:01,791 --> 00:05:07,551
 until converging to a point where it
 is both far away from bad words, and
 
-64
-00:05:06,375 --> 00:05:08,541
+65
+00:05:07,575 --> 00:05:09,741
 close the cluster's words.
 
-65
-00:05:08,565 --> 00:05:14,325
+66
+00:05:09,765 --> 00:05:15,525
 The attraction force acts like a
 spring, where if the centroid is too far,
 
-66
-00:05:14,349 --> 00:05:20,829
+67
+00:05:15,549 --> 00:05:22,029
 the spring can be "torn" apart and is no
 longer considered as part of the cluster.
 
-67
-00:05:20,853 --> 00:05:26,453
+68
+00:05:22,053 --> 00:05:27,653
 This is done in order to allow
 outliers in the cluster to be neglected.
 
-68
-00:05:26,477 --> 00:05:31,677
+69
+00:05:27,677 --> 00:05:32,877
 After convergence, all there
 needs to be done is to pick up a word
 
-69
-00:05:31,701 --> 00:05:34,901
+70
+00:05:32,901 --> 00:05:36,101
 near-by the optimized
 cluster's centroid.
 
-70
-00:05:34,925 --> 00:05:39,645
+71
+00:05:36,125 --> 00:05:40,845
 The top n words with the lowest
 cosine distance are examined
 
-71
-00:05:39,669 --> 00:05:43,509
+72
+00:05:40,869 --> 00:05:44,709
 and the best one is
 chosen and the cluster's hint
 
-72
-00:05:43,533 --> 00:05:48,653
+73
+00:05:44,733 --> 00:05:49,853
 The best hint from all clusters
 is picked and being hinted to the
 
-73
-00:05:48,677 --> 00:05:51,261
+74
+00:05:49,877 --> 00:05:52,461
 Field Operators (the guessers).
 
-74
-00:05:51,285 --> 00:05:52,885
+75
+00:05:52,485 --> 00:05:54,085
 Part 4: Examples
 
-75
-00:05:52,909 --> 00:05:57,389
+76
+00:05:54,109 --> 00:05:58,589
 Here is an example of a well
 hinted word by the algorithm
 
-76
-00:05:57,413 --> 00:06:02,693
+77
+00:05:58,613 --> 00:06:03,893
 On the X-axis, lay the unrevealed
 cards, when the Spymaster hinted:
 
-77
-00:06:02,717 --> 00:06:04,397
+78
+00:06:03,917 --> 00:06:05,597
 "Planets, 2 cards".
 
-78
-00:06:04,421 --> 00:06:09,541
+79
+00:06:05,621 --> 00:06:10,741
 On the Y-axis, you can see the
 cosine distance between the hinted
 
-79
-00:06:09,565 --> 00:06:12,685
+80
+00:06:10,765 --> 00:06:13,885
 word "Planet" and the unrevealed cards.
 
-80
-00:06:12,709 --> 00:06:18,149
+81
+00:06:13,909 --> 00:06:19,349
 as can be seen when the Field
 Operator searches for the closest words
 
-81
-00:06:18,173 --> 00:06:23,613
+82
+00:06:19,373 --> 00:06:24,813
 to "planets", "earth" and "jupiter"
 are significantly closer then the
 
-82
-00:06:23,637 --> 00:06:27,317
+83
+00:06:24,837 --> 00:06:28,517
 other cards thus those
 will be his two guesses.
 
