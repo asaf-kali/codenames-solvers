@@ -60,3 +60,15 @@ def geodesic(v, u):
         return (np.cos(t * theta) * v + np.sin(t * theta) * normed_o) * r
 
     return f
+
+
+def vec_to_rotation(v, t):
+    v = normalize_vector(v)
+    cos_t = np.cos(t)
+    sin_t = np.sin(t)
+    R = np.array([
+        [cos_t+(1-cos_t)*v[0]**2,                v[0] * v[1] * (1-cos_t) - v[2] * sin_t, v[0] * v[2] * (1-cos_t) + v[1] * sin_t],
+        [v[0] * v[1] * (1-cos_t) + v[2] * sin_t, cos_t+(1-cos_t)*v[1]**2,                v[1] * v[2] * (1-cos_t) + v[0] * sin_t],
+        [v[0] * v[2] * (1-cos_t) + v[1] * sin_t, v[1] * v[2] * (1-cos_t) + v[0] * sin_t, cos_t + (1-cos_t) * v[2]**2]
+    ])
+    return R
