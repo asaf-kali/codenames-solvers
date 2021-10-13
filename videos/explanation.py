@@ -134,7 +134,7 @@ def generate_progression_dict(titles_texts):
 
 
 def vec_arbitrary_rotation(v, radians, rotation_seed=np.array([0, 0, 1])):
-    orthogonal_vector, v_normed = single_gram_schmidt(rotation_seed, v)
+    v_normed, orthogonal_vector = single_gram_schmidt(v, rotation_seed)
     rotation_mat = rotation_matrix(radians, orthogonal_vector)#, vec_to_rotation(orthogonal_vector, radians)
     rotated = rotation_mat @ v
     return rotated
@@ -179,7 +179,7 @@ BOARD_WORDS = [
     "park", ####
     "gymnast"]
 HINT_COLOR = GREEN
-HINT_RADIUS = 0.1
+HINT_RADIUS = 0.3
 SURROUNDING_CIRC_COLOR = HINT_COLOR
 FUTURE_TOPICS_COLOR = GRAY
 PAST_TOPICS_COLOR = GREEN
@@ -192,7 +192,7 @@ CARDS_FILL_COLOR = GOLD_E
 CARDS_FILL_OPACITY = 0.3
 CARDS_HORIZONTAL_SPACING = 0.15
 CARDS_VERTICAL_SPACING = 0.3
-CARDS_FONT_SIZE = 25
+CARDS_FONT_SIZE = 25.0
 SPHERE_RADIUS = 3
 FONT_SIZE_LABELS = 20
 FONT_SIZE_TEXT = 25
@@ -235,30 +235,30 @@ class KalirmozExplanation(ThreeDScene):
 
     def construct(self):
 
-        # progression_dict = generate_progression_dict(TITLES_TEXTS)
-        #
-        # self.scene_intro()
-        #
-        # self.advance_progress_markers(progression_dict, 0, 0)
-        #
-        # self.scene_game_rules()
-        #
-        # self.advance_progress_markers(progression_dict, 1)
-        #
-        # self.scene_word2vec_explanation()
-        #
-        # self.advance_progress_markers(progression_dict, 2, extra_waiting_time=5)
-        #
-        self.scene_sphere(simple_mode=True)
-        #
-        # self.add_fixed_orientation_mobjects(progression_dict)
-        # self.remove(progression_dict)
-        # self.advance_progress_markers(progression_dict, 3)
-        #
-        # self.scene_guesser_views()
-        #
-        # self.scene_ending_title()
-    #
+        progression_dict = generate_progression_dict(TITLES_TEXTS)
+
+        self.scene_intro()
+
+        self.advance_progress_markers(progression_dict, 0, 0)
+
+        self.scene_game_rules()
+
+        self.advance_progress_markers(progression_dict, 1)
+
+        self.scene_word2vec_explanation()
+
+        self.advance_progress_markers(progression_dict, 2, extra_waiting_time=5)
+
+        self.scene_sphere(simple_mode=False)
+
+        self.add_fixed_orientation_mobjects(progression_dict)
+        self.remove(progression_dict)
+        self.advance_progress_markers(progression_dict, 3)
+
+        self.scene_guesser_views()
+
+        self.scene_ending_title()
+
     def scene_intro(self):
         t1 = Text("Code Names Algorithm", color=BLUE)
         t2 = Text("by the Kali brothers", color=RED).scale(0.8).next_to(t1, DOWN)
@@ -366,8 +366,7 @@ class KalirmozExplanation(ThreeDScene):
             self.play(FadeIn(guesser_bubble, shift=DOWN), run_time=quick_factor)
         guesser_text = Text(f'I Guess: "{word}"', font_size=17).move_to(guesser_bubble).shift(UP * 0.2)
         self.play(Write(guesser_text), run_time=quick_factor)
-        if self.waitings:
-            self.wait(guess_reveal_wait_time * quick_factor)
+        self.dynamic_wait(guess_reveal_wait_time * quick_factor)
         self.change_card_color(board, word, card_color, annotate=True, winning_title=winning_title)
         self.wait(quick_factor)
         if finish_turn:
@@ -391,8 +390,7 @@ class KalirmozExplanation(ThreeDScene):
                   FadeIn(progression_dict["line"]),
                   FadeIn(progression_dict["dots"]),
                   FadeIn(progression_dict["titles"][previous_i]))
-        if self.waitings:
-            self.wait(1)
+        self.dynamic_wait(1)
 
         if previous_i != i:
             self.play(progression_dict["marker"].animate.next_to(progression_dict["dots"][i], DOWN),
@@ -401,8 +399,7 @@ class KalirmozExplanation(ThreeDScene):
                       progression_dict["dots"][i].animate.set_fill(CURRENT_TOPICS_COLOR),
                       FadeOut(progression_dict["titles"][previous_i], shift=DOWN),
                       FadeIn(progression_dict["titles"][i], shift=DOWN))
-            if self.waitings:
-                self.wait(1)
+            self.dynamic_wait(1)
         self.wait(extra_waiting_time)
 
         self.play(
@@ -457,12 +454,12 @@ class KalirmozExplanation(ThreeDScene):
         self.dynamic_wait(24)
         # self.add(*arrows_list, *words_labels_list)
 
-        # self.play(*[Create(connection, run_time=3) for connection in sna_connections_list])
+        self.play(*[Create(connection, run_time=3) for connection in sna_connections_list])
         self.dynamic_wait(17)
-        # self.play(*[Uncreate(connection, run_time=1) for connection in sna_connections_list])
+        self.play(*[Uncreate(connection, run_time=1) for connection in sna_connections_list])
         self.dynamic_wait(2)
 
-        # self.animate_random_connections(vectors_list=vectors_list, number_of_examples=15, example_length=0.3)
+        self.animate_random_connections(vectors_list=vectors_list, number_of_examples=15, example_length=0.3)
         self.dynamic_wait(19)
 
         starting_point = normalize_vector(BEACH_VEC + PARK_VEC) * SPHERE_RADIUS
@@ -472,20 +469,19 @@ class KalirmozExplanation(ThreeDScene):
             first_waiting_time=20
         )
 
-        starting_point = polar_to_cartesian(SPHERE_RADIUS, 0.52 * PI, 1.95 * PI)
+        starting_point = normalize_vector(SKI_VEC+WATER_VEC) * SPHERE_RADIUS
         nodes_list = [ForceNode(SKI_VEC, True), ForceNode(WATER_VEC, True), ForceNode(PARK_VEC, False),
                       ForceNode(TEACHER_VEC, False)]
         self.animate_physical_system(
             starting_point=starting_point, nodes_list=nodes_list, num_of_iterations=1000, arc_radians=0.01, run_time=5,
             first_waiting_time=2
         )
-        self.dynamic_wait(4)
 
-        starting_point = normalize_vector(NEWTON_VEC+TEACHER_VEC) * SPHERE_RADIUS
+        starting_point = normalize_vector(NEWTON_VEC+JUPITER_VEC) * SPHERE_RADIUS
         nodes_list_b = [ForceNode(JUPITER_VEC, True), ForceNode(NEWTON_VEC, True), ForceNode(TEACHER_VEC, False)]
         self.animate_physical_system(
             starting_point=starting_point, nodes_list=nodes_list_b, num_of_iterations=1000, arc_radians=0.01, run_time=5,
-            first_waiting_time=10
+            first_waiting_time=8
         )
 
         starting_point = normalize_vector(WATER_VEC + TEACHER_VEC + SKI_VEC) * SPHERE_RADIUS
@@ -500,9 +496,6 @@ class KalirmozExplanation(ThreeDScene):
         )
         self.dynamic_wait(2)
 
-
-        self.dynamic_wait(17)
-
         self.play(Uncreate(axes),
                   Uncreate(sphere),
                   *[Uncreate(arrows_list[i]) for i in range(words_list_len)],
@@ -512,7 +505,7 @@ class KalirmozExplanation(ThreeDScene):
 
     def scene_guesser_views(self):
         self.plot_guesser_view_chart(r"visualizer\graphs_data\planets.csv", "planets (2 cards)", waiting_time=26)
-        self.plot_guesser_view_chart(r"visualizer\graphs_data\dark_bad_choose_it.csv", 'dark', waiting_time=12)
+        self.plot_guesser_view_chart(r"visualizer\graphs_data\dark_bad_choose_it.csv", 'dark', waiting_time=21)
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\apollo_bad.csv", 'apollo')
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\rhino_bad.csv", 'rhino')
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\rhino_bad.csv", 'rhino')
@@ -651,23 +644,23 @@ class KalirmozExplanation(ThreeDScene):
         trajectory_interp = interp1d(x, y, axis=0)
         t = ValueTracker(0)
         centroid = Line(start=[0, 0, 0], end=starting_point)
-        centroid_dot = AnnotationDot(point=starting_point)
+        centroid_dot = AnnotationDot(point=starting_point, stroke_width=4, stroke_color=DARK_GRAY)
         centroid_label = self.generate_card(text="centroid",
-                                            height=0.4,
-                                            width=1.4,
+                                            height=0.35,
+                                            width=1.2,
                                             fill_color=LIGHT_GRAY,
                                             fill_opacity=0.4,
-                                            font_size=CARDS_FONT_SIZE,
-                                            stroke_color=DARK_GRAY).move_to(starting_point * 1.1)
+                                            font_size=CARDS_FONT_SIZE*0.8,
+                                            stroke_color=DARK_GRAY).move_to(starting_point * 1.2)
         centroid.add_updater(lambda x: x.become(Line(start=[0, 0, 0], end=trajectory_interp(t.get_value()))))
-        centroid_dot.add_updater(lambda x: x.become(AnnotationDot(point=trajectory_interp(t.get_value()))))
+        centroid_dot.add_updater(lambda x: x.become(AnnotationDot(point=trajectory_interp(t.get_value()), stroke_width=4, stroke_color=DARK_GRAY)))
         centroid_label.add_updater(lambda x: x.become(self.generate_card(text="centroid",
-                                            height=0.4,
-                                            width=1.4,
+                                            height=0.32,
+                                            width=1.2,
                                             fill_color=LIGHT_GRAY,
                                             fill_opacity=0.4,
-                                            font_size=CARDS_FONT_SIZE,
-                                            stroke_color=DARK_GRAY).move_to(trajectory_interp(t.get_value()) * 1.1)))
+                                            font_size=CARDS_FONT_SIZE*0.8,
+                                            stroke_color=DARK_GRAY).move_to(trajectory_interp(t.get_value()) * 1.2)))
 
 
         # forces = []
@@ -705,32 +698,55 @@ class KalirmozExplanation(ThreeDScene):
 
         self.add_fixed_orientation_mobjects(centroid_dot, centroid_label)
         self.play(Create(centroid), Create(centroid_dot), Create(centroid_label))
-        self.dynamic_wait(first_waiting_time)
         if len(nodes_list) > 3:
-            self.play(Create(park_force), Create(ski_force), Create(water_force),
-                      Create(teacher_force))
+            cluster_forces = [force for force in [water_force, ski_force, teacher_force, park_force] if
+                              force.color.hex == str.lower(BLUE)]
+            non_cluster_forces = [force for force in [water_force, ski_force, teacher_force, park_force] if
+                              force.color.hex == str.lower(RED)]
         else:
-            self.play(Create(park_force), Create(ski_force),
-                      Create(teacher_force))
+            cluster_forces = [force for force in [ski_force, teacher_force, park_force] if
+                              force.color.hex == str.lower(BLUE)]
+            non_cluster_forces = [force for force in [ski_force, teacher_force, park_force] if
+                                  force.color.hex == str.lower(RED)]
+        self.play(*[Create(force) for force in cluster_forces])
+        self.dynamic_wait(first_waiting_time)
+        self.play(*[Create(force) for force in non_cluster_forces])
+        # if len(nodes_list) > 3:
+        #     self.play(Create(park_force), Create(ski_force), Create(water_force),
+        #               Create(teacher_force))
+        # else:
+        #     self.play(Create(park_force), Create(ski_force),
+        #               Create(teacher_force))
         self.play(t.animate.set_value(1), run_time=run_time, rate_func=linear)
 
         hint_boundaries = surrounding_circle_object(trajectory[-1], HINT_RADIUS)
         self.play(Create(hint_boundaries))
         hint_vec = vec_arbitrary_rotation(trajectory[-1], HINT_RADIUS*0.7)
-        hint_vec_obj = Arrow(start=[0,0,0], end=hint_vec, color=HINT_COLOR)
-        self.play(Create(hint_vec_obj))
+        hint_vec_obj = Line(start=[0,0,0], end=hint_vec, color=HINT_COLOR)
+        hint_dot = AnnotationDot(point=hint_vec, fill_color=HINT_COLOR, stroke_width=4, stroke_color=DARK_GRAY)
+        self.add_fixed_orientation_mobjects(hint_dot)
         hint_word = self.generate_card(text="hint",
-                           height=0.4,
-                           width=1.4,
-                           fill_color=LIGHT_GRAY,
-                           fill_opacity=0.4,
-                           font_size=CARDS_FONT_SIZE,
-                           stroke_color=DARK_GRAY).move_to(hint_vec * 1.1)
-        self.play(Create(hint_word))
+                                       height=0.32,
+                                       width=1.0,
+                                       fill_color=LIGHT_GRAY,
+                                       fill_opacity=0.4,
+                                       font_size=CARDS_FONT_SIZE*0.8,
+                                       stroke_color=DARK_GRAY).move_to(hint_vec * 1.2)
+        self.add_fixed_orientation_mobjects(hint_word)
+        self.play(Create(hint_vec_obj), Create(hint_dot), Create(hint_word))
+        centroid_label.clear_updaters()
+        centroid.clear_updaters()
+        centroid_dot.clear_updaters()
+        park_force.clear_updaters()
+        ski_force.clear_updaters()
+        teacher_force.clear_updaters()
         if len(nodes_list) > 3:
-            self.play(FadeOut(centroid, centroid_dot, park_force, ski_force, water_force, teacher_force, centroid_label, hint_vec_obj, hint_boundaries))
+            water_force.clear_updaters()
+        self.dynamic_wait(2)
+        if len(nodes_list) > 3:
+            self.play(FadeOut(centroid_label), FadeOut(hint_vec_obj), FadeOut(hint_boundaries), FadeOut(hint_dot), FadeOut(hint_word), FadeOut(centroid), FadeOut(centroid_dot), FadeOut(park_force), FadeOut(ski_force), FadeOut(teacher_force), FadeOut(water_force))
         else:
-            self.play(FadeOut(centroid, centroid_dot, park_force, ski_force, teacher_force, centroid_label, hint_vec_obj, hint_boundaries))
+            self.play(FadeOut(centroid_label), FadeOut(hint_vec_obj), FadeOut(hint_boundaries), FadeOut(hint_dot), FadeOut(hint_word), FadeOut(centroid), FadeOut(centroid_dot), FadeOut(park_force), FadeOut(ski_force), FadeOut(teacher_force))
 
     @staticmethod
     def sign_to_color(sign):
@@ -810,8 +826,7 @@ class KalirmozExplanation(ThreeDScene):
                   FadeIn(y_label, shift=UP),
                   FadeIn(x_label, shift=UP),
                   run_time=1)
-        if self.waitings:
-            self.wait(waiting_time)
+        self.dynamic_wait(waiting_time)
         self.play(FadeOut(chart), FadeOut(bar_labels), FadeOut(title), FadeOut(y_label), FadeOut(x_label),
                   run_time=1)
 
