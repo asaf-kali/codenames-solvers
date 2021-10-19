@@ -1,5 +1,5 @@
 ﻿1
-00:00:00,651 --> 00:00:05,611
+00:00:00,666 --> 00:00:05,611
 This is an explanation video for
 an Algorithm to play the board
 
@@ -14,17 +14,17 @@ Part 1: The board game Codenames
 
 4
 00:00:13,359 --> 00:00:16,674
-Let's first describe the Codenames game
+Let's first describe the game.
 
 5
 00:00:16,788 --> 00:00:21,871
-In the game, two groups are competing
+In the game, two groups are competing eachother
 - The blue team and the red team
 
 6
 00:00:21,871 --> 00:00:26,397
 In each group there are two types
-of players :The spymaster and the
+of players: The Spymaster, and the
 
 7
 00:00:26,421 --> 00:00:31,061
@@ -47,13 +47,13 @@ and some represent red agents.
 
 11
 00:00:42,270 --> 00:00:47,787
- one represents an assassin, and the
-others represent innocent bystanders.
+one represents a black Assassin, and the
+others represent innocent gray Bystanders.
 
 12
 00:00:48,073 --> 00:00:52,373
 but only the two Spymasters
-holds the map that tells which
+hold the map that tells which
 
 13
 00:00:52,373 --> 00:00:55,190
@@ -66,7 +66,7 @@ have all the cards of their color exposed
 
 15
 00:01:02,256 --> 00:01:07,263
-to do so, in each turn the spymaster
+to do so, in each turn the Spymaster
 chooses some of the cards of his color
 
 16
@@ -80,13 +80,13 @@ single word, that somehow relates
 
 18
 00:01:13,213 --> 00:01:18,013
-to each of them, and with the
+to each of them, and adds the
 number of cards he is hinting about
 
 19
 00:01:18,213 --> 00:01:26,565
-Then, the field operatives guesses which
-cards did the Spymaster hinted about.
+Then, the field operatives guess which
+cards did the Spymaster hint about.
 
 20
 00:01:26,589 --> 00:01:31,469
@@ -109,7 +109,7 @@ was the card he hinted about or not.
 
 24
 00:01:42,993 --> 00:01:47,073
-The spymaster can try to
+The Spymaster can try to
 hint at many cards at once, but
 
 25
@@ -132,293 +132,307 @@ If they hit the black Assassin’s
 card - The team immediately looses.
 
 29
-00:02:15,185 --> 00:02:17,351
-Part 2: The Word2Vec Model
+00:02:03,685 --> 00:02:07,845
+On the screen, the blue
+guesser mistakes "costume" as
 
 30
-00:02:17,375 --> 00:02:22,175
+00:02:07,869 --> 00:02:12,189
+a hint for "ninja", and the
+blue team looses since
+
+31
+00:02:12,213 --> 00:02:14,213
+"ninja" is the black Assassin.
+
+32
+00:02:14,385 --> 00:02:16,551
+Part 2: The Word2Vec Model
+
+33
+00:02:16,575 --> 00:02:21,375
 The Algorithm in discussion
 uses a pre-trained Word2Vec model
 
-31
-00:02:22,199 --> 00:02:24,699
+34
+00:02:21,399 --> 00:02:23,899
 for it's linguistic knowledge.
 
-32
-00:02:24,723 --> 00:02:30,483
+35
+00:02:23,923 --> 00:02:29,683
 The Word2Vec model uses a big text
 corpus such as Wikipedia or news sites
 
-33
-00:02:30,507 --> 00:02:35,707
+36
+00:02:29,707 --> 00:02:34,907
 to assign each word in the
 vocabulary with an n-dimensional vector
 
-34
-00:02:35,731 --> 00:02:41,571
+37
+00:02:34,931 --> 00:02:40,771
 The vectors of the various words are
 designed such that words that tend to
 
-35
-00:02:41,595 --> 00:02:46,955
+38
+00:02:40,795 --> 00:02:46,155
 appear in the same context will
 have small angle between them, while
 
-36
-00:02:46,979 --> 00:02:51,859
+39
+00:02:46,179 --> 00:02:51,059
 distant, unrelated words will
 have a larger angle between them.
 
-37
-00:02:56,579 --> 00:02:59,163
+40
+00:02:55,779 --> 00:02:58,363
 Part 3: The Codenames Algorithm
 
-38
-00:02:59,187 --> 00:03:02,387
+41
+00:02:58,387 --> 00:03:01,587
 Now we will describe
 the algorithm itself
 
-39
-00:03:02,411 --> 00:03:06,491
+42
+00:03:01,611 --> 00:03:05,691
 To see the problem from
 the algorithm's perspective,
 
-40
-00:03:06,515 --> 00:03:10,435
+43
+00:03:05,715 --> 00:03:09,635
 We will visualize the cards
 words as 3 dimensional
 
-41
-00:03:10,459 --> 00:03:12,459
+44
+00:03:09,659 --> 00:03:11,659
 unit vectors in a 3-d space.
 
-42
-00:03:13,187 --> 00:03:17,507
+45
+00:03:12,387 --> 00:03:16,707
 In each turn, the first task
 of the hinter is to find a
 
-43
-00:03:17,531 --> 00:03:21,451
+46
+00:03:16,731 --> 00:03:20,651
 proper subset of words
 (usually two to four words)
 
-44
-00:03:21,475 --> 00:03:23,075
+47
+00:03:20,675 --> 00:03:22,275
 on which to hint
 
-45
-00:03:23,099 --> 00:03:26,539
+48
+00:03:22,299 --> 00:03:25,739
 Two methods of clustering
 where implemented.
 
-46
-00:03:26,563 --> 00:03:32,563
+49
+00:03:25,763 --> 00:03:31,763
 In the first clustering method, the
 words are considered as nodes in a graph
 
-47
-00:03:32,587 --> 00:03:37,067
+50
+00:03:31,787 --> 00:03:36,267
 with edges weights correlated
 to their cosine similarity.
 
-48
-00:03:37,091 --> 00:03:43,411
+51
+00:03:36,291 --> 00:03:42,611
 This graph is divided into communities
 using the Louvain SNA algorithm, and each
 
-49
-00:03:43,435 --> 00:03:48,555
+52
+00:03:42,635 --> 00:03:47,755
 community is taken as an optional
-cluster of words to hint about.
+cluster of words to hint about in the next step.
 
-50
-00:03:48,579 --> 00:03:53,619
+53
+00:03:47,779 --> 00:03:52,819
 The cluster are represented here
 as groups of connected vectors.
 
-51
-00:03:54,579 --> 00:04:00,579
+54
+00:03:53,779 --> 00:03:59,779
 A second, "greedy" method, simply
 iterates over all combinations of words to
 
-52
-00:04:00,603 --> 00:04:02,283
+55
+00:03:59,803 --> 00:04:01,483
 choose the best one.
 
-53
-00:04:02,307 --> 00:04:07,107
+56
+00:04:01,507 --> 00:04:06,307
 The second task of the hinter
 is to choose a hinting word for
 
-54
-00:04:07,131 --> 00:04:09,631
+57
+00:04:06,331 --> 00:04:08,831
 each of the proposed clusters.
 
-55
-00:04:09,655 --> 00:04:15,975
-In order to find a hinting word for a
-cluster, the hinter generates a "centroid"
+58
+00:04:08,855 --> 00:04:15,175
+In order to find a hinting word for a cluster,
+the Spymaster (hinter) generates a "centroid"
 
-56
-00:04:15,999 --> 00:04:20,159
+59
+00:04:15,199 --> 00:04:19,359
 vector for the cluster, to
 search real words near by.
 
-57
-00:04:20,183 --> 00:04:26,503
+60
+00:04:19,383 --> 00:04:25,703
 An initial "centroid" is proposed as the
 Center of Mass of the cluster's vectors
 
-58
-00:04:26,527 --> 00:04:33,247
+61
+00:04:25,727 --> 00:04:32,447
 Ideally, the centroid would be close to all
 the cluster's words and far from words of
 
-59
-00:04:33,271 --> 00:04:39,191
+62
+00:04:32,471 --> 00:04:38,391
 other colors. (where "close" and
 "far") are considered in the angle metric.
 
-60
-00:04:39,215 --> 00:04:45,695
-To optimize the centroid, the words in
+63
+00:04:38,415 --> 00:04:44,895
+To optimize the centroid, the nearby words in
 the board (from  all colors) are considered
 
-61
-00:04:45,719 --> 00:04:51,639
+64
+00:04:44,919 --> 00:04:50,839
 as a physical system, where every
 vector from the color of the hinter is an
 
-62
-00:04:51,663 --> 00:04:56,223
+65
+00:04:50,863 --> 00:04:55,423
 attractor, and every word
 from other colors is a repeller.
 
-63
-00:04:56,247 --> 00:05:01,767
+66
+00:04:55,447 --> 00:05:00,967
 The centroid is then being pushed
 and pulled by the words of the board
 
-64
-00:05:01,791 --> 00:05:07,551
+67
+00:05:00,991 --> 00:05:06,751
 until converging to a point where it
 is both far away from bad words, and
 
-65
-00:05:07,575 --> 00:05:09,741
+68
+00:05:06,775 --> 00:05:08,941
 close the cluster's words.
 
-66
-00:05:09,765 --> 00:05:15,525
+69
+00:05:08,965 --> 00:05:14,725
 The attraction force acts like a
 spring, where if the centroid is too far,
 
-67
-00:05:15,549 --> 00:05:22,029
+70
+00:05:14,749 --> 00:05:21,229
 the spring can be "torn" apart and is no
 longer considered as part of the cluster.
 
-68
-00:05:22,053 --> 00:05:27,653
+71
+00:05:21,253 --> 00:05:26,853
 This is done in order to allow
-outliers in the cluster to be neglected.
+outliers in the cluster to be throwen away.
 
-69
-00:05:27,677 --> 00:05:32,877
+72
+00:05:26,877 --> 00:05:32,077
 After convergence, all there
 needs to be done is to pick up a word
 
-70
-00:05:32,901 --> 00:05:36,101
+73
+00:05:32,101 --> 00:05:35,301
 near-by the optimized
 cluster's centroid.
 
-71
-00:05:36,125 --> 00:05:40,845
+74
+00:05:35,325 --> 00:05:40,045
 The top n words with the lowest
 cosine distance are examined
 
-72
-00:05:40,869 --> 00:05:44,709
+75
+00:05:40,069 --> 00:05:43,909
 and the best one is
-chosen and the cluster's hint
+chosen as the cluster's hint
 
-73
-00:05:44,733 --> 00:05:49,853
+76
+00:05:43,933 --> 00:05:49,053
 The best hint from all clusters
 is picked and being hinted to the
 
-74
-00:05:49,877 --> 00:05:52,461
+77
+00:05:49,077 --> 00:05:51,661
 Field Operators (the guessers).
 
-75
-00:05:52,485 --> 00:05:54,085
+78
+00:05:51,685 --> 00:05:53,285
 Part 4: Examples
 
-76
-00:05:54,109 --> 00:05:58,589
+79
+00:05:53,309 --> 00:05:57,789
 Here is an example of a well
 hinted word by the algorithm
 
-77
-00:05:58,613 --> 00:06:03,893
+80
+00:05:57,813 --> 00:06:03,093
 On the X-axis, lay the unrevealed
 cards, when the Spymaster hinted:
 
-78
-00:06:03,917 --> 00:06:05,597
-"Planets, 2 cards".
+81
+00:06:03,117 --> 00:06:04,797
+"redevelopment, 2 cards".
 
-79
-00:06:05,621 --> 00:06:10,741
+82
+00:06:04,821 --> 00:06:09,941
 On the Y-axis, you can see the
 cosine distance between the hinted
 
-80
-00:06:10,765 --> 00:06:13,885
-word "Planet" and the unrevealed cards.
-
-81
-00:06:13,909 --> 00:06:19,349
-as can be seen when the Field
-Operator searches for the closest words
-
-82
-00:06:19,373 --> 00:06:24,813
-to "planets", "earth" and "jupiter"
-are significantly closer then the
-
 83
-00:06:24,837 --> 00:06:28,517
-other cards thus those
-will be his two guesses.
+00:06:09,965 --> 00:06:13,085
+word "redevelopment" and the unrevealed cards.
 
 84
-00:06:28,541 --> 00:06:32,381
+00:06:13,109 --> 00:06:18,549
+as can be seen when the Field
+Operators search for the closest words
+
+85
+00:06:18,573 --> 00:06:24,013
+to "redevelopment", "park" and "skyscrapper"
+are significantly closer then the
+
+86
+00:06:24,037 --> 00:06:27,717
+other cards, and thus those
+will be his two guesses.
+
+87
+00:06:27,741 --> 00:06:31,581
 Here is another example
 of a less successful hint
 
-85
-00:06:32,405 --> 00:06:36,405
+88
+00:06:31,605 --> 00:06:35,605
 As can be seen, the word
-"kiss" is somehow close to
+"frog" is close to
 
-86
-00:06:36,429 --> 00:06:40,269
-the hint dark, almost as
-the desired word "cloak"
+89
+00:06:35,629 --> 00:06:39,469
+the hint "rhino", almost as
+the desired word "parrot"
 
-87
-00:06:40,293 --> 00:06:44,613
+90
+00:06:39,493 --> 00:06:43,813
 This might confuse the
 guesser, and thus this hint will
 
-88
-00:06:44,637 --> 00:06:46,637
+91
+00:06:43,837 --> 00:06:45,837
 not be picked.
 
-89
-00:06:46,661 --> 00:06:48,661
+92
+00:06:45,861 --> 00:06:47,861
 Thanks for wathing!
 
