@@ -21,6 +21,7 @@ log = logging.getLogger(__name__)
 # %% English setup
 
 os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
+# os.environ[MODEL_NAME_ENV_KEY] = "google-300"
 
 english_words = [
     "cloak",
@@ -104,7 +105,7 @@ red_guesser = NaiveGuesser("Eve", team_color=TeamColor.RED)
 online_manager = None
 try:
     online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
-    online_manager.auto_start(language=NamecodingLanguage.HEBREW, clock=False)
+    online_manager.auto_start(language=NamecodingLanguage.ENGLISH, clock=False)
     sleep(1)
 except QuitGame:
     pass

@@ -31,6 +31,7 @@ def should_filter_word(word: str, filter_expressions: Iterable[str]) -> bool:
     #     return True
     # if word in BANNED_WORDS:
     #     return True
+    word = word.lower()
     for bad_word in filter_expressions:
         if word in bad_word or bad_word in word:
             return True
@@ -135,7 +136,8 @@ class NaiveProposalsGenerator:
             },
             index=words,
         )
-        self.illegal_words = {*self.game_state.board.all_words, *self.game_state.given_hint_words}
+        illegal_words = {*self.game_state.board.all_words, *self.game_state.given_hint_words}
+        self.illegal_words = {format_word(word) for word in illegal_words}
 
     def get_vectors(self, index: np.ndarray) -> pd.Series:
         return self.board_data[index]["vector"]
@@ -176,6 +178,7 @@ class NaiveProposalsGenerator:
 
     def proposal_from_similarity(self, word_group: WordGroup, similarity: Similarity) -> Optional[Proposal]:
         word, similarity_score = similarity
+        word = word.lower()
         if should_filter_word(word=word, filter_expressions=self.illegal_words):
             return None
         word_vector = self.model[word]
