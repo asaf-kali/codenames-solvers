@@ -93,7 +93,7 @@ def text_len_to_time(text, min_time=2, seconds_per_char=0.05):
     return np.max([min_time, n * seconds_per_char])
 
 
-def enrich_nodes(centroid, nodes_list):  #:List[ForceNode,...]
+def enrich_nodes(centroid, nodes_list):  # :List[ForceNode,...]
     nodes = []
     for node in nodes_list:
         d = cosine_distance(centroid, node.force_origin)
@@ -258,15 +258,30 @@ TITLES_TEXTS = [
 
 
 def get_svg(name: str) -> SVGMobject:
-    path = os.path.join("visualizer", "svgs", f"{name}.svg")
+    path = os.path.join("visualizer", "svg", f"{name}.svg")
     return SVGMobject(path)
 
 
 class SVG:
-    BLUE_HINTER = get_svg("blue_hinter")
-    RED_HINTER = get_svg("red_hinter")
-    BLUE_GUESSER = get_svg("blue_guesser")
-    RED_GUESSER = get_svg("red_guesser")
+    @staticmethod
+    def blue_hinter():
+        return get_svg("blue_hinter")
+
+    @staticmethod
+    def red_hinter():
+        return get_svg("red_hinter")
+
+    @staticmethod
+    def blue_guesser():
+        return get_svg("blue_guesser")
+
+    @staticmethod
+    def red_guesser():
+        return get_svg("red_guesser")
+
+    @staticmethod
+    def bubble():
+        return get_svg("centered_bubble")
 
 
 class KalirmozExplanation(ThreeDScene):
@@ -309,10 +324,10 @@ class KalirmozExplanation(ThreeDScene):
         self.play(FadeOut(t1), FadeOut(t2))
 
     def scene_game_rules(self):
-        blue_hinter = SVG.BLUE_HINTER.to_corner(UR).shift(DOWN).scale(0.8)
-        red_hinter = SVG.RED_HINTER.to_corner(DR).scale(0.8)
-        blue_guesser = SVG.BLUE_GUESSER.to_corner(UL).align_to(blue_hinter, DOWN).shift(LEFT * 0.2)
-        red_guesser = SVG.RED_GUESSER.to_corner(DL).shift(LEFT * 0.2)
+        blue_hinter = SVG.blue_hinter().to_corner(UR).shift(DOWN).scale(0.8)
+        red_hinter = SVG.red_hinter().to_corner(DR).scale(0.8)
+        blue_guesser = SVG.blue_guesser().to_corner(UL).align_to(blue_hinter, DOWN).shift(LEFT * 0.2)
+        red_guesser = SVG.red_guesser().to_corner(DL).shift(LEFT * 0.2)
 
         board = self.generate_board(BOARD_WORDS)
         self.play(
@@ -394,7 +409,7 @@ class KalirmozExplanation(ThreeDScene):
         self.remove_everything()
 
     def animate_hint(self, hinter_obj, hint_word, hint_number):
-        hinter_bubble = SVGMobject(r"visualizer\Svgs\centered.svg").scale(0.5).next_to(hinter_obj, UP)
+        hinter_bubble = SVG.bubble().scale(0.5).next_to(hinter_obj, UP)
         hinter_text = Text(f'"{hint_word}", {hint_number}', font_size=18).move_to(hinter_bubble).shift(UP * 0.2)
         self.play(FadeIn(hinter_bubble, shift=DOWN))
         self.play(Write(hinter_text))
@@ -418,9 +433,7 @@ class KalirmozExplanation(ThreeDScene):
         else:
             quick_factor = 1
         if guesser_bubble is None:
-            guesser_bubble = (
-                SVGMobject(r"visualizer\Svgs\centered.svg").scale(0.6).next_to(guesser_obj, UP).shift(DOWN * 0.3)
-            )
+            guesser_bubble = SVG.bubble().scale(0.6).next_to(guesser_obj, UP).shift(DOWN * 0.3)
             self.play(FadeIn(guesser_bubble, shift=DOWN), run_time=quick_factor)
         guesser_text = Text(f'I Guess: "{word}"', font_size=17).move_to(guesser_bubble).shift(UP * 0.2)
         self.play(Write(guesser_text), run_time=quick_factor)
@@ -673,8 +686,8 @@ class KalirmozExplanation(ThreeDScene):
         card.add(rectangle, text)
         return card
 
-    def animate_game_explanation(self):
-        self.play(FadeIn(SVGMobject(r"visualizer\Svgs\hinter.svg")))
+    # def animate_game_explanation(self):
+    #     self.play(FadeIn(SVGMobject(r"visualizer\svg\hinter.svg")))
 
     def scene_word2vec_explanation(self):
         spacing_constant = 3
