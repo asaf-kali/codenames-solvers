@@ -762,7 +762,7 @@ class KalirmozExplanation(ThreeDScene):
         arc_radians=0.01,
         run_time=7,
         first_waiting_time=1,
-    ):  #:List[np.array,...]
+    ):  # :List[np.array,...]
         trajectory = record_trajectory(
             starting_point=starting_point,
             nodes_list=nodes_list,
