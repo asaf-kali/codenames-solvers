@@ -1,7 +1,7 @@
-import numpy as np
 from typing import List, Union
 
-from words import WORDS, WORD_VECTORS
+import numpy as np
+from words import WORD_VECTORS, WORDS
 
 FORBIDDEN_WORDS = {"ה", "</s>"}
 

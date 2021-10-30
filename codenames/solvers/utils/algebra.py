@@ -1,7 +1,9 @@
-from typing import Sequence, Union, Tuple
+from typing import Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
+
+Array = Union[np.ndarray, Sequence[np.ndarray]]
 
 
 def cosine_similarity_with_vectors(u: np.ndarray, v: Sequence[np.ndarray]) -> np.ndarray:  # type: ignore
@@ -17,7 +19,7 @@ def cosine_similarity_with_vector(u: np.ndarray, v: np.ndarray) -> float:  # typ
 
 
 def cosine_similarity(
-    u: np.ndarray, v: Union[np.ndarray, Sequence[np.ndarray]]  # type: ignore
+    u: np.ndarray, v: Array  # type: ignore
 ) -> Union[float, np.ndarray]:  # type: ignore
     if isinstance(v, pd.Series):
         return cosine_similarity_with_vectors(u, v)
@@ -25,7 +27,7 @@ def cosine_similarity(
         return cosine_similarity_with_vector(u, v)  # type: ignore
 
 
-def cosine_distance(u: np.ndarray, v: Union[np.ndarray, Sequence[np.ndarray]]) -> Union[np.ndarray, float]:  # type: ignore
+def cosine_distance(u: np.ndarray, v: Array) -> Union[np.ndarray, float]:  # type: ignore  # noqa: E501
     return (1 - cosine_similarity(u, v)) / 2  # type: ignore
 
 
@@ -66,9 +68,23 @@ def vec_to_rotation(v, t):
     v = normalize_vector(v)
     cos_t = np.cos(t)
     sin_t = np.sin(t)
-    R = np.array([
-        [cos_t+(1-cos_t)*v[0]**2,                v[0] * v[1] * (1-cos_t) - v[2] * sin_t, v[0] * v[2] * (1-cos_t) + v[1] * sin_t],
-        [v[0] * v[1] * (1-cos_t) + v[2] * sin_t, cos_t+(1-cos_t)*v[1]**2,                v[1] * v[2] * (1-cos_t) + v[0] * sin_t],
-        [v[0] * v[2] * (1-cos_t) + v[1] * sin_t, v[1] * v[2] * (1-cos_t) + v[0] * sin_t, cos_t + (1-cos_t) * v[2]**2]
-    ])
+    R = np.array(
+        [
+            [
+                cos_t + (1 - cos_t) * v[0] ** 2,
+                v[0] * v[1] * (1 - cos_t) - v[2] * sin_t,
+                v[0] * v[2] * (1 - cos_t) + v[1] * sin_t,
+            ],
+            [
+                v[0] * v[1] * (1 - cos_t) + v[2] * sin_t,
+                cos_t + (1 - cos_t) * v[1] ** 2,
+                v[1] * v[2] * (1 - cos_t) + v[0] * sin_t,
+            ],
+            [
+                v[0] * v[2] * (1 - cos_t) + v[1] * sin_t,
+                v[1] * v[2] * (1 - cos_t) + v[0] * sin_t,
+                cos_t + (1 - cos_t) * v[2] ** 2,
+            ],
+        ]
+    )
     return R

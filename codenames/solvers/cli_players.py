@@ -1,4 +1,4 @@
-from codenames.game.base import GuesserGameState, Guess, HinterGameState, Hint
+from codenames.game.base import Guess, GuesserGameState, Hint, HinterGameState
 from codenames.game.player import Guesser, Hinter
 
 

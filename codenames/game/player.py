@@ -1,6 +1,13 @@
 from enum import Enum
 
-from codenames.game.base import TeamColor, Hint, HinterGameState, Guess, GuesserGameState, Board
+from codenames.game.base import (
+    Board,
+    Guess,
+    GuesserGameState,
+    Hint,
+    HinterGameState,
+    TeamColor,
+)
 
 
 class PlayerRole(Enum):

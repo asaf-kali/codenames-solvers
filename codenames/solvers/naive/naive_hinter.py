@@ -2,13 +2,22 @@ import itertools
 import logging
 from dataclasses import dataclass
 from functools import cached_property
-from typing import List, Tuple, Optional, Iterable
+from typing import Iterable, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 
-from codenames.game.base import TeamColor, HinterGameState, Hint, Board, CardColor, Card, Similarity, WordGroup
+from codenames.game.base import (
+    Board,
+    Card,
+    CardColor,
+    Hint,
+    HinterGameState,
+    Similarity,
+    TeamColor,
+    WordGroup,
+)
 from codenames.game.player import Hinter
 from codenames.solvers.utils.algebra import cosine_distance
 from codenames.utils import wrap

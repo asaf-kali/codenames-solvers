@@ -1,7 +1,7 @@
 # type: ignore
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Optional, Iterable
+from typing import Dict, Iterable, List, Optional, Tuple
 
 import community
 import matplotlib.pyplot as plt
@@ -10,7 +10,14 @@ import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 
-from codenames.game.base import TeamColor, Hint, Board, HinterGameState, CardColor, WordGroup
+from codenames.game.base import (
+    Board,
+    CardColor,
+    Hint,
+    HinterGameState,
+    TeamColor,
+    WordGroup,
+)
 from codenames.game.player import Hinter
 from codenames.solvers.naive.naive_hinter import Proposal, calculate_proposal_grade
 from codenames.solvers.utils.algebra import cosine_distance, single_gram_schmidt

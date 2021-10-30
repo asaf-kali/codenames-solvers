@@ -2,19 +2,19 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
-from typing import Tuple, List, Optional, Callable
+from typing import Callable, List, Optional, Tuple
 
 from codenames.game.base import (
-    TeamColor,
-    Card,
-    GivenHint,
-    GivenGuess,
-    HinterGameState,
-    CardColor,
-    Guess,
     Board,
-    Hint,
+    Card,
+    CardColor,
+    GivenGuess,
+    GivenHint,
+    Guess,
     GuesserGameState,
+    Hint,
+    HinterGameState,
+    TeamColor,
     WordGroup,
 )
 from codenames.game.player import Guesser, Hinter, Player

@@ -6,8 +6,8 @@ import os
 from codenames.game.base import TeamColor
 from codenames.game.builder import words_to_random_board
 from codenames.game.manager import GameManager
-from language_data.model_loader import MODEL_NAME_ENV_KEY
 from codenames.utils import configure_logging
+from language_data.model_loader import MODEL_NAME_ENV_KEY
 
 configure_logging()
 os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
@@ -49,9 +49,10 @@ words = [
 
 board = words_to_random_board(words=words, seed=3)
 
+from codenames.solvers.naive.naive_guesser import NaiveGuesser  # noqa: E402
+
 # %% Run game - SNA
 from codenames.solvers.sna_solvers.sna_phys_hinter import SnaHinter  # noqa: E402
-from codenames.solvers.naive.naive_guesser import NaiveGuesser  # noqa: E402
 
 blue_hinter = SnaHinter("Leonardo", team_color=TeamColor.BLUE)
 blue_guesser = NaiveGuesser("Bard", team_color=TeamColor.BLUE)

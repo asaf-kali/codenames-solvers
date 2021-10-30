@@ -1,4 +1,4 @@
-from manim import Scene, Text, DOWN, Write
+from manim import DOWN, Scene, Text, Write
 from manimlib import BLUE, RED
 
 

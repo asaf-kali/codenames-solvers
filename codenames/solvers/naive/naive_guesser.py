@@ -2,7 +2,7 @@ import logging
 
 from gensim.models import KeyedVectors
 
-from codenames.game.base import GuesserGameState, Guess, TeamColor, Board
+from codenames.game.base import Board, Guess, GuesserGameState, TeamColor
 from codenames.game.manager import PASS_GUESS
 from codenames.game.player import Guesser
 from codenames.solvers.naive.naive_hinter import format_word

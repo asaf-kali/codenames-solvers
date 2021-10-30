@@ -1,11 +1,15 @@
 import logging
-from threading import Thread, Semaphore
-from typing import List, Optional, Iterable
+from threading import Semaphore, Thread
+from typing import Iterable, List, Optional
 
-from codenames.game.base import Hint, Guess
+from codenames.game.base import Guess, Hint
 from codenames.game.manager import GameManager, Winner
-from codenames.game.player import Player, Hinter, Guesser
-from codenames.online.online_adapter import NamecodingPlayerAdapter, NamecodingLanguage, IllegalOperation
+from codenames.game.player import Guesser, Hinter, Player
+from codenames.online.online_adapter import (
+    IllegalOperation,
+    NamecodingLanguage,
+    NamecodingPlayerAdapter,
+)
 
 log = logging.getLogger(__name__)
 
