@@ -26,10 +26,12 @@ video-render:
 
 lint:
 	black . -l $(LINE_LENGTH)
+	isort . --profile black
 	@make check-lint --no-print-directory
 
 check-lint:
 	black . -l $(LINE_LENGTH) --check
+	isort . --profile black --check
 	flake8 . --max-line-length=$(LINE_LENGTH) --exclude codenames/old
 	mypy . --ignore-missing-imports
 

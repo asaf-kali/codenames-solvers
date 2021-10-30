@@ -1,11 +1,12 @@
 # %% Taken from sna_hinter
+from typing import Dict
+
+import community
 import networkx as nx
 
 from codenames.game.builder import words_to_random_board
 from codenames.visualizer import render
 from language_data.model_loader import load_language
-import community
-from typing import Dict
 
 model = load_language("english", "google-300")
 words = [

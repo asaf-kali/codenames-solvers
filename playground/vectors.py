@@ -1,6 +1,7 @@
 import numpy as np
-from language_data.model_loader import load_language
+
 from codenames.visualizer import pretty_print_similarities
+from language_data.model_loader import load_language
 
 # %%
 

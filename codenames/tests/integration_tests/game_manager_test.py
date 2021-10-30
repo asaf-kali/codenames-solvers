@@ -2,8 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from codenames.game.base import Hint, TeamColor, Card, CardColor, Board, Guess
-from codenames.game.manager import GameManager, Winner, WinningReason, PASS_GUESS
+from codenames.game.base import Board, Card, CardColor, Guess, Hint, TeamColor
+from codenames.game.manager import PASS_GUESS, GameManager, Winner, WinningReason
 from codenames.tests.testing_players import PredictedTurn, build_teams
 from codenames.utils import configure_logging
 

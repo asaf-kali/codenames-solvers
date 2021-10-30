@@ -6,14 +6,14 @@ from time import sleep
 
 from codenames.game.base import TeamColor
 from codenames.game.manager import QuitGame
-from codenames.game.player import Hinter, Guesser
-from codenames.online.online_adapter import NamecodingPlayerAdapter, NamecodingLanguage
+from codenames.game.player import Guesser, Hinter
+from codenames.online.online_adapter import NamecodingLanguage, NamecodingPlayerAdapter
 from codenames.online.online_game_manager import NamecodingGameManager
 from codenames.solvers.naive.naive_guesser import NaiveGuesser
 from codenames.solvers.naive.naive_hinter import NaiveHinter
 from codenames.solvers.sna_solvers.sna_hinter import SnaHinter  # type: ignore  # noqa
-from language_data.model_loader import MODEL_NAME_ENV_KEY
 from codenames.utils import configure_logging
+from language_data.model_loader import MODEL_NAME_ENV_KEY
 
 configure_logging()
 log = logging.getLogger(__name__)
