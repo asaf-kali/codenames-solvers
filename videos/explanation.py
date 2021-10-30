@@ -178,6 +178,12 @@ BOARD_WORDS = [
     "earth",
     "park", ####
     "gymnast"]
+CARDS_ANNOTATION_DURATION = 0.5
+CARDS_SCALING_FACTOR = 1.3
+RED_CARDS_INDICES = [0, 4, 9, 10, 14, 18, 22, 24]
+BLUE_CARDS_INDICES = [1, 2, 6, 8, 11, 16, 17, 20, 23]
+BLACK_CARD_INDEX = [19]
+GRAY_CARDS_INDICES = list(set(range(25)) - set(RED_CARDS_INDICES) - set(BLUE_CARDS_INDICES) - set(BLACK_CARD_INDEX))
 HINT_COLOR = GREEN
 HINT_RADIUS = 0.3
 SURROUNDING_CIRC_COLOR = HINT_COLOR
@@ -243,21 +249,21 @@ class KalirmozExplanation(ThreeDScene):
 
         self.scene_game_rules()
 
-        self.advance_progress_markers(progression_dict, 1)
-
-        self.scene_word2vec_explanation()
-
-        self.advance_progress_markers(progression_dict, 2, extra_waiting_time=5)
-
-        self.scene_sphere(simple_mode=False)
-
-        self.add_fixed_orientation_mobjects(progression_dict)
-        self.remove(progression_dict)
-        self.advance_progress_markers(progression_dict, 3)
-
-        self.scene_guesser_views()
-
-        self.scene_ending_title()
+        # self.advance_progress_markers(progression_dict, 1)
+        #
+        # self.scene_word2vec_explanation()
+        #
+        # self.advance_progress_markers(progression_dict, 2, extra_waiting_time=5)
+        #
+        # self.scene_sphere()
+        #
+        # self.add_fixed_orientation_mobjects(progression_dict)
+        # self.remove(progression_dict)
+        # self.advance_progress_markers(progression_dict, 3)
+        #
+        # self.scene_guesser_views()
+        #
+        # self.scene_ending_title()
 
     def scene_intro(self):
         t1 = Text("Code Names Algorithm", color=BLUE)
@@ -279,11 +285,14 @@ class KalirmozExplanation(ThreeDScene):
                   FadeIn(red_hinter, shift=DOWN),
                   FadeIn(red_guesser, shift=DOWN))
         # self.add(board, blue_hinter, blue_guesser, red_hinter, red_guesser)
-        self.dynamic_wait(7)
-        self.play(blue_hinter.animate.scale(1.2), red_hinter.animate.scale(1.2), rate_func = there_and_back, run_time = 2)
         self.dynamic_wait(1)
-        self.play(blue_guesser.animate.scale(1.2), red_guesser.animate.scale(1.2), rate_func=there_and_back, run_time=2)
-        self.dynamic_wait(6)
+        self.annotate_objects([blue_hinter, blue_guesser], 1.3, 1)
+        self.annotate_objects([red_hinter, red_guesser], 1.3, 1)
+        self.dynamic_wait(4)
+        self.annotate_objects([blue_hinter, red_hinter], 1.3, 1)
+        self.dynamic_wait(2)
+        self.annotate_objects([blue_guesser, red_guesser], 1.3, 1)
+        self.dynamic_wait(7)
         self.play(DrawBorderThenFill(board))
         self.dynamic_wait(3)
 
@@ -319,13 +328,6 @@ class KalirmozExplanation(ThreeDScene):
                                                 finish_turn=False)
 
         self.animate_guess(board=board,
-                           card_color=RED,
-                           word='storm',
-                           guesser_bubble=red_guesser_bubble,
-                           finish_turn=False,
-                           quick_mode=True)
-
-        self.animate_guess(board=board,
                            card_color=LIGHT_GRAY,
                            word='moon',
                            guesser_bubble=red_guesser_bubble,
@@ -343,6 +345,8 @@ class KalirmozExplanation(ThreeDScene):
                            finish_turn=True,
                            quick_mode=True,
                            winning_title=True)
+
+        self.dynamic_wait(3)
 
         self.remove_everything()
 
@@ -416,7 +420,7 @@ class KalirmozExplanation(ThreeDScene):
         else:
             self.play(board[card_index][0].animate.set_color(color))
 
-    def scene_sphere(self, simple_mode=False):
+    def scene_sphere(self):
         theta = 240 * DEGREES
         phi = 75 * DEGREES
         axes = ThreeDAxes(
@@ -427,7 +431,7 @@ class KalirmozExplanation(ThreeDScene):
         ).set_opacity(0.2)
 
         self.set_camera_orientation(phi=phi, theta=theta)  # 75 * DEGREES, theta=30 * DEGREES
-        if not simple_mode:
+        if not self.simple_mode:
             self.renderer.camera.light_source.move_to(3 * IN)
             self.begin_ambient_camera_rotation(rate=0.1)
         self.play(Create(axes), Create(sphere))
@@ -500,21 +504,22 @@ class KalirmozExplanation(ThreeDScene):
                   Uncreate(sphere),
                   *[Uncreate(arrows_list[i]) for i in range(words_list_len)],
                   *[FadeOut(words_labels_list[i]) for i in range(words_list_len)])  # , FadeOut(text_box)
-        if not simple_mode:
+        if not self.simple_mode:
             self.stop_ambient_camera_rotation()
 
     def scene_guesser_views(self):
-        self.plot_guesser_view_chart(r"visualizer\graphs_data\planets.csv", "planets (2 cards)", waiting_time=26)
-        self.plot_guesser_view_chart(r"visualizer\graphs_data\dark_bad_choose_it.csv", 'dark', waiting_time=21)
+        # self.plot_guesser_view_chart(r"visualizer\graphs_data\planets.csv", "planets (2 cards)", waiting_time=26)
+        self.plot_guesser_view_chart(r"visualizer\graphs_data\redevelopment_fine.csv", 'redevelopment (2 cards)', waiting_time=26)
+        # self.plot_guesser_view_chart(r"visualizer\graphs_data\dark_bad_choose_it.csv", 'dark (2 cards)', waiting_time=21)
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\apollo_bad.csv", 'apollo')
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\rhino_bad.csv", 'rhino')
+        self.plot_guesser_view_chart(r"visualizer\graphs_data\rhino_bad.csv", 'rhino (2 cards)', waiting_time=21)
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\rhino_bad.csv", 'rhino')
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\advice.csv", "advice")
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\beneath_good.csv", 'beneath')
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\ceilings_good.csv", 'ceillings')
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\father.csv", 'father')
         # self.plot_guesser_view_chart(r"visualizer\graphs_data\gear_good.csv", 'gear')
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\redevelopment_fine.csv", 'redevelopment')
+
 
         self.play(
             *[FadeOut(mob) for mob in self.mobjects]
@@ -529,18 +534,26 @@ class KalirmozExplanation(ThreeDScene):
 
     @staticmethod
     def specific_color_map(i):
-        if i in [0, 4, 9, 10, 14, 18, 22, 24]:
+        if i in RED_CARDS_INDICES:
             return RED
-        elif i in [2, 6, 8, 11, 16, 17, 20, 23, 25]:
+        elif i in BLUE_CARDS_INDICES:
             return BLUE
-        elif i == 19:
+        elif i in BLACK_CARD_INDEX:
             return DARK_GRAY
         else:
             return LIGHT_GRAY
 
+    def annotate_objects(self, objects, scale_factor, run_time):
+        self.play(*[obj.animate.scale(scale_factor) for obj in objects], rate_func=there_and_back, run_time=run_time)
+
+
     def expose_board_colors(self, board):
         self.play(*[board[i][0].animate.set_color(self.specific_color_map(i)) for i in range(25)])
-        self.dynamic_wait(11)
+        self.annotate_objects([board[i] for i in BLUE_CARDS_INDICES], CARDS_SCALING_FACTOR, CARDS_ANNOTATION_DURATION)
+        self.annotate_objects([board[i] for i in RED_CARDS_INDICES], CARDS_SCALING_FACTOR, CARDS_ANNOTATION_DURATION)
+        self.annotate_objects([board[i] for i in BLACK_CARD_INDEX], CARDS_SCALING_FACTOR, CARDS_ANNOTATION_DURATION)
+        self.annotate_objects([board[i] for i in GRAY_CARDS_INDICES], CARDS_SCALING_FACTOR, CARDS_ANNOTATION_DURATION)
+        self.dynamic_wait(9)
         self.play(*[board[i][0].animate.set_color(CARDS_FILL_COLOR) for i in range(25)])
         self.dynamic_wait(14)
 
@@ -604,9 +617,13 @@ class KalirmozExplanation(ThreeDScene):
             national_color)
         nationalism_arrow.add_updater(lambda x: x.next_to(nationalism_text, RIGHT))
 
+        self.wait(7)
+
         self.play(FadeIn(lion_text))
         self.play(Create(lion_arrow))
+
         self.wait(2)
+
         self.play(lion_text.animate.shift(1.5 * UP))
         deer_text.next_to(lion_text, spacing_constant * DOWN)
         nationalism_text.next_to(deer_text, spacing_constant * DOWN)
@@ -616,17 +633,17 @@ class KalirmozExplanation(ThreeDScene):
         deer_arrow.clear_updaters()
         nationalism_arrow.clear_updaters()
         arrows_anchor = 4 * RIGHT
-        self.dynamic_wait(12)
+        self.dynamic_wait(5)
         self.play(lion_arrow.animate.put_start_and_end_on(start=arrows_anchor, end=arrows_anchor + lion_vec),
                   deer_arrow.animate.put_start_and_end_on(start=arrows_anchor, end=arrows_anchor + deer_vec),
                   nationalism_arrow.animate.put_start_and_end_on(start=arrows_anchor,
                                                                  end=arrows_anchor + nationalism_vec))
-        self.dynamic_wait(5)
+        self.dynamic_wait(4)
         small_angle = Angle(lion_arrow, deer_arrow, radius=0.6 * arrows_scale)
         big_angle = Angle(nationalism_arrow, lion_arrow, radius=0.3 * arrows_scale)
         self.play(Create(small_angle))
         self.play(Create(big_angle))
-        self.dynamic_wait(9)
+        self.dynamic_wait(3)
         self.remove_everything()
 
     def animate_physical_system(
@@ -837,22 +854,13 @@ class KalirmozExplanation(ThreeDScene):
         if waiting_time is None:
             waiting_time = text_len_to_time(text_object.original_text)
         self.add_fixed_in_frame_mobjects(text_object)
-        if self.simple_mode:
-            self.add(text_object)
-            self.wait(waiting_time)
-            if fade_out:
-                self.remove(text_object)
-        else:
-            self.play(Write(text_object))
-            self.wait(waiting_time)
-            if fade_out:
-                self.play(FadeOut(text_object))
+        self.play(Write(text_object))
+        self.wait(waiting_time)
+        if fade_out:
+            self.play(FadeOut(text_object))
 
     def remove_3d_text(self, *text_objects):
-        if self.simple_mode:
-            self.remove(*text_objects)
-        else:
-            self.play(*[FadeOut(text_object) for text_object in text_objects])
+        self.play(*[FadeOut(text_object) for text_object in text_objects])
 
     def remove_everything(self):
         self.play(
