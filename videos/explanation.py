@@ -300,21 +300,21 @@ class KalirmozExplanation(ThreeDScene):
 
         self.scene_game_rules()
 
-        # self.advance_progress_markers(progression_dict, 1)
-        #
-        # self.scene_word2vec_explanation()
-        #
-        # self.advance_progress_markers(progression_dict, 2, extra_waiting_time=5)
-        #
-        # self.scene_sphere()
-        #
-        # self.add_fixed_orientation_mobjects(progression_dict)
-        # self.remove(progression_dict)
-        # self.advance_progress_markers(progression_dict, 3)
-        #
-        # self.scene_guesser_views()
-        #
-        # self.scene_ending_title()
+        self.advance_progress_markers(progression_dict, 1)
+
+        self.scene_word2vec_explanation()
+
+        self.advance_progress_markers(progression_dict, 2, extra_waiting_time=5)
+
+        self.scene_sphere()
+
+        self.add_fixed_orientation_mobjects(progression_dict)
+        self.remove(progression_dict)
+        self.advance_progress_markers(progression_dict, 3)
+
+        self.scene_guesser_views()
+
+        self.scene_ending_title()
 
     def scene_intro(self):
         t1 = Text("Code Names Algorithm", color=BLUE)
