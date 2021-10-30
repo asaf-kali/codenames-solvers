@@ -7,8 +7,6 @@ mypy==0.910
 flake8==4.0.1
 isort==5.9.3
 
-# Debugging
-matplotlib==3.4.3
-
-# Visualiser
-moviepy==1.0.3
+# Visuals
+pyvis==0.1.9
+matplotlib~=3.4.3
