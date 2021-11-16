@@ -1,4 +1,10 @@
-from codenames.game.base import Guess, GuesserGameState, Hint, HinterGameState
+from codenames.game.base import (
+    Guess,
+    GuesserGameState,
+    Hint,
+    HinterGameState,
+    format_word,
+)
 from codenames.game.player import Guesser, Hinter
 
 
@@ -29,7 +35,8 @@ class CliGuesser(Guesser):
     def guess(self, game_state: GuesserGameState) -> Guess:
         # print(f"State is: {state}")
         while True:
-            data = input("Please enter your guess word or card index: ").strip().lower()
+            data = input("Please enter your guess word or card index: ")
+            data = format_word(data)
             print()
             try:
                 index = int(data.strip())

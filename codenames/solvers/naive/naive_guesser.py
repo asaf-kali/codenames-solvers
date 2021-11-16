@@ -2,10 +2,9 @@ import logging
 
 from gensim.models import KeyedVectors
 
-from codenames.game.base import Board, Guess, GuesserGameState, TeamColor
+from codenames.game.base import Board, Guess, GuesserGameState, TeamColor, format_word
 from codenames.game.manager import PASS_GUESS
 from codenames.game.player import Guesser
-from codenames.solvers.utils.words import format_word
 from language_data.model_loader import load_language
 
 log = logging.getLogger(__name__)

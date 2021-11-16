@@ -5,7 +5,7 @@ import os
 from time import sleep
 
 from codenames.game.base import TeamColor
-from codenames.game.manager import QuitGame
+from codenames.game.exceptions import QuitGame
 from codenames.game.player import Guesser, Hinter
 from codenames.online.online_adapter import NamecodingLanguage, NamecodingPlayerAdapter
 from codenames.online.online_game_manager import NamecodingGameManager
