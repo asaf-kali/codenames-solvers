@@ -2,7 +2,7 @@ import logging
 
 from gensim.models import KeyedVectors
 
-from codenames.game.base import Board, Guess, GuesserGameState, TeamColor, format_word
+from codenames.game.base import Board, Guess, GuesserGameState, TeamColor
 from codenames.game.manager import PASS_GUESS
 from codenames.game.player import Guesser
 from language_data.model_loader import load_language
@@ -22,8 +22,8 @@ class NaiveGuesser(Guesser):
         if game_state.bonus_given:
             log.debug("Naive guesser does not take bonuses.")
             return Guess(PASS_GUESS)
-        optional_words = [card.word for card in game_state.board.unrevealed_cards]
-        current_hint_word = format_word(game_state.current_hint.word)
+        optional_words = [card.formatted_word for card in game_state.board.unrevealed_cards]
+        current_hint_word = game_state.current_hint.formatted_word
         guess_word = self.model.most_similar_to_given(current_hint_word, optional_words)
         log.debug(f"Naive guesser thinks '{current_hint_word}' means '{guess_word}'.")
         guess_idx = game_state.board.find_card_index(guess_word)
