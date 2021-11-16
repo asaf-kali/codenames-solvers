@@ -38,7 +38,7 @@ words = [
 ]
 board = words_to_random_board(words=words)
 print("kaki")
-board_size = len(board)
+board_size = board.size
 vis_graph = nx.Graph()
 vis_graph.add_nodes_from(board.all_words)
 louvain = nx.Graph(vis_graph)

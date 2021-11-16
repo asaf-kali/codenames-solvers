@@ -2,7 +2,7 @@ import itertools
 import logging
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Iterable, List, Optional, Tuple
+from typing import Iterable, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -10,17 +10,17 @@ from gensim.models import KeyedVectors
 
 from codenames.game.base import (
     Board,
-    Card,
     CardColor,
+    CardSet,
     Hint,
     HinterGameState,
     Similarity,
     TeamColor,
     WordGroup,
+    format_word,
 )
 from codenames.game.player import Hinter
 from codenames.solvers.utils.algebra import cosine_distance
-from codenames.solvers.utils.words import format_word
 from codenames.utils import wrap
 from language_data.model_loader import load_language
 
@@ -32,7 +32,7 @@ def should_filter_word(word: str, filter_expressions: Iterable[str]) -> bool:
     #     return True
     # if word in BANNED_WORDS:
     #     return True
-    word = word.lower()
+    word = format_word(word)
     for bad_word in filter_expressions:
         if word in bad_word or bad_word in word:
             return True
@@ -109,7 +109,7 @@ def calculate_proposal_grade(proposal: Proposal) -> float:
         + 1.5 * proposal.distance_opponent
         + 2.0 * proposal.distance_black
     )
-    return np.nan_to_num(grade, nan=-100)
+    return float(np.nan_to_num(grade, nan=-100))
 
 
 @dataclass
@@ -133,8 +133,6 @@ class NaiveProposalsGenerator:
             },
             index=words,
         )
-        illegal_words = {*self.game_state.board.all_words, *self.game_state.given_hint_words}
-        self.illegal_words = {format_word(word) for word in illegal_words}
 
     def get_vectors(self, index: np.ndarray) -> pd.Series:
         return self.board_data[index]["vector"]
@@ -143,9 +141,8 @@ class NaiveProposalsGenerator:
         return self.get_vectors(self.board_data.index.isin(word_group))
 
     @cached_property
-    def team_unrevealed_cards(self) -> Tuple[Card, ...]:
-        team_cards = self.game_state.board.cards_for_color(self.team_card_color)
-        return tuple(card for card in team_cards if not card.revealed)
+    def team_unrevealed_cards(self) -> CardSet:
+        return self.game_state.board.unrevealed_cards_for_color(self.team_card_color)
 
     @cached_property
     def gray_vectors(self) -> pd.Series:
@@ -175,8 +172,8 @@ class NaiveProposalsGenerator:
 
     def proposal_from_similarity(self, word_group: WordGroup, similarity: Similarity) -> Optional[Proposal]:
         word, similarity_score = similarity
-        word = word.lower()
-        if should_filter_word(word=word, filter_expressions=self.illegal_words):
+        word = format_word(word)
+        if should_filter_word(word=word, filter_expressions=self.game_state.illegal_words):
             return None
         word_vector = self.model[word]
         word_to_group = cosine_distance(word_vector, self.word_group_vectors(word_group))

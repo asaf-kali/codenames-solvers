@@ -74,7 +74,6 @@ def should_filter_word(word: str, filter_expressions: Iterable[str]) -> bool:
 
 
 def step_away(starting_point: np.array, step_away_from: np.array, arc_radians: float) -> np.array:
-
     cos_phase = (starting_point.T @ step_away_from) / (np.linalg.norm(step_away_from) * np.linalg.norm(starting_point))
 
     original_phase = np.arccos(np.clip(cos_phase, -1.0, 1.0))
@@ -142,7 +141,7 @@ def black_force(d):
     return repelling_force(d, OPPONENT_FORCE_CUTOFF, BLACK_FORCE_FACTOR)
 
 
-def format_word(word: str) -> str:
+def _format_word(word: str) -> str:
     return word.replace(" ", "_").replace("-", "_").strip()
 
 
@@ -190,12 +189,12 @@ class SnaHinter(Hinter):
         self.graded_proposals: List[Cluster] = []
         self.debug_mode = debug_mode
         self.physics_optimization = physics_optimization
-        self.game_state = None
+        self.game_state: Optional[HinterGameState] = None
 
     def notify_game_starts(self, language: str, board: Board):
         self.model = load_language(language=language)
         self.language_length = len(self.model.index_to_key)
-        all_words = [format_word(word) for word in board.all_words]
+        all_words = [_format_word(word) for word in board.all_words]
         vectors_lists_list: List[List[float]] = self.model[all_words].tolist()  # type: ignore
         vectors_list = [np.array(v) for v in vectors_lists_list]
         vectors_list_normed = [v / np.linalg.norm(v) for v in vectors_list]
@@ -285,7 +284,7 @@ class SnaHinter(Hinter):
         similarities: List[Similarity] = self.model.most_similar(cluster.centroid, topn=100)
         best_proposal = self.pick_best_similarity(
             similarities=similarities,
-            words_to_filter_out={*self.board_data.index.to_list(), *self.game_state.given_hint_words},
+            words_to_filter_out=self.game_state.illegal_words,
         )
         return best_proposal
 
@@ -489,9 +488,9 @@ class SnaHinter(Hinter):
         vis_graph.add_nodes_from(words)
         louvain = nx.Graph(vis_graph)
         for i in range(board_size):
-            v = format_word(words[i])
+            v = _format_word(words[i])
             for j in range(i + 1, board_size):
-                u = format_word(words[j])
+                u = _format_word(words[j])
                 distance = self.model.similarity(v, u) + 1
                 if distance > 1.1:
                     vis_graph.add_edge(v, u, weight=distance)

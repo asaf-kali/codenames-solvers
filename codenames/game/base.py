@@ -1,12 +1,19 @@
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
-from typing import List, Optional, Tuple
+from typing import Iterable, List, Optional, Set, Tuple, Union
+
+from codenames.game.exceptions import CardNotFoundError
 
 BLACK_AMOUNT = 1
 
 Similarity = Tuple[str, float]
 WordGroup = Tuple[str, ...]
+WordSet = Set[str]
+
+
+def format_word(word: str) -> str:
+    return word.replace("_", " ").strip().lower()
 
 
 class CardColor(Enum):
@@ -60,53 +67,87 @@ class Card:
         result += " V" if self.revealed else " X"
         return result
 
+    def __hash__(self):
+        return hash(f"{self.word}{self.color.value}{self.revealed}")
+
     @property
     def censored(self) -> "Card":
         censored_color = self.color if self.revealed else None
         return Card(word=self.word, color=censored_color, revealed=self.revealed)
 
+    @cached_property
+    def formatted_word(self) -> str:
+        return format_word(self.word)
 
-class Board(List[Card]):
+
+CardSet = Set[Card]
+
+
+class Board:
+    _cards: List[Card]
+
+    def __init__(self, cards: Iterable[Card]):
+        self._cards = list(cards)
+
+    def __getitem__(self, item: Union[int, str]) -> Card:
+        if isinstance(item, str):
+            index = self.find_card_index(item)
+            if index is None:
+                raise IndexError(f"Item not found: {item}")
+            item = index
+        if not isinstance(item, int):
+            raise ValueError(f"Illegal index type for item: {item}")
+        if item < 0 or item >= self.size:
+            raise IndexError(f"Index out of bounds: {item}")
+        return self._cards[item]
+
     @property
     def size(self) -> int:
-        return len(self)
+        return len(self._cards)
 
     @cached_property
     def all_words(self) -> WordGroup:
-        return tuple(card.word.lower() for card in self)
+        return tuple(card.formatted_word for card in self._cards)
 
     @property
     def all_colors(self) -> Tuple[CardColor, ...]:
-        return tuple(card.color for card in self)  # type: ignore
+        return tuple(card.color for card in self._cards)  # type: ignore
 
     @property
     def all_reveals(self) -> Tuple[bool, ...]:
-        return tuple(card.revealed for card in self)
+        return tuple(card.revealed for card in self._cards)
 
     @property
-    def unrevealed_cards(self) -> Tuple[Card, ...]:
-        return tuple(card for card in self if not card.revealed)
+    def unrevealed_cards(self) -> CardSet:
+        return set(card for card in self._cards if not card.revealed)
 
     @cached_property
-    def red_cards(self) -> Tuple[Card, ...]:
+    def red_cards(self) -> CardSet:
         return self.cards_for_color(CardColor.RED)
 
     @cached_property
-    def blue_cards(self) -> Tuple[Card, ...]:
+    def blue_cards(self) -> CardSet:
         return self.cards_for_color(CardColor.BLUE)
 
     @property
     def censured(self) -> "Board":
-        return Board([card.censored for card in self])
+        return Board([card.censored for card in self._cards])
 
-    def cards_for_color(self, card_color: CardColor) -> Tuple[Card, ...]:
-        return tuple(card for card in self if card.color == card_color)
+    def cards_for_color(self, card_color: CardColor) -> CardSet:
+        return set(card for card in self._cards if card.color == card_color)
 
-    def find_card_index(self, word: str) -> Optional[int]:
-        word = word.lower()
-        if word not in self.all_words:
-            return None
-        return self.all_words.index(word)
+    def unrevealed_cards_for_color(self, card_color: CardColor) -> CardSet:
+        return set(card for card in self._cards if card.color == card_color and not card.revealed)
+
+    def find_card_index(self, word: str) -> int:
+        formatted_word = format_word(word)
+        if formatted_word not in self.all_words:
+            raise CardNotFoundError(word)
+        return self.all_words.index(formatted_word)
+
+    def reset_state(self):
+        for card in self._cards:
+            card.revealed = False
 
 
 @dataclass(frozen=True)
@@ -126,6 +167,10 @@ class GivenHint:
 
     def __str__(self) -> str:
         return f"{self.word}, {self.card_amount}"
+
+    @cached_property
+    def formatted_word(self) -> str:
+        return format_word(self.word)
 
 
 @dataclass(frozen=True)
@@ -158,8 +203,12 @@ class HinterGameState:
     given_guesses: List[GivenGuess]
 
     @property
-    def given_hint_words(self) -> WordGroup:
-        return tuple(hint.word for hint in self.given_hints)
+    def given_hint_words(self) -> WordSet:
+        return set(hint.word for hint in self.given_hints)
+
+    @property
+    def illegal_words(self) -> WordSet:
+        return {*self.board.all_words, *self.given_hint_words}
 
 
 @dataclass

@@ -7,7 +7,8 @@ from codenames.game.base import (
     HinterGameState,
     TeamColor,
 )
-from codenames.game.manager import QuitGame, Team
+from codenames.game.exceptions import QuitGame
+from codenames.game.manager import Team
 from codenames.game.player import Guesser, Hinter, Player
 
 
