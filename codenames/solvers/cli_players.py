@@ -29,12 +29,12 @@ class CliGuesser(Guesser):
     def guess(self, game_state: GuesserGameState) -> Guess:
         # print(f"State is: {state}")
         while True:
-            data = input("Please enter your guess word or card index: ").lower().strip()
+            data = input("Please enter your guess word or card index: ").strip().lower()
             print()
             try:
                 index = int(data.strip())
             except ValueError:
-                if data not in game_state.board.all_words:
-                    continue
-                index = game_state.board.all_words.index(data)
+                index = game_state.board.find_card_index(data)
+            if index is None:
+                continue
             return Guess(card_index=index)

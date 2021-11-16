@@ -20,6 +20,7 @@ from codenames.game.base import (
 )
 from codenames.game.player import Hinter
 from codenames.solvers.utils.algebra import cosine_distance
+from codenames.solvers.utils.words import format_word
 from codenames.utils import wrap
 from language_data.model_loader import load_language
 
@@ -36,10 +37,6 @@ def should_filter_word(word: str, filter_expressions: Iterable[str]) -> bool:
         if word in bad_word or bad_word in word:
             return True
     return False
-
-
-def format_word(word: str) -> str:
-    return word.strip().lower()
 
 
 class NoProposalsFound(Exception):

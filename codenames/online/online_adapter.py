@@ -37,7 +37,7 @@ def fill_input(element: WebElement, value: str):
 
 
 def _parse_card(card_element: WebElement) -> Card:
-    word = card_element.find_element_by_id("bottom").text.lower().strip()
+    word = card_element.find_element_by_id("bottom").text.strip().lower()
     namecoding_color = card_element.find_element_by_id("right").get_attribute("team")
     card_color = parse_card_color(namecoding_color=namecoding_color)
     image_overlay = card_element.find_element_by_id("image-overlay")
