@@ -9,8 +9,7 @@ Codenames board game player algorithms and game infrastructure.
 ## Intro
 
 * This is based on [Google's word2vec algorithm](https://code.google.com/archive/p/word2vec/).
-* [Planning document](https://docs.google.com/presentation/d/1RBwIRRtiqs30q3cF3HOAIZLEH6HoPZ_lY_x7SrbBfrc/edit#slide=id.p)
-  .
+* [Planning document](https://docs.google.com/presentation/d/1RBwIRRtiqs30q3cF3HOAIZLEH6HoPZ_lY_x7SrbBfrc/edit#slide=id.p).
 * [Online gaming platform]().
 
 ## Installation

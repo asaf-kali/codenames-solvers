@@ -73,7 +73,7 @@ class Board(List[Card]):
 
     @cached_property
     def all_words(self) -> WordGroup:
-        return tuple(card.word for card in self)
+        return tuple(card.word.lower() for card in self)
 
     @property
     def all_colors(self) -> Tuple[CardColor, ...]:
@@ -87,9 +87,6 @@ class Board(List[Card]):
     def unrevealed_cards(self) -> Tuple[Card, ...]:
         return tuple(card for card in self if not card.revealed)
 
-    def cards_for_color(self, card_color: CardColor) -> Tuple[Card, ...]:
-        return tuple(card for card in self if card.color == card_color)
-
     @cached_property
     def red_cards(self) -> Tuple[Card, ...]:
         return self.cards_for_color(CardColor.RED)
@@ -101,6 +98,15 @@ class Board(List[Card]):
     @property
     def censured(self) -> "Board":
         return Board([card.censored for card in self])
+
+    def cards_for_color(self, card_color: CardColor) -> Tuple[Card, ...]:
+        return tuple(card for card in self if card.color == card_color)
+
+    def find_card_index(self, word: str) -> Optional[int]:
+        word = word.lower()
+        if word not in self.all_words:
+            return None
+        return self.all_words.index(word)
 
 
 @dataclass(frozen=True)
