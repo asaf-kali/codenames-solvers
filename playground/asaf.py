@@ -7,10 +7,10 @@ from codenames.game.base import TeamColor
 from codenames.game.builder import words_to_random_board
 from codenames.game.exceptions import QuitGame
 from codenames.game.manager import GameManager
-from codenames.online.online_adapter import NamecodingLanguage
-from codenames.online.online_game_manager import NamecodingGameManager
-from codenames.solvers.cli_players import CliGuesser
-from codenames.solvers.naive.naive_hinter import NaiveHinter
+from codenames.online.online_adapter import NamecodingLanguage  # type: ignore
+from codenames.online.online_game_manager import NamecodingGameManager  # type: ignore
+from codenames.solvers.naive.naive_guesser import NaiveGuesser  # type: ignore
+from codenames.solvers.naive.naive_hinter import NaiveHinter  # type: ignore
 from codenames.utils import configure_logging
 from language_data.model_loader import MODEL_NAME_ENV_KEY
 
@@ -56,6 +56,7 @@ english_words = [
     "parrot",
     "london",
     "spiderman",
+    "high-school",
 ]
 
 english_board = words_to_random_board(words=english_words, seed=3)
@@ -97,9 +98,9 @@ hebrew_board = words_to_random_board(words=hebrew_words, seed=1)
 # %% Players setup
 
 blue_hinter = NaiveHinter("Leonardo", team_color=TeamColor.BLUE)
-blue_guesser = CliGuesser("Bard", team_color=TeamColor.BLUE)
+blue_guesser = NaiveGuesser("Bard", team_color=TeamColor.BLUE)
 red_hinter = NaiveHinter("Adam", team_color=TeamColor.RED)
-red_guesser = CliGuesser("Eve", team_color=TeamColor.RED)
+red_guesser = NaiveGuesser("Eve", team_color=TeamColor.RED)
 
 # %% Online
 online_manager = None

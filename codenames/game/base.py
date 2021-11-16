@@ -68,12 +68,13 @@ class Card:
         return result
 
     def __hash__(self):
-        return hash(f"{self.word}{self.color.value}{self.revealed}")
+        return hash(f"{self.word}{self.color}{self.revealed}")
 
     @property
     def censored(self) -> "Card":
-        censored_color = self.color if self.revealed else None
-        return Card(word=self.word, color=censored_color, revealed=self.revealed)
+        if self.revealed:
+            return self
+        return Card(word=self.word, color=None, revealed=self.revealed)
 
     @cached_property
     def formatted_word(self) -> str:

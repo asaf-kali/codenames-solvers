@@ -2,6 +2,7 @@ from enum import Enum
 
 from codenames.game.base import (
     Board,
+    CardColor,
     Guess,
     GuesserGameState,
     Hint,
@@ -33,6 +34,10 @@ class Player:
     @property
     def is_human(self) -> bool:
         return False
+
+    @property
+    def team_card_color(self) -> CardColor:
+        return self.team_color.as_card_color
 
     def notify_game_starts(self, language: str, board: Board):
         pass
