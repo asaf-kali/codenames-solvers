@@ -37,6 +37,9 @@ class Team:
     guesser: Guesser
     team_color: TeamColor
 
+    def __iter__(self):
+        return iter([self.hinter, self.guesser])
+
 
 class WinningReason(Enum):
     TARGET_SCORE = "Target score reached"
@@ -81,6 +84,7 @@ class GameManager:
         self.winner: Optional[Winner] = None
         self.hint_given_subscribers: List[Callable[[Hinter, Hint], None]] = []
         self.guess_given_subscribers: List[Callable[[Guesser, Guess], None]] = []
+        self._set_player_team_colors()
 
     @staticmethod
     def from_teams(blue_team: Team, red_team: Team):
@@ -162,6 +166,12 @@ class GameManager:
         self.left_guesses = 0
         self.winner = None
 
+    def _set_player_team_colors(self):
+        for player in self.red_team:
+            player.team_color = TeamColor.RED
+        for player in self.blue_team:
+            player.team_color = TeamColor.BLUE
+
     def _notify_game_starts(self):
         censored_board = self.board.censured
         for hinter in self.hinters:
@@ -212,7 +222,7 @@ class GameManager:
             except InvalidGuess:
                 continue
             except QuitGame:
-                winner_color = guesser.team_color.opponent
+                winner_color = guesser.team_color.opponent  # type: ignore
                 self.winner = Winner(team_color=winner_color, reason=WinningReason.OPPONENT_QUIT)
                 self._end_turn()
             for subscriber in self.guess_given_subscribers:

@@ -181,7 +181,7 @@ class Cluster:
 
 
 class SnaHinter(Hinter):
-    def __init__(self, name: str, team_color: TeamColor, debug_mode=False, physics_optimization=True):
+    def __init__(self, name: str, team_color: Optional[TeamColor] = None, debug_mode=False, physics_optimization=True):
         super().__init__(name=name, team_color=team_color)
         self.model: Optional[KeyedVectors] = None
         self.language_length: Optional[int] = None

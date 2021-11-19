@@ -32,8 +32,8 @@ lint:
 check-lint:
 	black . -l $(LINE_LENGTH) --check
 	isort . --profile black --check
-	flake8 . --max-line-length=$(LINE_LENGTH) --exclude codenames/old
 	mypy . --ignore-missing-imports
+	flake8 . --max-line-length=$(LINE_LENGTH) --exclude codenames/old
 
 unzip_data:
 	echo "TODO"

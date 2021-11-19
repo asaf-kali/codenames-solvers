@@ -15,7 +15,6 @@ from codenames.game.base import (
     Hint,
     HinterGameState,
     Similarity,
-    TeamColor,
     WordGroup,
     format_word,
 )
@@ -250,25 +249,25 @@ class NaiveHinter(Hinter):
     def __init__(
         self,
         name: str,
-        team_color: TeamColor,
         proposals_thresholds: ProposalThresholds = DEFAULT_THRESHOLDS,
         max_group_size: int = 3,
     ):
-        super().__init__(name=name, team_color=team_color)
+        super().__init__(name=name)
         self.model: KeyedVectors = None  # type: ignore
-        self.opponent_card_color = self.team_color.opponent.as_card_color
         self.max_group_size = max_group_size
+        self.opponent_card_color = None
         self.proposals_thresholds = proposals_thresholds
 
     def notify_game_starts(self, language: str, board: Board):
         self.model = load_language(language=language)
+        self.opponent_card_color = self.team_color.opponent.as_card_color  # type: ignore
 
     def pick_hint(self, game_state: HinterGameState, thresholds_filter_active: bool = True) -> Hint:
         proposal_generator = NaiveProposalsGenerator(
             model=self.model,
             game_state=game_state,
             proposals_thresholds=self.proposals_thresholds,
-            team_card_color=self.team_color.as_card_color,
+            team_card_color=self.team_color.as_card_color,  # type: ignore
             thresholds_filter_active=thresholds_filter_active,
         )
         proposals = proposal_generator.generate_proposals(self.max_group_size)

@@ -2,7 +2,7 @@ import logging
 
 from gensim.models import KeyedVectors
 
-from codenames.game.base import Board, Guess, GuesserGameState, TeamColor
+from codenames.game.base import Board, Guess, GuesserGameState
 from codenames.game.manager import PASS_GUESS
 from codenames.game.player import Guesser
 from language_data.model_loader import load_language
@@ -11,8 +11,8 @@ log = logging.getLogger(__name__)
 
 
 class NaiveGuesser(Guesser):
-    def __init__(self, name: str, team_color: TeamColor):
-        super().__init__(name=name, team_color=team_color)
+    def __init__(self, name: str):
+        super().__init__(name=name)
         self.model: KeyedVectors = None  # type: ignore
 
     def notify_game_starts(self, language: str, board: Board):
