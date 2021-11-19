@@ -48,37 +48,37 @@ BOARD_WORDS = [
     "spiderman",
     "high-school",
 ]
-EXTRA_WORDS = [
-    "skaters",
-    "skating",
-    "mushroom",
-    "lipstick",
-    "goat",
-    "turtle",
-    "royal",
-    "cute",
-    "crown",
-    "preteen",
-    "gangster",
-    "tank",
-    "instructor",
-    "links",
-    "sites",
-    "canucks",
-    "shootout",
-    "caper",
+HINT_WORDS = [
+    "classmate",
+    "roommate",
+    "graduated",
+    "prince",
+    "letter",
+    "bedroom",
+    "sonar",
+    "scuba",
+    "shoot",
+    "copy",
+    "printed",
+    "hammer",
+    "dam",
+    "milton",
+    "bow",
+    "orbit",
+    "planets",
+    "maynard",
+    "mars",
     "ghostbusters",
-    "student",
-    "doctor",
-    "gardens",
-    "riverside",
+    "canucks",
+    "giraffe",
+    "snowboard",
 ]
-ALL_WORDS = BOARD_WORDS + EXTRA_WORDS
+ALL_WORDS = BOARD_WORDS + HINT_WORDS
 
 
 @pytest.fixture
 def english_board() -> Board:
-    return words_to_random_board(words=BOARD_WORDS, seed=3)
+    return words_to_random_board(words=BOARD_WORDS, seed=2)
 
 
 def mock_load_word2vec_format(*args, **kwargs):
