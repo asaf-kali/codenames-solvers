@@ -1,11 +1,11 @@
 import random
-from typing import Iterable, Tuple, Sequence
+from typing import Iterable, Sequence, Tuple
 
 from codenames.game.base import BLACK_AMOUNT, Board, Card, CardColor, HinterGameState
 
 
-def _extract_random_subset(elements: Sequence, subset_size: int) -> Tuple[Sequence, Sequence]:
-    sample = random.sample(elements, k=subset_size)
+def _extract_random_subset(elements: Sequence, subset_size: int) -> Tuple[tuple, tuple]:
+    sample = tuple(random.sample(elements, k=subset_size))
     remaining = tuple(e for e in elements if e not in sample)
     return remaining, sample
 

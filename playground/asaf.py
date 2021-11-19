@@ -3,7 +3,6 @@ import logging
 import os
 from time import sleep
 
-from codenames.game.base import TeamColor
 from codenames.game.builder import words_to_random_board
 from codenames.game.exceptions import QuitGame
 from codenames.game.manager import GameManager
@@ -97,10 +96,10 @@ hebrew_board = words_to_random_board(words=hebrew_words, seed=1)
 
 # %% Players setup
 
-blue_hinter = NaiveHinter("Leonardo", team_color=TeamColor.BLUE)
-blue_guesser = NaiveGuesser("Bard", team_color=TeamColor.BLUE)
-red_hinter = NaiveHinter("Adam", team_color=TeamColor.RED)
-red_guesser = NaiveGuesser("Eve", team_color=TeamColor.RED)
+blue_hinter = NaiveHinter("Leonardo")
+blue_guesser = NaiveGuesser("Bard")
+red_hinter = NaiveHinter("Adam")
+red_guesser = NaiveGuesser("Eve")
 
 # %% Online
 online_manager = None

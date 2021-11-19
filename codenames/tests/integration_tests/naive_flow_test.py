@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 from gensim.models import KeyedVectors
 
-from codenames.game.base import Board, TeamColor
+from codenames.game.base import Board
 from codenames.game.builder import words_to_random_board
 from codenames.game.manager import GameManager
 from codenames.solvers.naive.naive_guesser import NaiveGuesser
@@ -90,10 +90,10 @@ def mock_load_word2vec_format(*args, **kwargs):
 
 @mock.patch("gensim.models.KeyedVectors.load_word2vec_format", new=mock_load_word2vec_format)
 def test_complete_naive_flow(english_board: Board):
-    blue_hinter = NaiveHinter("Leonardo", team_color=TeamColor.BLUE)
-    blue_guesser = NaiveGuesser("Bard", team_color=TeamColor.BLUE)
-    red_hinter = NaiveHinter("Adam", team_color=TeamColor.RED)
-    red_guesser = NaiveGuesser("Eve", team_color=TeamColor.RED)
+    blue_hinter = NaiveHinter("Leonardo")
+    blue_guesser = NaiveGuesser("Bard")
+    red_hinter = NaiveHinter("Adam")
+    red_guesser = NaiveGuesser("Eve")
 
     game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
     game_manager.run_game(language="english", board=english_board)

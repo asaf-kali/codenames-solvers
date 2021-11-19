@@ -133,7 +133,7 @@ class NamecodingPlayerAdapter:
     def choose_role(self) -> "NamecodingPlayerAdapter":
         log.info(f"{self.log_prefix} is picking role...")
         lobby_page = self.get_lobby_page()
-        team_element_id = f"{self.player.team_color.value.lower()}-team"
+        team_element_id = f"{self.player.team_color.value.lower()}-team"  # type: ignore
         role_button_class_name = "guessers" if self.player.role == PlayerRole.GUESSER else "hinters"
         team_element = lobby_page.find_element_by_id(team_element_id)
         role_button = team_element.find_element_by_class_name(role_button_class_name)

@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 from codenames.game.base import (
     Board,
@@ -18,14 +19,17 @@ class PlayerRole(Enum):
 
 class Player:
     name: str
-    team_color: TeamColor
+    team_color: Optional[TeamColor]
 
-    def __init__(self, name: str, team_color: TeamColor):
+    def __init__(self, name: str):
         self.name = name
-        self.team_color = team_color
+        self.team_color = None
 
     def __str__(self):
-        return f"{self.name} - {self.team_color.value} {self.role.value}"
+        team = ""
+        if self.team_color:
+            team = self.team_color.value
+        return f"{self.name} - {team} {self.role.value}"
 
     @property
     def role(self) -> PlayerRole:
@@ -36,7 +40,9 @@ class Player:
         return False
 
     @property
-    def team_card_color(self) -> CardColor:
+    def team_card_color(self) -> Optional[CardColor]:
+        if self.team_color is None:
+            return None
         return self.team_color.as_card_color
 
     def notify_game_starts(self, language: str, board: Board):

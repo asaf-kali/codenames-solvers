@@ -19,9 +19,12 @@ class UnexpectedEndOfInput(Exception):
 
 class TestHinter(Hinter):
     def __init__(
-        self, team_color: TeamColor, hints: Iterable[Hint], name: str = "Test Hinter", auto_quit: bool = False
+        self,
+        hints: Iterable[Hint],
+        name: str = "Test Hinter",
+        auto_quit: bool = False,
     ):
-        super().__init__(name=name, team_color=team_color)
+        super().__init__(name=name)
         self.hints = iter(hints)
         self.auto_quit = auto_quit
 
@@ -37,9 +40,12 @@ class TestHinter(Hinter):
 
 class TestGuesser(Guesser):
     def __init__(
-        self, team_color: TeamColor, guesses: Iterable[Guess], name: str = "Test Guesser", auto_quit: bool = False
+        self,
+        guesses: Iterable[Guess],
+        name: str = "Test Guesser",
+        auto_quit: bool = False,
     ):
-        super().__init__(name=name, team_color=team_color)
+        super().__init__(name=name)
         self.guesses = iter(guesses)
         self.auto_quit = auto_quit
 
@@ -61,8 +67,8 @@ class PredictedTurn(NamedTuple):
 def build_team(team_color: TeamColor, turns: Iterable[PredictedTurn]) -> Team:
     hints = [turn.hint for turn in turns]
     guesses = [Guess(index) for turn in turns for index in turn.guesses]
-    hinter = TestHinter(team_color=team_color, hints=hints)
-    guesser = TestGuesser(team_color=team_color, guesses=guesses)
+    hinter = TestHinter(hints=hints)
+    guesser = TestGuesser(guesses=guesses)
     return Team(hinter=hinter, guesser=guesser, team_color=team_color)
 
 
