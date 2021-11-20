@@ -49,7 +49,7 @@ def _parse_card(card_element: WebElement) -> Card:
     card_color = parse_card_color(namecoding_color=namecoding_color)
     image_overlay = card_element.find_element_by_id("image-overlay")
     revealed = image_overlay.get_attribute("revealed") is not None
-    log.debug(f"Parsed card: {word}")
+    log.debug(f"Parsed card: {word} {card_color.value}")
     return Card(word=word, color=card_color, revealed=revealed)
 
 
