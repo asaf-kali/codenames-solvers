@@ -259,7 +259,7 @@ class NaiveHinter(Hinter):
         self.proposals_thresholds = proposals_thresholds
 
     def notify_game_starts(self, language: str, board: Board):
-        self.model = load_language(language=language)
+        self.model = load_language(language=language)  # type: ignore
         self.opponent_card_color = self.team_color.opponent.as_card_color  # type: ignore
 
     def pick_hint(self, game_state: HinterGameState, thresholds_filter_active: bool = True) -> Hint:

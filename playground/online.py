@@ -1,5 +1,3 @@
-# %%
-
 import logging
 import os
 from time import sleep
@@ -13,13 +11,15 @@ from codenames.online import (
 from codenames.solvers.naive import NaiveGuesser, NaiveHinter
 from codenames.solvers.sna_solvers import SnaHinter  # type: ignore  # noqa
 from codenames.utils import configure_logging
-from language_data.model_loader import MODEL_NAME_ENV_KEY
+from language_data.model_loader import MODEL_NAME_ENV_KEY, load_language_async
 
 configure_logging()
 log = logging.getLogger(__name__)
 
 
 def online_game():
+    os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
+    load_language_async(language=NamecodingLanguage.ENGLISH.value)
     online_manager = None
     try:
         blue_hinter = NaiveHinter("Leonardo")
@@ -55,9 +55,4 @@ def adapter_playground():
     log.info("Done")
 
 
-# %%
-os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
 online_game()
-
-# %%
-adapter_playground()
