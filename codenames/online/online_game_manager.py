@@ -60,6 +60,7 @@ class NamecodingGameManager:
         for player in self._game_manager.players:
             if not self.host:
                 self.host_game(host_player=player)
+                self.configure_game(language=language, clock=clock)
             else:
                 self._auto_start_semaphore.acquire()
                 log.debug("Semaphore acquired.")
@@ -67,7 +68,6 @@ class NamecodingGameManager:
         if not self._running_game_id:
             log.warning("Game not running after auto start.")
             return self
-        self.configure_game(language=language, clock=clock)
         for i in range(number_of_guests):
             self._auto_start_semaphore.acquire()
             log.debug(f"Thread {i} done.")
