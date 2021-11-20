@@ -123,18 +123,19 @@ class NaiveProposalsGenerator:
         unrevealed_cards = self.game_state.board.unrevealed_cards
         words = tuple(format_word(card.word) for card in unrevealed_cards)
         colors = tuple(card.color for card in unrevealed_cards)
-        vectors_lists_list: List[List[float]] = self.model[words].tolist()  # type: ignore
-        vectors_list = [np.array(v) for v in vectors_lists_list]
+        # vectors_as_lists_list: List[List[float]] = self.model[words].tolist()  # type: ignore
+        # vectors_list = [np.array(v) for v in vectors_as_lists_list]
+        vectors_list = [v for v in self.model[words]]
         self.board_data = pd.DataFrame(
             data={
                 "color": colors,
-                "vector": vectors_list,
+                "vectors": vectors_list,
             },
             index=words,
         )
 
     def get_vectors(self, index: np.ndarray) -> pd.Series:
-        return self.board_data[index]["vector"]
+        return self.board_data[index]["vectors"]
 
     def word_group_vectors(self, word_group: WordGroup) -> pd.Series:
         return self.get_vectors(self.board_data.index.isin(word_group))

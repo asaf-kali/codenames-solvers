@@ -1,16 +1,14 @@
-# type: ignore
-
-# %%
 import os
 
-from codenames.game.base import TeamColor
 from codenames.game.builder import words_to_random_board
 from codenames.game.manager import GameManager
+from codenames.solvers.naive import NaiveGuesser, NaiveHinter
 from codenames.utils import configure_logging
-from language_data.model_loader import MODEL_NAME_ENV_KEY
+from language_data.model_loader import MODEL_NAME_ENV_KEY, load_language_async
 
 configure_logging()
 os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
+load_language_async("english")
 
 words = [
     "cloak",
@@ -47,16 +45,17 @@ words = [
     "spiderman",
 ]
 
-board = words_to_random_board(words=words, seed=3)
 
-from codenames.solvers.naive.naive_guesser import NaiveGuesser  # noqa: E402
+def run_offline():
+    board = words_to_random_board(words=words, seed=3)
 
-# %% Run game - SNA
-from codenames.solvers.sna_solvers.sna_phys_hinter import SnaHinter  # noqa: E402
+    blue_hinter = NaiveHinter("Leonardo")
+    blue_guesser = NaiveGuesser("Bard")
+    red_hinter = NaiveHinter("Adam")
+    red_guesser = NaiveGuesser("Eve")
 
-blue_hinter = SnaHinter("Leonardo", team_color=TeamColor.BLUE)
-blue_guesser = NaiveGuesser("Bard", team_color=TeamColor.BLUE)
-red_hinter = SnaHinter("Adam", team_color=TeamColor.RED)
-red_guesser = NaiveGuesser("Eve", team_color=TeamColor.RED)
-game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
-game_manager.run_game(language="english", board=board)
+    game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
+    game_manager.run_game(language="english", board=board)
+
+
+run_offline()
