@@ -1,11 +1,12 @@
-from codenames.game.base import (
+from codenames.game import (
     Guess,
+    Guesser,
     GuesserGameState,
     Hint,
+    Hinter,
     HinterGameState,
     format_word,
 )
-from codenames.game.player import Guesser, Hinter
 
 
 class CliHinter(Hinter):

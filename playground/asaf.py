@@ -3,13 +3,9 @@ import logging
 import os
 from time import sleep
 
-from codenames.game.builder import words_to_random_board
-from codenames.game.exceptions import QuitGame
-from codenames.game.manager import GameManager
-from codenames.online.online_adapter import NamecodingLanguage  # type: ignore
-from codenames.online.online_game_manager import NamecodingGameManager  # type: ignore
-from codenames.solvers.naive.naive_guesser import NaiveGuesser  # type: ignore
-from codenames.solvers.naive.naive_hinter import NaiveHinter  # type: ignore
+from codenames.game import GameManager, QuitGame, words_to_random_board
+from codenames.online import NamecodingGameManager, NamecodingLanguage
+from codenames.solvers.naive import NaiveGuesser, NaiveHinter
 from codenames.utils import configure_logging
 from language_data.model_loader import MODEL_NAME_ENV_KEY
 

@@ -14,9 +14,7 @@ def test_game_manager_assigns_team_colors_to_players_on_game_manager_constructio
     assert blue_guesser.team_color is None
     assert red_guesser.team_color is None
 
-    GameManager(
-        blue_hinter=blue_hinter, red_hinter=red_hinter, blue_guesser=blue_guesser, red_guesser=red_guesser
-    )
+    GameManager(blue_hinter=blue_hinter, red_hinter=red_hinter, blue_guesser=blue_guesser, red_guesser=red_guesser)
 
     assert blue_hinter.team_color == TeamColor.BLUE
     assert red_hinter.team_color == TeamColor.RED

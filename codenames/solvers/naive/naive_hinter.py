@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 
+from codenames.game import Hinter
 from codenames.game.base import (
     Board,
     CardColor,
@@ -18,7 +19,6 @@ from codenames.game.base import (
     WordGroup,
     format_word,
 )
-from codenames.game.player import Hinter
 from codenames.solvers.utils.algebra import cosine_distance
 from codenames.utils import wrap
 from language_data.model_loader import load_language
