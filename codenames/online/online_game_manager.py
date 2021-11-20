@@ -23,7 +23,7 @@ class NamecodingGameManager:
         red_hinter: Hinter,
         blue_guesser: Guesser,
         red_guesser: Guesser,
-        show_host: bool = False,
+        show_host: bool = True,
     ):
         self.host: Optional[NamecodingPlayerAdapter] = None
         self.guests: List[NamecodingPlayerAdapter] = []
