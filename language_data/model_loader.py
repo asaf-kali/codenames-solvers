@@ -1,6 +1,5 @@
 import logging
 import os
-import threading
 from threading import Lock, Thread
 from typing import Dict, Literal, NamedTuple
 
@@ -22,14 +21,13 @@ class ModelIdentifier(NamedTuple):
 
 
 def _load_model(model_identifier: ModelIdentifier) -> KeyedVectors:
-    log.debug("Im in _load_model", extra={"thread": threading.get_native_id()})
     log.debug(f"Loading language...", extra={"model": model_identifier})
     language_base_folder = os.path.join(LANGUAGE_DATA_FOLDER, model_identifier.language)
     if model_identifier.language == "hebrew":
         return load_hebrew_model(language_base_folder, model_identifier.model_name)
     file_path = os.path.join(language_base_folder, f"{model_identifier.model_name}.bin")
     data = KeyedVectors.load_word2vec_format(file_path, binary=True)
-    log.debug("Language loaded")
+    log.debug("Language loaded", extra={"model": model_identifier})
     return data
 
 
@@ -47,10 +45,8 @@ class LanguageCache:
     def _get_model(self, model_identifier: ModelIdentifier) -> KeyedVectors:
         model_lock = self._get_model_lock(model_identifier)
         with model_lock:
-            log.debug("Im in _get_model safe", extra={"thread": threading.get_native_id()})
             if model_identifier not in self._cache:
                 self._cache[model_identifier] = _load_model(model_identifier)
-            log.debug("Exiting _get_model safe", extra={"thread": threading.get_native_id()})
             return self._cache[model_identifier]
 
     def load_language(self, language: SupportedLanguage, model_name: str = None) -> KeyedVectors:
