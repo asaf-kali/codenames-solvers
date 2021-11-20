@@ -24,4 +24,4 @@ for model_name in models_names:
     print(f"saved {model_name}")
 
 # %% Try it
-m = load_language("glove-wiki-gigaword-50", None)
+m = load_language("english", "wiki-50")

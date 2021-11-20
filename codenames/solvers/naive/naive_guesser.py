@@ -14,7 +14,7 @@ class NaiveGuesser(Guesser):
         self.model: KeyedVectors = None  # type: ignore
 
     def notify_game_starts(self, language: str, board: Board):
-        self.model = load_language(language=language)
+        self.model = load_language(language=language)  # type: ignore
 
     def guess(self, game_state: GuesserGameState) -> Guess:
         if game_state.bonus_given:
