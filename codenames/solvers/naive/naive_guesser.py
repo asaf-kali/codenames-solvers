@@ -2,9 +2,7 @@ import logging
 
 from gensim.models import KeyedVectors
 
-from codenames.game.base import Board, Guess, GuesserGameState
-from codenames.game.manager import PASS_GUESS
-from codenames.game.player import Guesser
+from codenames.game import PASS_GUESS, Board, Guess, Guesser, GuesserGameState
 from language_data.model_loader import load_language
 
 log = logging.getLogger(__name__)

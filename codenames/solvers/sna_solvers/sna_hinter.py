@@ -11,15 +11,7 @@ import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 
-from codenames.game.base import (
-    Board,
-    CardColor,
-    Hint,
-    HinterGameState,
-    TeamColor,
-    WordGroup,
-)
-from codenames.game.player import Hinter
+from codenames.game import Board, CardColor, Hint, Hinter, HinterGameState, WordGroup
 from codenames.solvers.naive.naive_hinter import Proposal, calculate_proposal_grade
 from codenames.solvers.utils.algebra import cosine_distance, single_gram_schmidt
 from language_data.model_loader import load_language
@@ -181,8 +173,8 @@ class Cluster:
 
 
 class SnaHinter(Hinter):
-    def __init__(self, name: str, team_color: Optional[TeamColor] = None, debug_mode=False, physics_optimization=True):
-        super().__init__(name=name, team_color=team_color)
+    def __init__(self, name: str, debug_mode=False, physics_optimization=True):
+        super().__init__(name=name)
         self.model: Optional[KeyedVectors] = None
         self.language_length: Optional[int] = None
         self.board_data: Optional[pd.DataFrame] = None

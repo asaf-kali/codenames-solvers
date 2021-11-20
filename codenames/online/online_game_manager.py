@@ -2,10 +2,8 @@ import logging
 from threading import Semaphore, Thread
 from typing import Iterable, List, Optional
 
-from codenames.game.base import Guess, Hint
-from codenames.game.manager import GameManager, Winner
-from codenames.game.player import Guesser, Hinter, Player
-from codenames.online.online_adapter import (
+from codenames.game import GameManager, Guess, Guesser, Hint, Hinter, Player, Winner
+from codenames.online import (
     IllegalOperation,
     NamecodingLanguage,
     NamecodingPlayerAdapter,

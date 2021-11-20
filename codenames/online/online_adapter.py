@@ -6,9 +6,16 @@ from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException
 from selenium.webdriver.remote.webelement import WebElement
 
-from codenames.game.base import Board, Card, CardColor, Guess, Hint
-from codenames.game.manager import PASS_GUESS
-from codenames.game.player import Player, PlayerRole
+from codenames.game import (
+    PASS_GUESS,
+    Board,
+    Card,
+    CardColor,
+    Guess,
+    Hint,
+    Player,
+    PlayerRole,
+)
 from codenames.online.utils import poll_condition
 from codenames.utils import wrap
 
