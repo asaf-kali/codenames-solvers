@@ -71,6 +71,7 @@ LOGGING_CONFIG = {
         "selenium": {"level": "INFO"},
         "urllib3": {"level": "INFO"},
         "codenames": {"level": "DEBUG"},
+        "matplotlib.font_manager": {"propagate": False}
         # "findfont": {"level": "error"}
         # "codenames.online": {"level": "DEBUG"},
         # "codenames.solvers.naive": {"level": "INFO"},
