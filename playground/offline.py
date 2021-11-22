@@ -2,7 +2,8 @@ import os
 
 from codenames.game.builder import words_to_random_board
 from codenames.game.manager import GameManager
-from codenames.solvers.naive import NaiveGuesser, NaiveHinter
+from codenames.solvers.naive import NaiveGuesser
+from codenames.solvers.sna_solvers import SnaHinter  # type: ignore
 from codenames.utils import configure_logging
 from language_data.model_loader import MODEL_NAME_ENV_KEY, load_language_async
 
@@ -49,9 +50,9 @@ words = [
 def run_offline():
     board = words_to_random_board(words=words, seed=3)
 
-    blue_hinter = NaiveHinter("Leonardo")
+    blue_hinter = SnaHinter("Leonardo")
     blue_guesser = NaiveGuesser("Bard")
-    red_hinter = NaiveHinter("Adam")
+    red_hinter = SnaHinter("Adam")
     red_guesser = NaiveGuesser("Eve")
 
     game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
