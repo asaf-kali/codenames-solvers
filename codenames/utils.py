@@ -4,7 +4,7 @@ from logging import Filter, Formatter, Logger, LogRecord
 from logging.config import dictConfig
 
 
-class ExtraLogger(Logger):
+class ExtraDataLogger(Logger):
     def _log(self, *args, **kwargs) -> None:
         extra = kwargs.get("extra")
         if extra is not None:
@@ -12,7 +12,7 @@ class ExtraLogger(Logger):
         super()._log(*args, **kwargs)  # noqa
 
 
-class ExtraFormatter(Formatter):
+class ExtraDataFormatter(Formatter):
     def format(self, record: LogRecord) -> str:
         extra = getattr(record, "extra", None)
         if extra:
@@ -32,16 +32,16 @@ class LevelRangeFilter(Filter):
         return False
 
 
-logging.setLoggerClass(ExtraLogger)
+logging.setLoggerClass(ExtraDataLogger)
 log = logging.getLogger(__name__)
 
 LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "simple": {"class": "codenames.utils.ExtraFormatter"},
+        "simple": {"class": "codenames.utils.ExtraDataFormatter"},
         "debug": {
-            "class": "codenames.utils.ExtraFormatter",
+            "class": "codenames.utils.ExtraDataFormatter",
             "format": "[%(asctime)s.%(msecs)03d] [%(levelname)-.4s]: %(message)s @@@ "
             "[%(threadName)s] [%(name)s:%(lineno)s]",
             "datefmt": "%Y-%m-%d %H:%M:%S",
