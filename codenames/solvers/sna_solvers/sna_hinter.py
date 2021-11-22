@@ -1,7 +1,9 @@
 # type: ignore
 
 import logging
+import os
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Dict, Iterable, List, Optional, Tuple
 
 import community
@@ -14,6 +16,7 @@ from gensim.models import KeyedVectors
 from codenames.game import Board, CardColor, Hint, Hinter, HinterGameState, WordGroup
 from codenames.solvers.naive.naive_hinter import Proposal, calculate_proposal_grade
 from codenames.solvers.utils.algebra import cosine_distance, single_gram_schmidt
+from codenames.utils import get_exports_folder, RUN_ID
 from language_data.model_loader import load_language
 
 plt.style.use("fivethirtyeight")
@@ -324,7 +327,7 @@ class SnaHinter(Hinter):
             (temp_df["distance_to_centroid"] < bad_cards_limitation)
             & (temp_df["distance_to_centroid"] < MAX_SELF_DISTANCE)
             & (temp_df["color"] == self.team_color.as_card_color)
-        ]
+            ]
 
         distance_group = np.max(chosen_cards["distance_to_centroid"])
 
@@ -459,10 +462,12 @@ class SnaHinter(Hinter):
         plt.setp(ax.get_xticklabels(), rotation=45)
         ax.set_title(title)
         plt.show()
-        file_name = input("enter file name:")
+        file_name = f"{datetime.now().timestamp()}-{title}"
         if file_name != "no":
-            temp_df.to_csv(f"visualizer\\graphs_data\\{file_name}.csv")
-            plt.savefig(f"visualizer\\graphs_data\\{file_name}.png")
+            export_folder = get_exports_folder("sna", RUN_ID)
+            export_file = os.path.join(export_folder, file_name)
+            temp_df.to_csv(f"{export_file}.csv")
+            plt.savefig(f"{export_file}.png")
 
     def draw_guesser_view(self, cluster: Cluster, word=None, vector=None):
         if word is None:
