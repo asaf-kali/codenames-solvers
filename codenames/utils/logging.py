@@ -1,5 +1,6 @@
 import logging
 import sys
+from datetime import datetime
 from logging import Filter, Formatter, Logger, LogRecord
 from logging.config import dictConfig
 
@@ -33,8 +34,8 @@ class LevelRangeFilter(Filter):
 
 
 logging.setLoggerClass(ExtraDataLogger)
-log = logging.getLogger(__name__)
 
+log = logging.getLogger(__name__)
 LOGGING_CONFIG = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -43,7 +44,7 @@ LOGGING_CONFIG = {
         "debug": {
             "class": "codenames.utils.ExtraDataFormatter",
             "format": "[%(asctime)s.%(msecs)03d] [%(levelname)-.4s]: %(message)s @@@ "
-            "[%(threadName)s] [%(name)s:%(lineno)s]",
+                      "[%(threadName)s] [%(name)s:%(lineno)s]",
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
@@ -70,6 +71,7 @@ LOGGING_CONFIG = {
         "selenium": {"level": "INFO"},
         "urllib3": {"level": "INFO"},
         "codenames": {"level": "DEBUG"},
+        # "findfont": {"level": "error"}
         # "codenames.online": {"level": "DEBUG"},
         # "codenames.solvers.naive": {"level": "INFO"},
     },
@@ -83,3 +85,6 @@ def configure_logging():
 
 def wrap(o: object) -> str:
     return f"[{o}]"
+
+
+RUN_ID = datetime.now().timestamp()
