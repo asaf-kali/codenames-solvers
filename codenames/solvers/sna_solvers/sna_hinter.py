@@ -12,11 +12,12 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
+from pandas import Series
 
 from codenames.game import Board, CardColor, Hint, Hinter, HinterGameState, WordGroup
 from codenames.solvers.naive.naive_hinter import Proposal, calculate_proposal_grade
 from codenames.solvers.utils.algebra import cosine_distance, single_gram_schmidt
-from codenames.utils import get_exports_folder, RUN_ID
+from codenames.utils import RUN_ID, get_exports_folder
 from language_data.model_loader import load_language
 
 plt.style.use("fivethirtyeight")
@@ -110,7 +111,7 @@ def friendly_force(d):
     if d > FRIENDLY_FORCE_CUTOFF:
         return 0
     else:
-        # Parabola with 0 at d=0, 1 at d=FRIENDLY_FORCE_CUTOFF and else outherwise:
+        # Parabola with 0 at d=0, 1 at d=FRIENDLY_FORCE_CUTOFF and else otherwise:
         return FRIENDLY_FORCE_FACTOR * (
             1 - (d / FRIENDLY_FORCE_CUTOFF - 1) ** 2
         )  # FRIENDLY_FORCE_FACTOR * d / FRIENDLY_FORCE_CUTOFF
@@ -124,7 +125,7 @@ def repelling_force(d, cutoff_distance, factor):
         return a / (d + a / factor)
 
 
-def opponent_force(d):
+def opponent_force(d: float):
     return repelling_force(d, OPPONENT_FORCE_CUTOFF, OPPONENT_FORCE_FACTOR)
 
 
@@ -153,9 +154,9 @@ class Cluster:
 
     @property
     def default_centroid(self) -> np.array:
-        non_normalized_v = np.mean(self.df["vector_normed"])
-        normalized_v = non_normalized_v / np.linalg.norm(non_normalized_v)
-        return normalized_v
+        mean = np.mean(self.df["vector_normed"])
+        normalized_mean = mean / np.linalg.norm(mean)
+        return normalized_mean
 
     def update_distances(self):
         self.df["centroid_distance"] = self.df["vector"].apply(lambda v: cosine_distance(v, self.centroid))
@@ -187,11 +188,11 @@ class SnaHinter(Hinter):
         self.game_state: Optional[HinterGameState] = None
 
     def notify_game_starts(self, language: str, board: Board):
-        self.model = load_language(language=language)
+        self.model = load_language(language=language)  # type: ignore
         self.language_length = len(self.model.index_to_key)
         all_words = [_format_word(word) for word in board.all_words]
-        vectors_lists_list: List[List[float]] = self.model[all_words].tolist()  # type: ignore
-        vectors_list = [np.array(v) for v in vectors_lists_list]
+        vectors = self.model[all_words]
+        vectors_list = list(vectors)
         vectors_list_normed = [v / np.linalg.norm(v) for v in vectors_list]
         self.board_data = pd.DataFrame(
             data={
@@ -246,6 +247,9 @@ class SnaHinter(Hinter):
         self.game_state = game_state
         self.update_reveals(game_state)
         graded_proposals = self.generate_graded_proposals()
+        graded_proposals.sort(key=lambda p: -p.grade)
+        best_n_repr = "\n".join(str(p) for p in graded_proposals[:3])
+        log.info(f"Best proposals: \n{best_n_repr}")
         best_proposal = graded_proposals[0]
         # draw_cluster = Cluster(
         #     -1,
@@ -263,7 +267,7 @@ class SnaHinter(Hinter):
         for cluster_id in unique_clusters_ids:
             df = self.own_unrevealed_cards.loc[self.own_unrevealed_cards.cluster == cluster_id, :]
             cluster = Cluster(id=cluster_id, df=df.copy(deep=True))
-            proposal = self.cluster2proposal(cluster)
+            proposal = self.proposal_from_cluster(cluster)
             graded_proposals.append(proposal)
             draw_cluster = Cluster(
                 -1,
@@ -274,7 +278,7 @@ class SnaHinter(Hinter):
         graded_proposals.sort(key=lambda c: -c.grade)
         return graded_proposals
 
-    def cluster2proposal(self, cluster: Cluster):
+    def proposal_from_cluster(self, cluster: Cluster):
         self.optimize_cluster(cluster)
         similarities: List[Similarity] = self.model.most_similar(cluster.centroid, topn=100)
         best_proposal = self.pick_best_similarity(
@@ -294,14 +298,14 @@ class SnaHinter(Hinter):
             if should_filter_word(word, words_to_filter_out):
                 continue
             vector = self.model.get_vector(word)
-            proposal = self.vec2proposal(word, vector)
+            proposal = self.proposal_from_word_vector(word, vector)
             filtered_proposals.append(proposal)
         if len(filtered_proposals) == 0:
             return None
         best_proposal = min(filtered_proposals, key=lambda p: -p.grade)
         return best_proposal
 
-    def vec2proposal(self, word, vector) -> Proposal:
+    def proposal_from_word_vector(self, word: str, vector: np.ndarray) -> Proposal:
         self.update_distances(vector)
         temp_df = self.unrevealed_cards.sort_values("distance_to_centroid")
         centroid_to_black = np.min(  # This min is required for the float type
@@ -327,7 +331,7 @@ class SnaHinter(Hinter):
             (temp_df["distance_to_centroid"] < bad_cards_limitation)
             & (temp_df["distance_to_centroid"] < MAX_SELF_DISTANCE)
             & (temp_df["color"] == self.team_color.as_card_color)
-            ]
+        ]
 
         distance_group = np.max(chosen_cards["distance_to_centroid"])
 
@@ -349,22 +353,23 @@ class SnaHinter(Hinter):
 
         return proposal
 
-    def color2force(self, centroid, row):
-        d = cosine_distance(centroid, row["vector"])
-        if row["color"] == self.team_color.opponent.as_card_color:
+    def force_from_color(self, centroid: np.ndarray, card_row: Series):
+        vector, card_color = card_row["vector"], card_row["color"]
+        d = cosine_distance(centroid, vector)
+        if card_color == self.team_color.opponent.as_card_color:
             return opponent_force(d)
-        elif row["color"] == CardColor.BLACK:
+        elif card_color == CardColor.BLACK:
             return black_force(d)
-        elif row["color"] == CardColor.GRAY:
+        elif card_color == CardColor.GRAY:
             return gray_force(d)
-        elif row["color"] == self.team_color.as_card_color:
+        elif card_color == self.team_color.as_card_color:
             return friendly_force(d)
         else:
-            raise ValueError(f"color{row['color']} is not a valid color")
+            raise ValueError(f"color{card_row['color']} is not a valid color")
 
     def board_df2nodes(self, centroid: np.array):  # -> List[Tuple[np.array, float], ...]:
         relevant_df = self.board_data[self.board_data["is_revealed"] == False]  # noqa: E712
-        relevant_df["force"] = relevant_df.apply(lambda row: self.color2force(centroid, row), axis=1)
+        relevant_df["force"] = relevant_df.apply(lambda row: self.force_from_color(centroid, row), axis=1)
         relevant_df = relevant_df[["vector", "force"]]
         tuples_list = list(relevant_df.itertuples(index=False, name=None))
         nodes_list = [
@@ -433,10 +438,9 @@ class SnaHinter(Hinter):
     @staticmethod
     def clean_cluster(cluster: Cluster):
         cluster.update_distances()
-        max_distance = max(cluster.df["centroid_distance"])
-        central_words = (cluster.df["centroid_distance"] < MAX_SELF_DISTANCE) | (
-            cluster.df["centroid_distance"] != max_distance
-        )
+        centroid_distances = cluster.df["centroid_distance"]
+        max_distance = max(centroid_distances)
+        central_words = (centroid_distances < MAX_SELF_DISTANCE) | (centroid_distances != max_distance)
         cluster.df = cluster.df[central_words]
         cluster.centroid = cluster.default_centroid
 
@@ -461,13 +465,13 @@ class SnaHinter(Hinter):
         )
         plt.setp(ax.get_xticklabels(), rotation=45)
         ax.set_title(title)
-        plt.show()
         file_name = f"{datetime.now().timestamp()}-{title}"
         if file_name != "no":
             export_folder = get_exports_folder("sna", RUN_ID)
             export_file = os.path.join(export_folder, file_name)
             temp_df.to_csv(f"{export_file}.csv")
             plt.savefig(f"{export_file}.png")
+        plt.show()
 
     def draw_guesser_view(self, cluster: Cluster, word=None, vector=None):
         if word is None:
