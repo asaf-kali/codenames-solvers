@@ -44,7 +44,7 @@ LOGGING_CONFIG = {
         "debug": {
             "class": "codenames.utils.ExtraDataFormatter",
             "format": "[%(asctime)s.%(msecs)03d] [%(levelname)-.4s]: %(message)s @@@ "
-                      "[%(threadName)s] [%(name)s:%(lineno)s]",
+            "[%(threadName)s] [%(name)s:%(lineno)s]",
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
