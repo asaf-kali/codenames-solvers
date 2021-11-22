@@ -21,7 +21,7 @@ class ModelIdentifier(NamedTuple):
 
 
 def _load_model(model_identifier: ModelIdentifier) -> KeyedVectors:
-    log.debug(f"Loading language...", extra={"model": model_identifier})
+    log.debug("Loading language...", extra={"model": model_identifier})
     language_base_folder = os.path.join(LANGUAGE_DATA_FOLDER, model_identifier.language)
     if model_identifier.language == "hebrew":
         return load_hebrew_model(language_base_folder, model_identifier.model_name)
