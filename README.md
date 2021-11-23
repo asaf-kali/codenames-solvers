@@ -4,7 +4,7 @@
 [![Lint](https://github.com/mkali-personal/codenames/actions/workflows/lint.yml/badge.svg)](https://github.com/mkali-personal/codenames/actions/workflows/lint.yml)
 [![Video](https://github.com/mkali-personal/codenames/actions/workflows/video.yml/badge.svg)](https://github.com/mkali-personal/codenames/actions/workflows/video.yml)
 
-Codenames board game player algorithms and game infrastructure.
+Code infrastructure and player algorithms for the Codenames board game.
 
 ## Intro
 
@@ -37,15 +37,7 @@ Codenames board game player algorithms and game infrastructure.
 
 Look in the [GitHub repo](https://github.com/Ronshm/hebrew-word2vec).
 
-### How to work
-
-1. `git checkout main`
-2. `git pull`
-3. `git checkout [-b] <my_branch>`
-4. `git merge main`
-5. Work work work...
-6. `git commit -m "Message"`
-7. `git push`
-
 ### How to export explanation video:
-Run in terminal: `python -m manim videos/explanation.py KalirmozExplanation -pql\h`
+Run in terminal: `make video-render`.
+
+If that didn't work: try `python -m manim videos/explanation.py KalirmozExplanation -pql\h`.
