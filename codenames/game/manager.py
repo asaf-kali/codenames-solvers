@@ -175,9 +175,9 @@ class GameManager:
     def _notify_game_starts(self):
         censored_board = self.board.censured
         for hinter in self.hinters:
-            hinter.notify_game_starts(language=self.language, board=self.board)
+            hinter.on_game_start(language=self.language, board=self.board)
         for guesser in self.guessers:
-            guesser.notify_game_starts(language=self.language, board=censored_board)
+            guesser.on_game_start(language=self.language, board=censored_board)
 
     def _run_rounds(self):
         while not self.is_game_over:

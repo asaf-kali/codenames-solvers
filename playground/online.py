@@ -24,7 +24,7 @@ load_language_async(language=NamecodingLanguage.ENGLISH.value)  # type: ignore
 def online_game():
     online_manager = None
     try:
-        blue_hinter = SnaHinter("Leonardo")
+        blue_hinter = NaiveHinter("Leonardo")
         blue_guesser = NaiveGuesser("Bard")
         red_hinter = SnaHinter("Adam")
         red_guesser = NaiveGuesser("Eve")

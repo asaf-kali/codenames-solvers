@@ -45,7 +45,7 @@ class Player:
             return None
         return self.team_color.as_card_color
 
-    def notify_game_starts(self, language: str, board: Board):
+    def on_game_start(self, language: str, board: Board):
         pass
 
 

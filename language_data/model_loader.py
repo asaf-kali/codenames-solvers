@@ -74,7 +74,10 @@ def load_word2vec_format(language_base_folder: str, model_name: str) -> KeyedVec
     return data
 
 
-def load_kv_format(language_base_folder: str, model_name: str, ) -> KeyedVectors:
+def load_kv_format(
+    language_base_folder: str,
+    model_name: str,
+) -> KeyedVectors:
     model_folder = os.path.join(language_base_folder, model_name)
     file_path = os.path.join(model_folder, f"{model_name}.kv")
     model: KeyedVectors = KeyedVectors.load(file_path)  # type: ignore

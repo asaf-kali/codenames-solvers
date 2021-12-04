@@ -259,7 +259,7 @@ class NaiveHinter(Hinter):
         self.opponent_card_color = None
         self.proposals_thresholds = proposals_thresholds
 
-    def notify_game_starts(self, language: str, board: Board):
+    def on_game_start(self, language: str, board: Board):
         self.model = load_language(language=language)  # type: ignore
         self.opponent_card_color = self.team_color.opponent.as_card_color  # type: ignore
 
