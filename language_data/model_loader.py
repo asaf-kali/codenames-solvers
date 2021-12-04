@@ -5,13 +5,11 @@ from typing import Dict, Literal, NamedTuple
 
 from gensim.models import KeyedVectors
 
-from language_data.hebrew.hebrew_loader import load_hebrew_model
-
 log = logging.getLogger(__name__)
 
 MODEL_NAME_ENV_KEY = "SNA_MODEL_NAME"
 LANGUAGE_DATA_FOLDER = "language_data"
-DEFAULT_MODEL_NAME = "wiki-300"
+DEFAULT_MODEL_NAME = "wiki-50"
 SupportedLanguage = Literal["english", "hebrew"]
 
 
@@ -21,14 +19,16 @@ class ModelIdentifier(NamedTuple):
 
 
 def _load_model(model_identifier: ModelIdentifier) -> KeyedVectors:
+    # TODO: in case loading fails, try gensim downloader
+    # import gensim.downloader as api
+    #
+    # model = api.load("wiki-he")
+
     log.debug("Loading language...", extra={"model": model_identifier})
     language_base_folder = os.path.join(LANGUAGE_DATA_FOLDER, model_identifier.language)
-    if model_identifier.language == "hebrew":
-        return load_hebrew_model(language_base_folder, model_identifier.model_name)
-    file_path = os.path.join(language_base_folder, f"{model_identifier.model_name}.bin")
-    data = KeyedVectors.load_word2vec_format(file_path, binary=True)
+    model = load_kv_format(language_base_folder, model_identifier.model_name)
     log.debug("Language loaded", extra={"model": model_identifier})
-    return data
+    return model
 
 
 class LanguageCache:
@@ -66,3 +66,16 @@ def load_language(language: SupportedLanguage, model_name: str = None) -> KeyedV
 def load_language_async(language: SupportedLanguage, model_name: str = None):
     t = Thread(target=load_language, args=(language, model_name))
     t.start()
+
+
+def load_word2vec_format(language_base_folder: str, model_name: str) -> KeyedVectors:
+    file_path = os.path.join(language_base_folder, f"{model_name}.bin")
+    data = KeyedVectors.load_word2vec_format(file_path, binary=True)
+    return data
+
+
+def load_kv_format(language_base_folder: str, model_name: str, ) -> KeyedVectors:
+    model_folder = os.path.join(language_base_folder, model_name)
+    file_path = os.path.join(model_folder, f"{model_name}.kv")
+    model: KeyedVectors = KeyedVectors.load(file_path)  # type: ignore
+    return model

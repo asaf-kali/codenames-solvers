@@ -10,19 +10,19 @@ log = logging.getLogger(__name__)
 VECTOR_LENGTH = 100
 
 
-def load_hebrew_model(language_base_folder: str, model_name: str) -> KeyedVectors:
-    log.debug(f"Loading Hebrew model: {model_name}...")
-    model = KeyedVectors(vector_size=VECTOR_LENGTH)
+def load_npy_model(language_base_folder: str, model_name: str, vector_length: int = VECTOR_LENGTH) -> KeyedVectors:
+    log.debug(f"Loading npy model: {model_name}...")
+    model = KeyedVectors(vector_size=vector_length)
     log.debug("Loading raw data...")
     vectors = _load_vectors(language_base_folder, model_name)
     words = _load_words(language_base_folder, model_name)
     word_number = len(words)
-    vectors = vectors[:-10].reshape(word_number, VECTOR_LENGTH)
+    vectors = vectors[:-10].reshape(word_number, vector_length)
     log.debug("Normalizing...")
     vectors = vectors / np.linalg.norm(vectors, axis=-1)[:, np.newaxis]
     log.debug("Adding to model...")
     model.add_vectors(keys=words, weights=vectors)
-    log.debug("Load Hebrew model done")
+    log.debug("Load model done")
     return model
 
 
