@@ -1,5 +1,5 @@
 # type: ignore
-
+import itertools
 import logging
 import os
 from dataclasses import dataclass
@@ -331,7 +331,7 @@ class SnaHinter(Hinter):
             (temp_df["distance_to_centroid"] < bad_cards_limitation)
             & (temp_df["distance_to_centroid"] < MAX_SELF_DISTANCE)
             & (temp_df["color"] == self.team_color.as_card_color)
-        ]
+            ]
 
         distance_group = np.max(chosen_cards["distance_to_centroid"])
 
@@ -483,20 +483,17 @@ class SnaHinter(Hinter):
             # self.draw_centroid_distances(ax[1], cluster, title="Cluster centroid")
 
     def divide_to_clusters(self, df: pd.DataFrame, resolution_parameter=1):
-        board_size = len(df)
         vis_graph = nx.Graph()
         words = df.index.to_list()
         vis_graph.add_nodes_from(words)
         louvain = nx.Graph(vis_graph)
-        for i in range(board_size):
-            v = _format_word(words[i])
-            for j in range(i + 1, board_size):
-                u = _format_word(words[j])
-                distance = self.model.similarity(v, u) + 1
-                if distance > 1.1:
-                    vis_graph.add_edge(v, u, weight=distance)
-                louvain_weight = distance ** (15 * resolution_parameter)
-                louvain.add_edge(v, u, weight=louvain_weight)
+        for word_couple in itertools.combinations(words, 2):
+            v, u = _format_word(word_couple[0]), _format_word(word_couple[1])
+            distance = self.model.similarity(v, u) + 1
+            if distance > 1.1:
+                vis_graph.add_edge(v, u, weight=distance)
+            louvain_weight = distance ** (2 * resolution_parameter)
+            louvain.add_edge(v, u, weight=louvain_weight)
 
         word_to_group: Dict[str, int] = community.best_partition(louvain)
         self.board_data.cluster = self.board_data.index.map(word_to_group)

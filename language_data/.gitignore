@@ -1,3 +1,7 @@
-**/*.bin
-**/*.npy
-**/*.txt
+*.bin
+*.npy
+*.txt
+*.kv
+*.zip
+*.bz2
+*.tar
