@@ -2,12 +2,8 @@ import logging
 import os
 from time import sleep
 
-from codenames.game import Guesser, Hinter, QuitGame
-from codenames.online import (
-    NamecodingGameManager,
-    NamecodingLanguage,
-    NamecodingPlayerAdapter,
-)
+from codenames.game import QuitGame
+from codenames.online import NamecodingGameManager, NamecodingLanguage
 from codenames.solvers.naive import NaiveGuesser, NaiveHinter  # type: ignore  # noqa
 from codenames.solvers.sna_solvers import SnaHinter  # type: ignore  # noqa
 from codenames.utils import configure_logging
@@ -17,8 +13,9 @@ configure_logging()
 log = logging.getLogger(__name__)
 
 # os.environ[MODEL_NAME_ENV_KEY] = "google-300"
-os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
-load_language_async(language=NamecodingLanguage.ENGLISH.value)  # type: ignore
+# os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
+os.environ[MODEL_NAME_ENV_KEY] = "wiki-100"
+load_language_async(language="hebrew")  # type: ignore
 
 
 def online_game():
@@ -29,7 +26,7 @@ def online_game():
         red_hinter = SnaHinter("Adam")
         red_guesser = NaiveGuesser("Eve")
         online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
-        online_manager.auto_start(language=NamecodingLanguage.ENGLISH, clock=False)
+        online_manager.auto_start(language=NamecodingLanguage.HEBREW, clock=False)
         sleep(1)
     except QuitGame:
         online_manager.close()
@@ -42,19 +39,19 @@ def online_game():
     log.info("Done")
 
 
-def adapter_playground():
-    red_hinter = Hinter("Alex")
-    blue_guesser = Guesser("Adam")
-    host_client = NamecodingPlayerAdapter(player=red_hinter)
-    joiner_client = NamecodingPlayerAdapter(player=blue_guesser)
-
-    host_client.open().host_game().choose_role().set_clock(False).set_language(NamecodingLanguage.HEBREW).ready()
-    game_id = host_client.get_game_id()
-    joiner_client.open().join_game(game_id).choose_role().set_clock(True).set_language(
-        NamecodingLanguage.ENGLISH
-    ).ready()
-
-    log.info("Done")
+# def adapter_playground():
+#     red_hinter = Hinter("Alex")
+#     blue_guesser = Guesser("Adam")
+#     host_client = NamecodingPlayerAdapter(player=red_hinter)
+#     joiner_client = NamecodingPlayerAdapter(player=blue_guesser)
+#
+#     host_client.open().host_game().choose_role().set_clock(False).set_language(NamecodingLanguage.HEBREW).ready()
+#     game_id = host_client.get_game_id()
+#     joiner_client.open().join_game(game_id).choose_role().set_clock(True).set_language(
+#         NamecodingLanguage.HEBREW
+#     ).ready()
+#
+#     log.info("Done")
 
 
 online_game()
