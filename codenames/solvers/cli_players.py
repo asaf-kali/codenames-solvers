@@ -1,4 +1,5 @@
 from codenames.game import (
+    CardNotFoundError,
     Guess,
     Guesser,
     GuesserGameState,
@@ -42,7 +43,10 @@ class CliGuesser(Guesser):
             try:
                 index = int(data.strip())
             except ValueError:
-                index = game_state.board.find_card_index(data)
+                try:
+                    index = game_state.board.find_card_index(data)
+                except CardNotFoundError:
+                    index = None  # type: ignore
             if index is None:
                 continue
             return Guess(card_index=index)

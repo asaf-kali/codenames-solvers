@@ -2,6 +2,8 @@ import logging
 from threading import Semaphore, Thread
 from typing import Iterable, List, Optional
 
+from selenium.common.exceptions import WebDriverException
+
 from codenames.game import GameManager, Guess, Guesser, Hint, Hinter, Player, Winner
 from codenames.online import (
     IllegalOperation,
@@ -116,7 +118,11 @@ class NamecodingGameManager:
     def run_game(self):
         self._start_game()
         board = self.host.parse_board()
-        self._game_manager.run_game(language=self._language.value, board=board)
+        try:
+            self._game_manager.run_game(language=self._language.value, board=board)
+        except WebDriverException:
+            log.exception("Online adapter failed")
+            self.close()
 
     def _start_game(self) -> "NamecodingGameManager":
         if not self.host:
