@@ -13,7 +13,7 @@ class NaiveGuesser(Guesser):
         super().__init__(name=name)
         self.model: KeyedVectors = None  # type: ignore
 
-    def notify_game_starts(self, language: str, board: Board):
+    def on_game_start(self, language: str, board: Board):
         self.model = load_language(language=language)  # type: ignore
 
     def guess(self, game_state: GuesserGameState) -> Guess:

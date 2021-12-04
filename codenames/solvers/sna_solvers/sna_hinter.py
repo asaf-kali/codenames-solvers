@@ -187,7 +187,7 @@ class SnaHinter(Hinter):
         self.physics_optimization = physics_optimization
         self.game_state: Optional[HinterGameState] = None
 
-    def notify_game_starts(self, language: str, board: Board):
+    def on_game_start(self, language: str, board: Board):
         self.model = load_language(language=language)  # type: ignore
         self.language_length = len(self.model.index_to_key)
         all_words = [_format_word(word) for word in board.all_words]
@@ -331,7 +331,7 @@ class SnaHinter(Hinter):
             (temp_df["distance_to_centroid"] < bad_cards_limitation)
             & (temp_df["distance_to_centroid"] < MAX_SELF_DISTANCE)
             & (temp_df["color"] == self.team_color.as_card_color)
-            ]
+        ]
 
         distance_group = np.max(chosen_cards["distance_to_centroid"])
 
