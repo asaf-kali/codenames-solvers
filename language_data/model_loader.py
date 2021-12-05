@@ -69,6 +69,7 @@ def load_language_async(language: SupportedLanguage, model_name: str = None):
 
 
 def load_word2vec_format(language_base_folder: str, model_name: str) -> KeyedVectors:
+    # Where data structure is `*.bin`
     file_path = os.path.join(language_base_folder, f"{model_name}.bin")
     data = KeyedVectors.load_word2vec_format(file_path, binary=True)
     return data
@@ -78,6 +79,7 @@ def load_kv_format(
     language_base_folder: str,
     model_name: str,
 ) -> KeyedVectors:
+    # Where data structure is a `*.txt` and `*.kv.vectors.npy`.
     model_folder = os.path.join(language_base_folder, model_name)
     file_path = os.path.join(model_folder, f"{model_name}.kv")
     model: KeyedVectors = KeyedVectors.load(file_path)  # type: ignore

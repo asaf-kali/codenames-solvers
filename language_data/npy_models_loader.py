@@ -11,6 +11,7 @@ VECTOR_LENGTH = 100
 
 
 def load_npy_model(language_base_folder: str, model_name: str, vector_length: int = VECTOR_LENGTH) -> KeyedVectors:
+    # Where data structure is a `words.txt` and `vectors.npy`.
     log.debug(f"Loading npy model: {model_name}...")
     model = KeyedVectors(vector_size=vector_length)
     log.debug("Loading raw data...")
