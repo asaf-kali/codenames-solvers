@@ -3,6 +3,7 @@ import logging
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Iterable, List, Optional
+from uuid import uuid4
 
 import numpy as np
 import pandas as pd
@@ -288,6 +289,7 @@ class NaiveHinter(Hinter):
         except NoProposalsFound:
             log.warning("No legal proposals found.")
             if not thresholds_filter_active:
-                return Hint("IDK", 2)
+                random_word = uuid4().hex[:4]
+                return Hint(random_word, 2)
             log.info("Trying without thresholds filtering.")
             return self.pick_hint(game_state=game_state, thresholds_filter_active=False)
