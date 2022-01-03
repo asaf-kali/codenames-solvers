@@ -16,7 +16,7 @@ from codenames.game.base import (
     HinterGameState,
     TeamColor,
     WordGroup,
-    format_word,
+    canonical_format,
 )
 from codenames.game.exceptions import InvalidGuess, InvalidHint, QuitGame
 from codenames.game.player import Guesser, Hinter, Player
@@ -203,7 +203,7 @@ class GameManager:
         return hint
 
     def _process_hint(self, hint: Hint) -> GivenHint:
-        formatted_hint_word = format_word(hint.word)
+        formatted_hint_word = canonical_format(hint.word)
         if formatted_hint_word in self.hinter_state.illegal_words:
             raise InvalidHint("Hint word is on board or was already used!")
         given_hint = GivenHint(
