@@ -157,7 +157,8 @@ class NaiveProposalsGenerator:
         return self.get_vectors(self.board_data.color == CardColor.BLACK)
 
     def get_word_frequency(self, word: str) -> float:
-        return 1 - self.model.key_to_index[word] / len(self.model)
+        # TODO: len(self.model.key_to_index) is linear, this should not be linear grading.
+        return 1 - self.model.key_to_index[word] / len(self.model.key_to_index)
 
     def should_filter_proposal(self, proposal: Proposal) -> bool:
         if not self.thresholds_filter_active:
