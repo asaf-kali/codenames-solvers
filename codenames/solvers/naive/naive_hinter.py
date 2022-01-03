@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 
-from codenames.game import Hinter
+from codenames.game import DEFAULT_MODEL_ADAPTER, Hinter, ModelFormatAdapter
 from codenames.game.base import (
     Board,
     CardColor,
@@ -17,25 +17,12 @@ from codenames.game.base import (
     HinterGameState,
     Similarity,
     WordGroup,
-    format_word,
 )
 from codenames.solvers.utils.algebra import cosine_distance
 from codenames.utils import wrap
 from language_data.model_loader import load_language
 
 log = logging.getLogger(__name__)
-
-
-def should_filter_word(word: str, filter_expressions: Iterable[str]) -> bool:
-    # if "_" in word:
-    #     return True
-    # if word in BANNED_WORDS:
-    #     return True
-    word = format_word(word)
-    for bad_word in filter_expressions:
-        if word in bad_word or bad_word in word:
-            return True
-    return False
 
 
 class NoProposalsFound(Exception):
@@ -114,14 +101,15 @@ def calculate_proposal_grade(proposal: Proposal) -> float:
 @dataclass
 class NaiveProposalsGenerator:
     model: KeyedVectors
+    model_adapter: ModelFormatAdapter
     game_state: HinterGameState
     proposals_thresholds: ProposalThresholds
     team_card_color: CardColor
-    thresholds_filter_active: bool = True
+    thresholds_filter_active: bool
 
     def __post_init__(self):
         unrevealed_cards = self.game_state.board.unrevealed_cards
-        words = tuple(format_word(card.word) for card in unrevealed_cards)
+        words = tuple(self.model_format(card.word) for card in unrevealed_cards)
         colors = tuple(card.color for card in unrevealed_cards)
         # vectors_as_lists_list: List[List[float]] = self.model[words].tolist()  # type: ignore
         # vectors_list = [np.array(v) for v in vectors_as_lists_list]
@@ -160,6 +148,12 @@ class NaiveProposalsGenerator:
         # TODO: len(self.model.key_to_index) is linear, this should not be linear grading.
         return 1 - self.model.key_to_index[word] / len(self.model.key_to_index)
 
+    def model_format(self, word: str) -> str:
+        return self.model_adapter.to_model_format(word)
+
+    def board_format(self, word: str) -> str:
+        return self.model_adapter.to_board_format(word)
+
     def should_filter_proposal(self, proposal: Proposal) -> bool:
         if not self.thresholds_filter_active:
             return False
@@ -171,10 +165,21 @@ class NaiveProposalsGenerator:
             or proposal.distance_black < self.proposals_thresholds.min_distance_black
         )
 
+    def should_filter_word(self, word: str, filter_expressions: Iterable[str]) -> bool:
+        # if "_" in word:
+        #     return True
+        # if word in BANNED_WORDS:
+        #     return True
+        word = self.board_format(word)
+        for filter_expression in filter_expressions:
+            if word in filter_expression or filter_expression in word:
+                return True
+        return False
+
     def proposal_from_similarity(self, word_group: WordGroup, similarity: Similarity) -> Optional[Proposal]:
         word, similarity_score = similarity
-        word = format_word(word)
-        if should_filter_word(word=word, filter_expressions=self.game_state.illegal_words):
+        # word = format_word(word)
+        if self.should_filter_word(word=word, filter_expressions=self.game_state.illegal_words):
             return None
         word_vector = self.model[word]
         word_to_group = cosine_distance(word_vector, self.word_group_vectors(word_group))
@@ -183,7 +188,7 @@ class NaiveProposalsGenerator:
         word_to_black = cosine_distance(word_vector, self.black_vectors)
         proposal = Proposal(
             word_group=word_group,
-            hint_word=word,
+            hint_word=self.board_format(word),
             hint_word_frequency=self.get_word_frequency(word),
             distance_group=np.max(word_to_group),
             distance_gray=np.min(word_to_gray),
@@ -223,7 +228,7 @@ class NaiveProposalsGenerator:
         log.info(f"Creating proposals for group size {wrap(group_size)}...")
         proposals = []
         for card_group in itertools.combinations(self.team_unrevealed_cards, group_size):
-            word_group = tuple(card.word for card in card_group)
+            word_group = tuple(self.model_format(card.word) for card in card_group)
             word_group_proposals = self.create_proposals_for_word_group(word_group=word_group)
             proposals.extend(word_group_proposals)
         return proposals
@@ -251,14 +256,17 @@ class NaiveHinter(Hinter):
     def __init__(
         self,
         name: str,
+        model: KeyedVectors = None,
         proposals_thresholds: ProposalThresholds = DEFAULT_THRESHOLDS,
         max_group_size: int = 3,
+        model_adapter: ModelFormatAdapter = DEFAULT_MODEL_ADAPTER,
     ):
         super().__init__(name=name)
-        self.model: KeyedVectors = None  # type: ignore
+        self.model: KeyedVectors = model
         self.max_group_size = max_group_size
         self.opponent_card_color = None
         self.proposals_thresholds = proposals_thresholds
+        self.model_adapter = model_adapter
 
     def on_game_start(self, language: str, board: Board):
         self.model = load_language(language=language)  # type: ignore
@@ -267,6 +275,7 @@ class NaiveHinter(Hinter):
     def pick_hint(self, game_state: HinterGameState, thresholds_filter_active: bool = True) -> Hint:
         proposal_generator = NaiveProposalsGenerator(
             model=self.model,
+            model_adapter=self.model_adapter,
             game_state=game_state,
             proposals_thresholds=self.proposals_thresholds,
             team_card_color=self.team_color.as_card_color,  # type: ignore
