@@ -26,7 +26,7 @@ def n_closest_words(word: Union[str, np.ndarray], n: int = 10) -> List[str]:
         word_vector = word
     close_word_vectors: np.ndarray = WORD_VECTORS @ word_vector.T
     close_word_vectors = close_word_vectors.argsort()
-    indices = reversed(close_word_vectors[-n:])
+    indices = reversed(close_word_vectors[-n:])  # type: ignore
     close_words = [WORDS[i] for i in indices if WORDS[i] not in FORBIDDEN_WORDS]
     return close_words
 

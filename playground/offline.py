@@ -34,6 +34,7 @@ def run_offline():
     game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
 
     # game_manager.run_game(language="english", board=ENGLISH_BOARD_1)  # noqa
+
     for player in game_manager.players:
         player.model_adapter = HEBREW_SUFFIX_ADAPTER
     game_manager.run_game(language="hebrew", board=HEBREW_BOARD_1)  # noqa
