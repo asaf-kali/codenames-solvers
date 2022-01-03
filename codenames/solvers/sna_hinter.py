@@ -422,9 +422,9 @@ class SnaHinter(Hinter):
             color_rows = relevant_df.color == self.team_color.opponent.as_card_color
         elif color == self.team_color.as_card_color:
             color_rows = relevant_df.color == self.team_color.as_card_color
-        elif color == CardColor.BAD:
+        elif color == CardColor.BAD:  # TODO: What is this?
             color_rows = relevant_df.color.isin(
-                [CardColor.GRAY, CardColor.BLAC, self.team_color.opponent.as_card_color]
+                [CardColor.GRAY, CardColor.BLACK, self.team_color.opponent.as_card_color]
             )
         else:
             raise ValueError(f"No such color as {color}")
