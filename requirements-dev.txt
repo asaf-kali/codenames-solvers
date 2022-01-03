@@ -10,3 +10,4 @@ isort==5.10.1
 # Visuals
 pyvis==0.1.9
 matplotlib~=3.4.3
+jupyter~=1.0
