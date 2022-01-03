@@ -19,24 +19,25 @@ configure_logging()
 # os.environ[MODEL_NAME_ENV_KEY] = "google-300"
 
 # Hebrew
-# os.environ[MODEL_NAME_ENV_KEY] = "wiki-100"
+os.environ[MODEL_NAME_ENV_KEY] = "wiki-100"
+
+
 # os.environ[MODEL_NAME_ENV_KEY] = "skv-ft"
-os.environ[MODEL_NAME_ENV_KEY] = "skv-v1"
-os.environ[IS_STEMMED_ENV_KEY] = "1"
+# os.environ[MODEL_NAME_ENV_KEY] = "skv-ft"
+# os.environ[IS_STEMMED_ENV_KEY] = "1"
 
 
 def run_offline():
-    blue_hinter = NaiveHinter("Leonardo")
-    blue_guesser = NaiveGuesser("Bard")
-    red_hinter = NaiveHinter("Adam")
-    red_guesser = NaiveGuesser("Eve")
+    adapter = HEBREW_SUFFIX_ADAPTER  # DEFAULT_MODEL_ADAPTER
+
+    blue_hinter = NaiveHinter("Leonardo", model_adapter=adapter)
+    blue_guesser = NaiveGuesser("Bard", model_adapter=adapter)
+    red_hinter = NaiveHinter("Adam", model_adapter=adapter)
+    red_guesser = NaiveGuesser("Eve", model_adapter=adapter)
 
     game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
 
     # game_manager.run_game(language="english", board=ENGLISH_BOARD_1)  # noqa
-
-    for player in game_manager.players:
-        player.model_adapter = HEBREW_SUFFIX_ADAPTER
     game_manager.run_game(language="hebrew", board=HEBREW_BOARD_1)  # noqa
 
 
