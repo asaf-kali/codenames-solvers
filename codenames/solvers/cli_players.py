@@ -6,7 +6,7 @@ from codenames.game import (
     Hint,
     Hinter,
     HinterGameState,
-    format_word,
+    canonical_format,
 )
 
 
@@ -38,7 +38,7 @@ class CliGuesser(Guesser):
         # print(f"State is: {state}")
         while True:
             data = input("Please enter your guess word or card index: ")
-            data = format_word(data)
+            data = canonical_format(data)
             print()
             try:
                 index = int(data.strip())

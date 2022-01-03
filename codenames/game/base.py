@@ -12,7 +12,7 @@ WordGroup = Tuple[str, ...]
 WordSet = Set[str]
 
 
-def format_word(word: str) -> str:
+def canonical_format(word: str) -> str:
     return word.replace("_", " ").strip().lower()
 
 
@@ -78,7 +78,7 @@ class Card:
 
     @cached_property
     def formatted_word(self) -> str:
-        return format_word(self.word)
+        return canonical_format(self.word)
 
 
 CardSet = Set[Card]
@@ -141,7 +141,7 @@ class Board:
         return set(card for card in self._cards if card.color == card_color and not card.revealed)
 
     def find_card_index(self, word: str) -> int:
-        formatted_word = format_word(word)
+        formatted_word = canonical_format(word)
         if formatted_word not in self.all_words:
             raise CardNotFoundError(word)
         return self.all_words.index(formatted_word)
@@ -171,7 +171,7 @@ class GivenHint:
 
     @cached_property
     def formatted_word(self) -> str:
-        return format_word(self.word)
+        return canonical_format(self.word)
 
 
 @dataclass(frozen=True)
@@ -203,11 +203,11 @@ class HinterGameState:
     given_hints: List[GivenHint]
     given_guesses: List[GivenGuess]
 
-    @property
+    @cached_property
     def given_hint_words(self) -> WordSet:
-        return set(hint.word for hint in self.given_hints)
+        return set(hint.formatted_word for hint in self.given_hints)
 
-    @property
+    @cached_property
     def illegal_words(self) -> WordSet:
         return {*self.board.all_words, *self.given_hint_words}
 
