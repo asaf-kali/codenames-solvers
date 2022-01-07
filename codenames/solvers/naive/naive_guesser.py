@@ -6,6 +6,7 @@ from codenames.game import (
     DEFAULT_MODEL_ADAPTER,
     PASS_GUESS,
     Board,
+    CardNotFoundError,
     Guess,
     Guesser,
     GuesserGameState,
@@ -37,7 +38,10 @@ class NaiveGuesser(Guesser):
         model_guess_word = self.model.most_similar_to_given(model_formatted_hint, optional_words)
         board_guess_word = self.board_format(model_guess_word)
         log.debug(f"Naive guesser thinks '{current_hint_word}' means '{board_guess_word}'.")
-        guess_idx = game_state.board.find_card_index(board_guess_word)
+        try:
+            guess_idx = game_state.board.find_card_index(board_guess_word)
+        except CardNotFoundError:
+            guess_idx = game_state.board.find_card_index(model_guess_word)
         guess = Guess(card_index=guess_idx)
         return guess
 

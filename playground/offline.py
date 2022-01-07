@@ -1,5 +1,6 @@
 import os
 
+from codenames.game import DEFAULT_MODEL_ADAPTER  # noqa
 from codenames.game.manager import GameManager  # noqa
 from codenames.solvers import (  # type: ignore  # noqa
     NaiveGuesser,
@@ -19,16 +20,15 @@ configure_logging()
 # os.environ[MODEL_NAME_ENV_KEY] = "google-300"
 
 # Hebrew
-os.environ[MODEL_NAME_ENV_KEY] = "wiki-100"
-
-
-# os.environ[MODEL_NAME_ENV_KEY] = "skv-ft"
-# os.environ[MODEL_NAME_ENV_KEY] = "skv-ft"
-# os.environ[IS_STEMMED_ENV_KEY] = "1"
+# os.environ[MODEL_NAME_ENV_KEY] = "wiki-100"
+# os.environ[MODEL_NAME_ENV_KEY] = "skv-v1"
+os.environ[MODEL_NAME_ENV_KEY] = "skv-ft"
+os.environ[IS_STEMMED_ENV_KEY] = "1"
 
 
 def run_offline():
-    adapter = HEBREW_SUFFIX_ADAPTER  # DEFAULT_MODEL_ADAPTER
+    adapter = HEBREW_SUFFIX_ADAPTER
+    # adapter = DEFAULT_MODEL_ADAPTER
 
     blue_hinter = NaiveHinter("Leonardo", model_adapter=adapter)
     blue_guesser = NaiveGuesser("Bard", model_adapter=adapter)
