@@ -242,17 +242,6 @@ class NaiveProposalsGenerator:
         return proposals
 
 
-def pick_best_proposal(proposals: List[Proposal]) -> Proposal:
-    if len(proposals) == 0:
-        raise NoProposalsFound()
-    proposals.sort(key=lambda proposal: -proposal.grade)
-    best_5_repr = "\n".join(str(p) for p in proposals[:5])
-    log.info(f"Best 5 proposals: \n{best_5_repr}")
-    best_proposal = proposals[0]
-    log.info(f"Picked proposal: {best_proposal.detailed_string}")
-    return best_proposal
-
-
 class NaiveHinter(Hinter):
     def __init__(
         self,
@@ -273,6 +262,18 @@ class NaiveHinter(Hinter):
         self.model = load_language(language=language)  # type: ignore
         self.opponent_card_color = self.team_color.opponent.as_card_color  # type: ignore
 
+    @classmethod
+    def pick_best_proposal(cls, proposals: List[Proposal]) -> Proposal:
+        log.debug(f"Got {len(proposals)} proposals.")
+        if len(proposals) == 0:
+            raise NoProposalsFound()
+        proposals.sort(key=lambda proposal: -proposal.grade)
+        best_5_repr = "\n".join(str(p) for p in proposals[:5])
+        log.info(f"Best 5 proposals: \n{best_5_repr}")
+        best_proposal = proposals[0]
+        log.info(f"Picked proposal: {best_proposal.detailed_string}")
+        return best_proposal
+
     def pick_hint(self, game_state: HinterGameState, thresholds_filter_active: bool = True) -> Hint:
         proposal_generator = NaiveProposalsGenerator(
             model=self.model,
@@ -284,7 +285,7 @@ class NaiveHinter(Hinter):
         )
         proposals = proposal_generator.generate_proposals(self.max_group_size)
         try:
-            proposal = pick_best_proposal(proposals=proposals)
+            proposal = self.pick_best_proposal(proposals=proposals)
             return Hint(proposal.hint_word, proposal.card_count)
         except NoProposalsFound:
             log.warning("No legal proposals found.")

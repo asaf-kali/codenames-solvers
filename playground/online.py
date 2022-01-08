@@ -10,7 +10,7 @@ from codenames.solvers import (  # type: ignore  # noqa
     SnaHinter,
 )
 from codenames.utils import configure_logging
-from language_data.model_loader import (
+from language_data.model_loader import (  # noqa
     IS_STEMMED_ENV_KEY,
     MODEL_NAME_ENV_KEY,
     load_language_async,
