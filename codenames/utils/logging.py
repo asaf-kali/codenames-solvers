@@ -36,52 +36,59 @@ class LevelRangeFilter(Filter):
 logging.setLoggerClass(ExtraDataLogger)
 
 log = logging.getLogger(__name__)
-LOGGING_CONFIG = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "simple": {"class": "codenames.utils.ExtraDataFormatter"},
-        "debug": {
-            "class": "codenames.utils.ExtraDataFormatter",
-            "format": "[%(asctime)s.%(msecs)03d] [%(levelname)-.4s]: %(message)s @@@ "
-            "[%(threadName)s] [%(name)s:%(lineno)s]",
-            "datefmt": "%Y-%m-%d %H:%M:%S",
-        },
-    },
-    "filters": {
-        "std_filter": {"()": "codenames.utils.LevelRangeFilter", "high": logging.WARNING},
-        "err_filter": {"()": "codenames.utils.LevelRangeFilter", "low": logging.WARNING},
-    },
-    "handlers": {
-        "console_out": {
-            "class": "logging.StreamHandler",
-            "filters": ["std_filter"],
-            "formatter": "simple",
-            "stream": sys.stdout,
-        },
-        "console_err": {
-            "class": "logging.StreamHandler",
-            "filters": ["err_filter"],
-            "formatter": "debug",
-            "stream": sys.stdout,
-            # "stream": sys.stderr,
-        },
-    },
-    "root": {"handlers": ["console_out", "console_err"], "level": "DEBUG"},
-    "loggers": {
-        "selenium": {"level": "INFO"},
-        "urllib3": {"level": "INFO"},
-        "codenames": {"level": "DEBUG"},
-        "matplotlib.font_manager": {"propagate": False}
-        # "findfont": {"level": "error"}
-        # "codenames.online": {"level": "DEBUG"},
-        # "codenames.solvers.naive": {"level": "INFO"},
-    },
-}
 
 
-def configure_logging():
-    dictConfig(LOGGING_CONFIG)
+def get_logging_config(formatter: str = None, level: str = None, mute_solvers: bool = False):
+    result = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "simple": {"class": "codenames.utils.ExtraDataFormatter"},
+            "debug": {
+                "class": "codenames.utils.ExtraDataFormatter",
+                "format": "[%(asctime)s.%(msecs)03d] [%(levelname)-.4s]: %(message)s @@@ "
+                "[%(threadName)s] [%(name)s:%(lineno)s]",
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+            },
+        },
+        "filters": {
+            "std_filter": {"()": "codenames.utils.LevelRangeFilter", "high": logging.WARNING},
+            "err_filter": {"()": "codenames.utils.LevelRangeFilter", "low": logging.WARNING},
+        },
+        "handlers": {
+            "console_out": {
+                "class": "logging.StreamHandler",
+                "filters": ["std_filter"],
+                "formatter": formatter or "simple",
+                "stream": sys.stdout,
+            },
+            "console_err": {
+                "class": "logging.StreamHandler",
+                "filters": ["err_filter"],
+                "formatter": formatter or "debug",
+                "stream": sys.stdout,
+                # "stream": sys.stderr,
+            },
+        },
+        "root": {"handlers": ["console_out", "console_err"], "level": level or "DEBUG"},
+        "loggers": {
+            "selenium": {"level": "INFO"},
+            "urllib3": {"level": "INFO"},
+            "codenames": {"level": "DEBUG"},
+            "matplotlib.font_manager": {"propagate": False},
+            # "findfont": {"level": "error"},
+            # "codenames.online": {"level": "DEBUG"},
+        },
+    }
+
+    if mute_solvers:
+        result["loggers"]["codenames.solvers"] = {"level": "WARN", "propagate": False}  # type: ignore
+    return result
+
+
+def configure_logging(formatter: str = None, level: str = None, mute_solvers: bool = False):
+    config = get_logging_config(formatter=formatter, level=level, mute_solvers=mute_solvers)
+    dictConfig(config)
     log.debug("Logging configured")
 
 

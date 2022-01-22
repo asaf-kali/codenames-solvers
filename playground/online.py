@@ -17,7 +17,7 @@ from language_data.model_loader import (  # noqa
 )
 from playground.model_adapters import HEBREW_SUFFIX_ADAPTER
 
-configure_logging()
+configure_logging(level="INFO", mute_solvers=True)
 log = logging.getLogger(__name__)
 
 # os.environ[MODEL_NAME_ENV_KEY] = "google-300"
