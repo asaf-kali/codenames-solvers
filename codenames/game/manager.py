@@ -76,6 +76,7 @@ class GameManager:
         self.red_guesser = red_guesser
         self.language = ""
         self.board = Board([])
+        self.raw_hints: List[Hint] = []
         self.given_hints: List[GivenHint] = []
         self.given_guesses: List[GivenGuess] = []
         self.current_team_color: TeamColor = TeamColor.BLUE
@@ -157,6 +158,7 @@ class GameManager:
         self.language = language
         self.board = board
         self.board.reset_state()
+        self.raw_hints = []
         self.given_hints = []
         self.given_guesses = []
         self.current_team_color = _determine_first_team(self.board)
@@ -201,6 +203,7 @@ class GameManager:
         return hint
 
     def _process_hint(self, hint: Hint) -> GivenHint:
+        self.raw_hints.append(hint)
         formatted_hint_word = canonical_format(hint.word)
         if formatted_hint_word in self.hinter_state.illegal_words:
             raise InvalidHint("Hint word is on board or was already used!")

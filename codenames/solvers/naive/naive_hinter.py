@@ -293,7 +293,7 @@ class NaiveHinter(Hinter):
         proposals = proposal_generator.generate_proposals(self.max_group_size)
         try:
             proposal = self.pick_best_proposal(proposals=proposals)
-            return Hint(proposal.hint_word, proposal.card_count)
+            return Hint(proposal.hint_word, proposal.card_count, for_words=proposal.word_group)
         except NoProposalsFound:
             log.warning("No legal proposals found.")
             if not thresholds_filter_active:

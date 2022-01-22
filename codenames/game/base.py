@@ -197,6 +197,7 @@ class Board:
 class Hint:
     word: str
     card_amount: int
+    for_words: Optional[WordGroup] = None
 
     def __str__(self) -> str:
         return f"{self.word}, {self.card_amount}"
