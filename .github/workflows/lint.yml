@@ -18,4 +18,4 @@ jobs:
           pip install -r requirements-dev.txt
       - name: Check lint
         run: |
-          make check-lint
+          make lint-check
