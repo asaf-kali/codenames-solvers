@@ -170,7 +170,7 @@ class NaiveProposalsGenerator:
             black=proposal.distance_black - self.proposals_thresholds.min_distance_black,
         )
         pass_thresholds = distances.min >= 0
-        really_good = distances.min >= -0.01 and distances.total >= 0.45
+        really_good = distances.min >= -0.05 and distances.total >= 0.45
         return pass_thresholds or really_good
 
     def should_filter_hint(self, word: str, filter_expressions: Iterable[str]) -> bool:
