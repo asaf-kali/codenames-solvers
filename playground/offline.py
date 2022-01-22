@@ -41,6 +41,7 @@ def run_offline():
 
     # game_manager.run_game(language="english", board=ENGLISH_BOARD_1)  # noqa
     game_manager.run_game(language="hebrew", board=HEBREW_BOARD_5)  # noqa
+    print(game_manager.board)
 
 
 run_offline()
