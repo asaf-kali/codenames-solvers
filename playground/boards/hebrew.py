@@ -27,7 +27,101 @@ HEBREW_WORDS = [
     "יקום",
     "דרור",
 ]
-HEBREW_BOARD_1 = Board(
+
+HEBREW_BOARD_1 = words_to_random_board(words=HEBREW_WORDS, seed=1)
+HEBREW_BOARD_2 = words_to_random_board(words=HEBREW_WORDS, seed=2)
+HEBREW_BOARD_3 = words_to_random_board(words=HEBREW_WORDS, seed=3)
+
+# Regex: '# Parsed card: (.*) (.*)' -> '# Card("$1", color=CardColor.$2),'
+
+HEBREW_BOARD_DIFFICULT = Board(
+    [
+        Card("בריטניה", color=CardColor.GRAY),
+        Card("מרכז", color=CardColor.BLUE),
+        Card("נבחר", color=CardColor.GRAY),
+        Card("שניה", color=CardColor.GRAY),
+        Card("טרמפ", color=CardColor.RED),
+        Card("ברברי", color=CardColor.BLUE),
+        Card("נשק", color=CardColor.BLUE),
+        Card("תוכן", color=CardColor.RED),
+        Card("קיסריה", color=CardColor.GRAY),
+        Card("גלידה", color=CardColor.RED),
+        Card("ארז", color=CardColor.BLACK),
+        Card("מציאה", color=CardColor.BLUE),
+        Card("דק", color=CardColor.GRAY),
+        Card("תולעת", color=CardColor.RED),
+        Card("מצפון", color=CardColor.RED),
+        Card("פירדמידה", color=CardColor.GRAY),
+        Card("משובש", color=CardColor.BLUE),
+        Card("שק", color=CardColor.BLUE),
+        Card("פנינה", color=CardColor.RED),
+        Card("דקה", color=CardColor.BLUE),
+        Card("חג", color=CardColor.BLUE),
+        Card("קשר", color=CardColor.RED),
+        Card("קור", color=CardColor.RED),
+        Card("אויר", color=CardColor.BLUE),
+        Card("טבליה", color=CardColor.GRAY),
+    ]
+)
+HEBREW_BOARD_4 = Board(
+    [
+        Card("שיר", color=CardColor.BLUE),
+        Card("הקליד", color=CardColor.BLUE),
+        Card("חופשה", color=CardColor.RED),
+        Card("ערב", color=CardColor.RED),
+        Card("תרמיל", color=CardColor.BLUE),
+        Card("חוש", color=CardColor.GRAY),
+        Card("הדר", color=CardColor.RED),
+        Card("פירדמידה", color=CardColor.GRAY),
+        Card("עגול", color=CardColor.GRAY),
+        Card("אלתור", color=CardColor.RED),
+        Card("שנה", color=CardColor.BLUE),
+        Card("ריבה", color=CardColor.BLUE),
+        Card("נגן", color=CardColor.BLUE),
+        Card("בית", color=CardColor.RED),
+        Card("דמוקרטיה", color=CardColor.GRAY),
+        Card("ערק", color=CardColor.GRAY),
+        Card("שחור", color=CardColor.RED),
+        Card("פרה", color=CardColor.RED),
+        Card("נס", color=CardColor.BLACK),
+        Card("בית-ספר", color=CardColor.BLUE),
+        Card("מצבה", color=CardColor.BLUE),
+        Card("אגרטל", color=CardColor.GRAY),
+        Card("מקום", color=CardColor.RED),
+        Card("תמונה", color=CardColor.GRAY),
+        Card("מבט", color=CardColor.RED),
+    ]
+)
+HEBREW_BOARD_5 = Board(
+    [
+        Card("שעה", color=CardColor.BLACK),
+        Card("נסיון", color=CardColor.BLUE),
+        Card("אחראי", color=CardColor.BLUE),
+        Card("רכש", color=CardColor.RED),
+        Card("גרם", color=CardColor.BLUE),
+        Card("הלכה", color=CardColor.RED),
+        Card("מונה", color=CardColor.RED),
+        Card("חור", color=CardColor.GRAY),
+        Card("בן-גוריון", color=CardColor.GRAY),
+        Card("ריקוד", color=CardColor.RED),
+        Card("פריז", color=CardColor.GRAY),
+        Card("אקדח", color=CardColor.RED),
+        Card("קניון", color=CardColor.RED),
+        Card("דני", color=CardColor.GRAY),
+        Card("ענק", color=CardColor.BLUE),
+        Card("נפל", color=CardColor.GRAY),
+        Card("ענן", color=CardColor.BLUE),
+        Card("די", color=CardColor.GRAY),
+        Card("רעל", color=CardColor.RED),
+        Card("מזרק", color=CardColor.BLUE),
+        Card("אחוז", color=CardColor.GRAY),
+        Card("ניצחון", color=CardColor.BLUE),
+        Card("עצם", color=CardColor.RED),
+        Card("לוחם", color=CardColor.RED),
+        Card("קהל", color=CardColor.BLUE),
+    ]
+)
+HEBREW_BOARD_6 = Board(
     [
         Card("חיים", color=CardColor.GRAY),
         Card("ערך", color=CardColor.BLACK),
@@ -56,6 +150,3 @@ HEBREW_BOARD_1 = Board(
         Card("ילד", color=CardColor.BLUE),
     ]
 )
-
-HEBREW_BOARD_2 = words_to_random_board(words=HEBREW_WORDS, seed=1)
-HEBREW_BOARD_3 = words_to_random_board(words=HEBREW_WORDS, seed=2)
