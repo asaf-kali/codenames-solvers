@@ -1,5 +1,32 @@
 from codenames.game import Board, Card, CardColor, words_to_random_board
 
+HEBREW_WORDS = [
+    "מטען",
+    "עלילה",
+    "ניצחון",
+    "כבש",
+    "יוגה",
+    "צבי",
+    "אף",
+    "מפגש",
+    "דק",
+    "פרץ",
+    "שלם",
+    "אדם",
+    "הרמוניה",
+    "זכוכית",
+    "חשמל",
+    "מעטפת",
+    "אנרגיה",
+    "קברן",
+    "נחת",
+    "חייזר",
+    "שיר",
+    "מיליונר",
+    "לפיד",
+    "יקום",
+    "דרור",
+]
 HEBREW_BOARD_1 = Board(
     [
         Card("חיים", color=CardColor.GRAY),
@@ -30,32 +57,5 @@ HEBREW_BOARD_1 = Board(
     ]
 )
 
-HEBREW_WORDS = [
-    "מטען",
-    "עלילה",
-    "ניצחון",
-    "כבש",
-    "יוגה",
-    "צבי",
-    "אף",
-    "מפגש",
-    "דק",
-    "פרץ",
-    "שלם",
-    "אדם",
-    "הרמוניה",
-    "זכוכית",
-    "חשמל",
-    "מעטפת",
-    "אנרגיה",
-    "קברן",
-    "נחת",
-    "חייזר",
-    "שיר",
-    "מיליונר",
-    "לפיד",
-    "יקום",
-    "דרור",
-]
 HEBREW_BOARD_2 = words_to_random_board(words=HEBREW_WORDS, seed=1)
 HEBREW_BOARD_3 = words_to_random_board(words=HEBREW_WORDS, seed=2)
