@@ -38,15 +38,15 @@ class NamecodingGameManager:
     ):
         self.host: Optional[NamecodingPlayerAdapter] = None
         self.guests: List[NamecodingPlayerAdapter] = []
-        self._game_manager = GameManager(
+        self.game_manager = GameManager(
             blue_hinter=blue_hinter, red_hinter=red_hinter, blue_guesser=blue_guesser, red_guesser=red_guesser
         )
         self._show_host = show_host
         self._running_game_id: Optional[str] = None
         self._auto_start_semaphore = Semaphore()
         self._language: NamecodingLanguage = NamecodingLanguage.HEBREW
-        self._game_manager.hint_given_subscribers.append(self._handle_hint_given)
-        self._game_manager.guess_given_subscribers.append(self._handle_guess_given)
+        self.game_manager.hint_given_subscribers.append(self._handle_hint_given)
+        self.game_manager.guess_given_subscribers.append(self._handle_guess_given)
 
     @property
     def adapters(self) -> Iterable[NamecodingPlayerAdapter]:
@@ -55,11 +55,11 @@ class NamecodingGameManager:
 
     @property
     def winner(self) -> Optional[Winner]:
-        return self._game_manager.winner
+        return self.game_manager.winner
 
     @property
     def board(self) -> Board:
-        return self._game_manager.board
+        return self.game_manager.board
 
     def _get_adapter_for_player(self, player: Player) -> NamecodingPlayerAdapter:
         for adapter in self.adapters:
@@ -72,7 +72,7 @@ class NamecodingGameManager:
     ) -> "NamecodingGameManager":
         number_of_guests = 3
         self._auto_start_semaphore = Semaphore(value=number_of_guests)
-        for player in self._game_manager.players:
+        for player in self.game_manager.players:
             if not self.host:
                 self.host_game(host_player=player)
                 self.configure_game(language=language, clock=clock)
@@ -132,7 +132,7 @@ class NamecodingGameManager:
         self._start_game()
         board = self.host.parse_board()
         try:
-            self._game_manager.run_game(language=self._language.value, board=board)
+            self.game_manager.run_game(language=self._language.value, board=board)
         except WebDriverException:
             log.exception("Online adapter failed")
             self.close()
