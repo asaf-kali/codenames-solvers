@@ -38,8 +38,8 @@ logging.setLoggerClass(ExtraDataLogger)
 log = logging.getLogger(__name__)
 
 
-def get_logging_config(formatter: str = None, level: str = None, mute_solvers: bool = False):
-    result = {
+def configure_logging(formatter: str = None, level: str = None, mute_solvers: bool = False, mute_online: bool = True):
+    config = {
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
@@ -77,17 +77,13 @@ def get_logging_config(formatter: str = None, level: str = None, mute_solvers: b
             "codenames": {"level": "DEBUG"},
             "matplotlib.font_manager": {"propagate": False},
             # "findfont": {"level": "error"},
-            # "codenames.online": {"level": "DEBUG"},
         },
     }
 
     if mute_solvers:
-        result["loggers"]["codenames.solvers"] = {"level": "WARN", "propagate": False}  # type: ignore
-    return result
-
-
-def configure_logging(formatter: str = None, level: str = None, mute_solvers: bool = False):
-    config = get_logging_config(formatter=formatter, level=level, mute_solvers=mute_solvers)
+        config["loggers"]["codenames.solvers"] = {"level": "WARN", "propagate": False}  # type: ignore
+    if mute_online:
+        config["loggers"]["codenames.online"] = {"level": "WARN", "propagate": False}  # type: ignore
     dictConfig(config)
     log.debug("Logging configured")
 
