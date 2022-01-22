@@ -50,6 +50,7 @@ def online_game():
         if online_manager is not None:
             log.info(f"Winner: {online_manager.winner}")
             online_manager.close()
+            print(online_manager.board)
     log.info("Done")
 
 
