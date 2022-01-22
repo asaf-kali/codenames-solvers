@@ -5,6 +5,7 @@ from functools import cached_property
 from typing import Iterable, List, Optional, Set, Tuple, Union
 
 from codenames.game.exceptions import CardNotFoundError
+from codenames.utils import wrap
 
 BLACK_AMOUNT = 1
 
@@ -200,7 +201,10 @@ class Hint:
     for_words: Optional[WordGroup] = None
 
     def __str__(self) -> str:
-        return f"{self.word}, {self.card_amount}"
+        result = f"Said {wrap(self.word)} {wrap(self.card_amount)}"
+        if self.for_words:
+            result += f" for: {self.for_words}"
+        return result
 
 
 @dataclass(frozen=True)
