@@ -50,8 +50,9 @@ def _parse_card(card_element: ShadowRootElement) -> Card:
     card_color = parse_card_color(namecoding_color=namecoding_color)
     image_overlay = card_element.find_element(by=By.ID, value="image-overlay")
     revealed = image_overlay.get_attribute("revealed") is not None
-    log.debug(f"Parsed card: {word} {card_color.value}")
-    return Card(word=word, color=card_color, revealed=revealed)
+    card = Card(word=word, color=card_color, revealed=revealed)
+    log.debug(f"Parsed card: {card}")
+    return card
 
 
 def get_shadow_root(parent, tag_name: str) -> ShadowRootElement:

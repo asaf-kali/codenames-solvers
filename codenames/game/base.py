@@ -22,6 +22,12 @@ class CardColor(Enum):
     GRAY = "Gray"
     BLACK = "Black"
 
+    def __str__(self):
+        return self.value
+
+    def __lt__(self, other: "CardColor") -> bool:
+        return self.value < other.value
+
     @property
     def as_team_color(self) -> "TeamColor":
         if self == CardColor.RED:
@@ -34,13 +40,28 @@ class CardColor(Enum):
     def opponent(self) -> "CardColor":
         return self.as_team_color.opponent.as_card_color
 
-    def __lt__(self, other: "CardColor") -> bool:
-        return self.value < other.value
+    @property
+    def emoji(self) -> str:
+        return CARD_COLOR_TO_EMOJI[self]
+
+
+CARD_COLOR_TO_EMOJI = {
+    CardColor.RED: "🟥",
+    CardColor.BLUE: "🟦",
+    CardColor.GRAY: "😬",
+    CardColor.BLACK: "💀",
+}
 
 
 class TeamColor(Enum):
     BLUE = "Blue"
     RED = "Red"
+
+    def __str__(self):
+        return self.value
+
+    def __lt__(self, other: "CardColor") -> bool:
+        return self.value < other.value
 
     @property
     def opponent(self) -> "TeamColor":
@@ -49,9 +70,6 @@ class TeamColor(Enum):
     @property
     def as_card_color(self) -> CardColor:
         return CardColor.BLUE if self == TeamColor.BLUE else CardColor.RED
-
-    def __lt__(self, other: "CardColor") -> bool:
-        return self.value < other.value
 
 
 @dataclass
@@ -63,8 +81,8 @@ class Card:
     def __str__(self) -> str:
         result = self.word
         if self.color:
-            result += f" ({self.color.value})"
-        result += " V" if self.revealed else " X"
+            result = f"{self.color} {self.word}"
+        # result += " V" if self.revealed else " X"
         return result
 
     def __hash__(self):
