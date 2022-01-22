@@ -1,15 +1,20 @@
 LINE_LENGTH=120
 
-init:
-	make install
-	make tests
+# Install
 
-install:
+install-run:
 	pip install --upgrade pip
-	pip install -r requirements.txt -r requirements-dev.txt
+	pip install -r requirements.txt
 
-tests:
-	pytest
+install-test:
+	@make install-run --no-print-directory
+	pip install -r requirements-dev.txt
+
+install-dev:
+	@make install-test --no-print-directory
+	pre-commit install
+
+install: install-dev
 
 # Video
 
@@ -22,18 +27,21 @@ video-install:
 video-render:
 	python -m manim render videos/explanation.py --progress_bar display -p -f
 
-# Linting
+# Lint
 
-lint:
+lint-only:
 	black . -l $(LINE_LENGTH)
 	isort . --profile black
-	@make check-lint --no-print-directory
 
-check-lint:
+lint-check:
 	black . -l $(LINE_LENGTH) --check
-	isort . --profile black --check
+	isort . --profile black --check --skip __init__.py
 	mypy . --ignore-missing-imports
-	flake8 . --max-line-length=$(LINE_LENGTH) --exclude codenames/old
+	flake8 . --max-line-length=$(LINE_LENGTH)
+
+lint:
+	@make lint-only --no-print-directory
+	@make lint-check --no-print-directory
 
 unzip_data:
 	echo "TODO"

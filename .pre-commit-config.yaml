@@ -1,0 +1,14 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+  - repo: https://github.com/asaf-kali/generic-iterative-stemmer
+    rev: ed97e61c9288dc7d60609b6b9edfb82bc69addb5
+    hooks:
+      - id: lint
