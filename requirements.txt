@@ -10,4 +10,4 @@ networkx~=2.6
 python-louvain~=0.15
 
 # Web
-selenium~=3.141
+selenium~=4.1.0
