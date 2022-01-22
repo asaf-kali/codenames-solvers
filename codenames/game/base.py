@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
@@ -81,7 +82,7 @@ class Card:
     def __str__(self) -> str:
         result = self.word
         if self.color:
-            result = f"{self.color} {self.word}"
+            result = f"{self.color.emoji} {self.word}"
         # result += " V" if self.revealed else " X"
         return result
 
@@ -100,6 +101,14 @@ class Card:
 
 
 CardSet = Set[Card]
+LTR = "\u200E"
+
+
+def two_integer_factors(n: int) -> Tuple[int, int]:
+    x = math.floor(math.sqrt(n))
+    while n % x != 0:
+        x -= 1
+    return n // x, x
 
 
 class Board:
@@ -119,6 +128,9 @@ class Board:
         if item < 0 or item >= self.size:
             raise IndexError(f"Index out of bounds: {item}")
         return self._cards[item]
+
+    def __str__(self):
+        return self.printable_string
 
     @property
     def size(self) -> int:
@@ -151,6 +163,18 @@ class Board:
     @property
     def censured(self) -> "Board":
         return Board([card.censored for card in self._cards])
+
+    @property
+    def printable_string(self) -> str:
+        from beautifultable import BeautifulTable
+
+        table = BeautifulTable()
+        cols, rows = two_integer_factors(self.size)
+        for i in range(rows):
+            start_index, end_index = i * cols, (i + 1) * cols
+            row = [LTR + str(self[i]) for i in range(start_index, end_index)]
+            table.rows.append(row)
+        return str(table)
 
     def cards_for_color(self, card_color: CardColor) -> CardSet:
         return set(card for card in self._cards if card.color == card_color)

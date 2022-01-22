@@ -4,7 +4,16 @@ from typing import Iterable, List, Optional
 
 from selenium.common.exceptions import WebDriverException
 
-from codenames.game import GameManager, Guess, Guesser, Hint, Hinter, Player, Winner
+from codenames.game import (
+    Board,
+    GameManager,
+    Guess,
+    Guesser,
+    Hint,
+    Hinter,
+    Player,
+    Winner,
+)
 from codenames.online import (
     IllegalOperation,
     NamecodingLanguage,
@@ -47,6 +56,10 @@ class NamecodingGameManager:
     @property
     def winner(self) -> Optional[Winner]:
         return self._game_manager.winner
+
+    @property
+    def board(self) -> Board:
+        return self._game_manager.board
 
     def _get_adapter_for_player(self, player: Player) -> NamecodingPlayerAdapter:
         for adapter in self.adapters:
