@@ -30,27 +30,31 @@ class NoProposalsFound(Exception):
     pass
 
 
-@dataclass
-class ProposalThresholds:
-    min_frequency: float
-    max_distance_group: float
-    min_distance_gray: float
-    min_distance_opponent: float
-    min_distance_black: float
-
-
 # min_frequency:         high = more results
 # max_distance_group:     high = more results
-# min_distance_gray:      high = less results
-# min_distance_opponent:  high = less results
-# min_distance_black:     high = less results
-DEFAULT_THRESHOLDS = ProposalThresholds(
-    min_frequency=0.85,  # Can't be less common then X.
-    max_distance_group=0.25,  # Can't be far from the group more then X.
-    min_distance_gray=0.26,  # Can't be closer to gray then X.
-    min_distance_opponent=0.28,  # Can't be closer to opponent then X.
-    min_distance_black=0.30,  # Can't be closer to black then X.
-)
+# min_distance_gray:      high = fewer results
+# min_distance_opponent:  high = fewer results
+# min_distance_black:     high = fewer results
+@dataclass
+class ProposalThresholds:
+    min_frequency: float = 0.85  # Can't be less common than X.
+    max_distance_group: float = 0.25  # Can't be far from the group more than X.
+    min_distance_gray: float = 0.26  # Can't be closer to gray then X.
+    min_distance_opponent: float = 0.28  # Can't be closer to opponent then X.
+    min_distance_black: float = 0.30  # Can't be closer to black then X.
+
+
+class ThresholdDistances(dict):
+    @property
+    def min(self) -> float:
+        return min(self.values())
+
+    @property
+    def total(self) -> float:
+        return sum(self.values())
+
+
+DEFAULT_THRESHOLDS = ProposalThresholds()
 
 
 @dataclass
@@ -155,18 +159,21 @@ class NaiveProposalsGenerator:
     def board_format(self, word: str) -> str:
         return self.model_adapter.to_board_format(word)
 
-    def should_filter_proposal(self, proposal: Proposal) -> bool:
+    def proposal_satisfy_thresholds(self, proposal: Proposal) -> bool:
         if not self.thresholds_filter_active:
-            return False
-        return (
-            proposal.hint_word_frequency < self.proposals_thresholds.min_frequency
-            or proposal.distance_group > self.proposals_thresholds.max_distance_group
-            or proposal.distance_gray < self.proposals_thresholds.min_distance_gray
-            or proposal.distance_opponent < self.proposals_thresholds.min_distance_opponent
-            or proposal.distance_black < self.proposals_thresholds.min_distance_black
+            return True
+        distances = ThresholdDistances(
+            frequency=proposal.hint_word_frequency - self.proposals_thresholds.min_frequency,
+            group=self.proposals_thresholds.max_distance_group - proposal.distance_group,
+            gray=proposal.distance_gray - self.proposals_thresholds.min_distance_gray,
+            opponent=proposal.distance_opponent - self.proposals_thresholds.min_distance_opponent,
+            black=proposal.distance_black - self.proposals_thresholds.min_distance_black,
         )
+        pass_thresholds = distances.min >= 0
+        really_good = distances.min >= -0.01 and distances.total >= 0.45
+        return pass_thresholds or really_good
 
-    def should_filter_word(self, word: str, filter_expressions: Iterable[str]) -> bool:
+    def should_filter_hint(self, word: str, filter_expressions: Iterable[str]) -> bool:
         # if "_" in word:
         #     return True
         # if word in BANNED_WORDS:
@@ -178,25 +185,25 @@ class NaiveProposalsGenerator:
         return False
 
     def proposal_from_similarity(self, word_group: WordGroup, similarity: Similarity) -> Optional[Proposal]:
-        word, similarity_score = similarity
+        hint, similarity_score = similarity
         # word = format_word(word)
-        if self.should_filter_word(word=word, filter_expressions=self.game_state.illegal_words):
+        if self.should_filter_hint(word=hint, filter_expressions=self.game_state.illegal_words):
             return None
-        word_vector = self.model[word]
-        word_to_group = cosine_distance(word_vector, self.word_group_vectors(word_group))
-        word_to_gray = cosine_distance(word_vector, self.gray_vectors)
-        word_to_opponent = cosine_distance(word_vector, self.opponent_vectors)
-        word_to_black = cosine_distance(word_vector, self.black_vectors)
+        hint_vector = self.model[hint]
+        hint_to_group = cosine_distance(hint_vector, self.word_group_vectors(word_group))
+        hint_to_gray = cosine_distance(hint_vector, self.gray_vectors)
+        hint_to_opponent = cosine_distance(hint_vector, self.opponent_vectors)
+        hint_to_black = cosine_distance(hint_vector, self.black_vectors)
         proposal = Proposal(
             word_group=word_group,
-            hint_word=self.board_format(word),
-            hint_word_frequency=self.get_word_frequency(word),
-            distance_group=np.max(word_to_group),
-            distance_gray=np.min(word_to_gray),
-            distance_opponent=np.min(word_to_opponent),
-            distance_black=np.min(word_to_black),
+            hint_word=self.board_format(hint),
+            hint_word_frequency=self.get_word_frequency(hint),
+            distance_group=np.max(hint_to_group),
+            distance_gray=np.min(hint_to_gray),
+            distance_opponent=np.min(hint_to_opponent),
+            distance_black=np.min(hint_to_black),
         )
-        if self.should_filter_proposal(proposal=proposal):
+        if not self.proposal_satisfy_thresholds(proposal=proposal):
             return None
         proposal.grade = calculate_proposal_grade(proposal)
         return proposal

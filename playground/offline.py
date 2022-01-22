@@ -13,7 +13,7 @@ from playground.boards.english import *  # noqa
 from playground.boards.hebrew import *  # noqa
 from playground.model_adapters import HEBREW_SUFFIX_ADAPTER
 
-configure_logging()
+configure_logging(mute_solvers=True)
 
 # English
 # os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
