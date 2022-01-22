@@ -38,7 +38,7 @@ def online_game():
         blue_hinter = NaiveHinter("Leonardo", model_adapter=adapter)
         blue_guesser = CliGuesser("Bard")
         red_hinter = NaiveHinter("Adam", model_adapter=adapter)
-        red_guesser = NaiveGuesser("Eve", model_adapter=adapter)
+        red_guesser = CliGuesser("Eve")
         online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
         online_manager.auto_start(language=NamecodingLanguage.HEBREW, clock=False)
         sleep(1)
@@ -50,7 +50,8 @@ def online_game():
         if online_manager is not None:
             log.info(f"Winner: {online_manager.winner}")
             online_manager.close()
-            print(online_manager.board)
+            print(online_manager.game_manager.raw_hints)
+            print(online_manager.game_manager.board)
     log.info("Done")
 
 
