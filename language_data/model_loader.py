@@ -76,7 +76,7 @@ def load_language(language: str, model_name: str = None, is_stemmed: bool = None
 
 
 def load_language_async(language: str, model_name: str = None, is_stemmed: bool = None):
-    t = Thread(target=load_language, args=(language, model_name, is_stemmed))
+    t = Thread(target=load_language, args=(language, model_name, is_stemmed), daemon=True)
     t.start()
 
 
@@ -89,7 +89,7 @@ def load_language_async(language: str, model_name: str = None, is_stemmed: bool 
 
 def load_kv_format(language_base_folder: str, model_name: str, is_stemmed: bool = False) -> KeyedVectors:
     model_folder = os.path.join(language_base_folder, model_name)
-    file_path = os.path.join(model_folder, f"{model_name}.kv")
+    file_path = os.path.join(model_folder, "model.kv")  # TODO: This needs fixing
     if is_stemmed:
         model = StemmedKeyedVectors.load(file_path)
     else:
