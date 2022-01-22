@@ -5,6 +5,8 @@ from time import sleep
 from codenames.game import QuitGame
 from codenames.online import NamecodingGameManager, NamecodingLanguage
 from codenames.solvers import (  # type: ignore  # noqa
+    CliGuesser,
+    CliHinter,
     NaiveGuesser,
     NaiveHinter,
     SnaHinter,
@@ -23,7 +25,7 @@ log = logging.getLogger(__name__)
 # os.environ[MODEL_NAME_ENV_KEY] = "google-300"
 # os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
 # os.environ[MODEL_NAME_ENV_KEY] = "wiki-100"
-os.environ[MODEL_NAME_ENV_KEY] = "skv-ft"
+os.environ[MODEL_NAME_ENV_KEY] = "skv-ft-v2"
 os.environ[IS_STEMMED_ENV_KEY] = "1"
 load_language_async(language="hebrew")  # type: ignore
 
@@ -34,15 +36,15 @@ def online_game():
         adapter = HEBREW_SUFFIX_ADAPTER
         # adapter = DEFAULT_MODEL_ADAPTER
         blue_hinter = NaiveHinter("Leonardo", model_adapter=adapter)
-        blue_guesser = NaiveGuesser("Bard", model_adapter=adapter)
+        blue_guesser = CliGuesser("Bard")
         red_hinter = NaiveHinter("Adam", model_adapter=adapter)
         red_guesser = NaiveGuesser("Eve", model_adapter=adapter)
-        online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
+        online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
         online_manager.auto_start(language=NamecodingLanguage.HEBREW, clock=False)
         sleep(1)
     except QuitGame:
         online_manager.close()
-    except Exception as e:  # noqa
+    except:  # noqa
         log.exception("Error occurred")
     finally:
         if online_manager is not None:
