@@ -35,7 +35,7 @@ class CliGuesser(Guesser):
         return True
 
     def guess(self, game_state: GuesserGameState) -> Guess:
-        # print(f"State is: {state}")
+        print("\n", game_state.board.printable_string, "\n", sep="")
         while True:
             data = input("Please enter your guess word or card index: ")
             data = canonical_format(data)

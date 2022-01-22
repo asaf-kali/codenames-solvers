@@ -11,3 +11,6 @@ python-louvain~=0.15
 
 # Web
 selenium~=4.1.0
+
+# CLI
+beautifultable~=1.0
