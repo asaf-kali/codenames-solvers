@@ -28,8 +28,8 @@ class Player:
     def __str__(self):
         team = ""
         if self.team_color:
-            team = self.team_color.value
-        return f"{self.name} - {team} {self.role.value}"
+            team = f" {self.team_color}"
+        return f"{self.name} -{team} {self.role.value}"
 
     @property
     def role(self) -> PlayerRole:

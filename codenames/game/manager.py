@@ -149,9 +149,7 @@ class GameManager:
     def run_game(self, language: str, board: Board) -> TeamColor:
         self.initialize_game(language=language, board=board)
         self._run_rounds()
-        log.info(
-            f"{SEPARATOR}{self.winner.reason.value}, {wrap(self.winner.team_color.value)} team wins!"  # type: ignore
-        )
+        log.info(f"{SEPARATOR}{self.winner.reason.value}, {wrap(self.winner.team_color)} team wins!")  # type: ignore
         return self.winner  # type: ignore
 
     def _reset_state(self, language: str, board: Board):
@@ -195,7 +193,7 @@ class GameManager:
         return self.is_game_over
 
     def _get_hint_from(self, hinter: Hinter) -> Hint:
-        log.info(f"{SEPARATOR}{wrap(self.current_team_color.value)} turn.")
+        log.info(f"{SEPARATOR}{wrap(self.current_team_color)} turn.")
         hint = hinter.pick_hint(game_state=self.hinter_state)
         self._process_hint(hint)
         for subscriber in self.hint_given_subscribers:
