@@ -40,7 +40,10 @@ def run_offline():
     game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
 
     # game_manager.run_game(language="english", board=ENGLISH_BOARD_1)  # noqa
-    game_manager.run_game(language="hebrew", board=HEBREW_BOARD_5)  # noqa
+    game_manager.run_game(language="hebrew", board=HEBREW_BOARD_DIFFICULT)  # noqa
+    print("Hints:")
+    for hint in game_manager.raw_hints:
+        print(hint)
     print(game_manager.board)
 
 

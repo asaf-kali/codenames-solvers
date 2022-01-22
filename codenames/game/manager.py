@@ -210,7 +210,7 @@ class GameManager:
         given_hint = GivenHint(
             word=formatted_hint_word, card_amount=hint.card_amount, team_color=self.current_team_color
         )
-        log.info(f"Hinter: '{hint.word}', {hint.card_amount} card(s)")
+        log.info(f"Hinter: {wrap(hint.word)} {hint.card_amount} card(s)")
         self.given_hints.append(given_hint)
         self.left_guesses = given_hint.card_amount
         return given_hint
