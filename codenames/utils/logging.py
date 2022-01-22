@@ -69,8 +69,13 @@ def configure_logging(formatter: str = None, level: str = None, mute_solvers: bo
                 "stream": sys.stdout,
                 # "stream": sys.stderr,
             },
+            "file": {
+                "class": "logging.FileHandler",
+                "filename": "run.log",
+                "formatter": formatter or "debug",
+            },
         },
-        "root": {"handlers": ["console_out", "console_err"], "level": level or "DEBUG"},
+        "root": {"handlers": ["console_out", "console_err", "file"], "level": level or "DEBUG"},
         "loggers": {
             "selenium": {"level": "INFO"},
             "urllib3": {"level": "INFO"},
@@ -81,9 +86,9 @@ def configure_logging(formatter: str = None, level: str = None, mute_solvers: bo
     }
 
     if mute_solvers:
-        config["loggers"]["codenames.solvers"] = {"level": "WARN", "propagate": False}  # type: ignore
+        config["loggers"]["codenames.solvers"] = {"handlers": ["file"], "propagate": False}  # type: ignore
     if mute_online:
-        config["loggers"]["codenames.online"] = {"level": "WARN", "propagate": False}  # type: ignore
+        config["loggers"]["codenames.online"] = {"handlers": ["file"], "propagate": False}  # type: ignore
     dictConfig(config)
     log.debug("Logging configured")
 
