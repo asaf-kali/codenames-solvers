@@ -16,6 +16,9 @@ install-dev:
 
 install: install-dev
 
+test:
+	python -m pytest -s
+
 # Video
 
 video-install:
