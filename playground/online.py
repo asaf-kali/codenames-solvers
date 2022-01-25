@@ -1,6 +1,5 @@
 import logging
 import os
-from time import sleep
 
 from codenames.game import QuitGame
 from codenames.online import NamecodingGameManager, NamecodingLanguage
@@ -18,6 +17,7 @@ from language_data.model_loader import (  # noqa
     load_language_async,
 )
 from playground.model_adapters import HEBREW_SUFFIX_ADAPTER
+from playground.offline import print_results
 
 configure_logging(level="INFO", mute_solvers=True)
 log = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 # os.environ[MODEL_NAME_ENV_KEY] = "google-300"
 # os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
 # os.environ[MODEL_NAME_ENV_KEY] = "wiki-100"
-os.environ[MODEL_NAME_ENV_KEY] = "skv-ft-v2"
+os.environ[MODEL_NAME_ENV_KEY] = "skv-ft-150"
 os.environ[IS_STEMMED_ENV_KEY] = "1"
 load_language_async(language="hebrew")  # type: ignore
 
@@ -36,24 +36,18 @@ def online_game():
         adapter = HEBREW_SUFFIX_ADAPTER
         # adapter = DEFAULT_MODEL_ADAPTER
         blue_hinter = NaiveHinter("Leonardo", model_adapter=adapter)
-        blue_guesser = CliGuesser("Bard")
+        blue_guesser = NaiveGuesser("Bard", model_adapter=adapter)
         red_hinter = NaiveHinter("Adam", model_adapter=adapter)
-        red_guesser = CliGuesser("Eve")
+        red_guesser = NaiveGuesser("Eve", model_adapter=adapter)
         online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
         online_manager.auto_start(language=NamecodingLanguage.HEBREW, clock=False)
-        sleep(1)
     except QuitGame:
-        online_manager.close()
+        log.info("Game quit")
     except:  # noqa
         log.exception("Error occurred")
     finally:
-        if online_manager is not None:
-            log.info(f"Winner: {online_manager.winner}")
-            online_manager.close()
-            print("Hints:")
-            for hint in online_manager.game_manager.raw_hints:
-                print(hint)
-            print(online_manager.game_manager.board)
+        online_manager.close()
+        print_results(online_manager.game_manager)
     log.info("Done")
 
 
@@ -72,4 +66,5 @@ def online_game():
 #     log.info("Done")
 
 
-online_game()
+if __name__ == "__main__":
+    online_game()
