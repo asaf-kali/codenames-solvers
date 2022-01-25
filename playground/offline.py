@@ -1,6 +1,7 @@
+import logging
 import os
 
-from codenames.game import DEFAULT_MODEL_ADAPTER  # noqa
+from codenames.game import DEFAULT_MODEL_ADAPTER, QuitGame  # noqa
 from codenames.game.manager import GameManager  # noqa
 from codenames.solvers import (  # type: ignore  # noqa
     CliGuesser,
@@ -15,6 +16,7 @@ from playground.boards.hebrew import *  # noqa
 from playground.model_adapters import HEBREW_SUFFIX_ADAPTER
 
 configure_logging(mute_solvers=True)
+log = logging.getLogger(__name__)
 
 # English
 # os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
@@ -23,28 +25,41 @@ configure_logging(mute_solvers=True)
 # Hebrew
 # os.environ[MODEL_NAME_ENV_KEY] = "wiki-100"
 # os.environ[MODEL_NAME_ENV_KEY] = "skv-v1"
-os.environ[MODEL_NAME_ENV_KEY] = "skv-ft-v2"
+os.environ[MODEL_NAME_ENV_KEY] = "skv-cbow-150"
 os.environ[IS_STEMMED_ENV_KEY] = "1"
 
 
 def run_offline():
-    adapter = HEBREW_SUFFIX_ADAPTER
-    # adapter = DEFAULT_MODEL_ADAPTER
+    game_manager = None
+    try:
+        adapter = HEBREW_SUFFIX_ADAPTER
+        # adapter = DEFAULT_MODEL_ADAPTER
+        # proposals_thresholds = ProposalThresholds()
+        blue_hinter = NaiveHinter("Leonardo", model_adapter=adapter)
+        blue_guesser = NaiveGuesser("Bard", model_adapter=adapter)
+        red_hinter = NaiveHinter("Adam", model_adapter=adapter)
+        red_guesser = NaiveGuesser("Eve", model_adapter=adapter)
+        game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
+        # game_manager.run_game(language="english", board=ENGLISH_BOARD_1)  # noqa
+        game_manager.run_game(language="hebrew", board=HEBREW_BOARD_1)  # noqa
+    except QuitGame:
+        log.info("Game quit")
+    except:  # noqa
+        log.exception("Error occurred")
+    finally:
+        print_results(game_manager)
+    log.info("Done")
 
-    # proposals_thresholds = ProposalThresholds()
-    blue_hinter = NaiveHinter("Leonardo", model_adapter=adapter)
-    blue_guesser = CliGuesser("Bard")
-    red_hinter = NaiveHinter("Adam", model_adapter=adapter)
-    red_guesser = NaiveGuesser("Eve", model_adapter=adapter)
 
-    game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
-
-    # game_manager.run_game(language="english", board=ENGLISH_BOARD_1)  # noqa
-    game_manager.run_game(language="hebrew", board=HEBREW_BOARD_DIFFICULT)  # noqa
+def print_results(game_manager: GameManager):
+    if game_manager is None:
+        return
+    log.info(f"Winner: {game_manager.winner}")
     print("Hints:")
     for hint in game_manager.raw_hints:
         print(hint)
     print(game_manager.board)
 
 
-run_offline()
+if __name__ == "__main__":
+    run_offline()
