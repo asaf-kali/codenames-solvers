@@ -435,4 +435,3 @@ not be picked.
 92
 00:06:45,861 --> 00:06:47,861
 Thanks for wathing!
-
