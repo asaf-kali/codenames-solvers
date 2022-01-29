@@ -15,29 +15,29 @@ class PollingTimeout(Exception):
     pass
 
 
-def poll_not_none(fn: Callable[[], T], timeout_seconds: float = 5, interval_sleep_seconds: float = 0.2) -> T:
-    start = time.time()
-    while True:
-        result = fn()
-        if result is not None:
-            return result
-        log.debug("Result was none, sleeping...")
-        now = time.time()
-        passed = now - start
-        if passed >= timeout_seconds:
-            raise PollingTimeout()
-        sleep(interval_sleep_seconds)
+# def poll_not_none(fn: Callable[[], T], timeout_seconds: float = 5, interval_sleep_seconds: float = 0.2) -> T:
+#     start = time.time()
+#     while True:
+#         result = fn()
+#         if result is not None:
+#             return result
+#         log.debug("Result was none, sleeping...")
+#         now = time.time()
+#         passed = now - start
+#         if passed >= timeout_seconds:
+#             raise PollingTimeout()
+#         sleep(interval_sleep_seconds)
 
 
-def poll_condition(test: Callable[[], bool], timeout_seconds: float = 5, interval_sleep_seconds: float = 0.2):
+def poll_condition(test: Callable[[], bool], timeout_sec: float = 5, poll_interval_sec: float = 0.2):
     start = time.time()
     while not test():
         log.debug("Test not passed, sleeping...")
         now = time.time()
         passed = now - start
-        if passed >= timeout_seconds:
+        if passed >= timeout_sec:
             raise PollingTimeout()
-        sleep(interval_sleep_seconds)
+        sleep(poll_interval_sec)
 
 
 def _by_to_using(by: str, value: str) -> Tuple[str, str]:

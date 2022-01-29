@@ -194,10 +194,12 @@ class NamecodingPlayerAdapter:
         try:
             lobby_page = self.get_lobby_page()
         except NoSuchElementException:
-            log.warning("Lobby page is not found, assuming start was alread clicked.")
+            log.warning("Lobby page is not found, assuming start was already clicked.")
             return self
         start_game_button = lobby_page.find_element(by=By.ID, value="start-game-button")
-        poll_condition(lambda: start_game_button.get_attribute("disabled") is None)
+        poll_condition(
+            lambda: start_game_button.get_attribute("disabled") is None, timeout_sec=60, poll_interval_sec=0.5
+        )
         start_game_button.click()
         return self
 
@@ -289,7 +291,7 @@ class NamecodingPlayerAdapter:
         clue_area = self.get_clue_area()
         sleep(0.1)
 
-        poll_condition(lambda: self.has_clue_text(clue_area), timeout_seconds=600)
+        poll_condition(lambda: self.has_clue_text(clue_area), timeout_sec=600)
         clue_input = clue_area.find_element(by=By.ID, value="clue-text")
         cards_input = clue_area.find_element(by=By.ID, value="cards-num-container")
         return Hint(clue_input.text.strip(), int(cards_input.text[0]))
