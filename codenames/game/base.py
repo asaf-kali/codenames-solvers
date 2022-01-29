@@ -107,6 +107,8 @@ LTR = "\u200E"
 
 def two_integer_factors(n: int) -> Tuple[int, int]:
     x = math.floor(math.sqrt(n))
+    if x == 0:
+        return 0, 0
     while n % x != 0:
         x -= 1
     return n // x, x
@@ -130,8 +132,11 @@ class Board:
             raise IndexError(f"Index out of bounds: {item}")
         return self._cards[item]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.printable_string
+
+    def __len__(self) -> int:
+        return self.size
 
     @property
     def size(self) -> int:
@@ -150,8 +155,16 @@ class Board:
         return tuple(card.revealed for card in self._cards)
 
     @property
+    def revealed_card_indexes(self) -> Set[int]:
+        return set(i for i, card in enumerate(self._cards) if card.revealed)
+
+    @property
     def unrevealed_cards(self) -> CardSet:
         return set(card for card in self._cards if not card.revealed)
+
+    @property
+    def revealed_cards(self) -> CardSet:
+        return set(card for card in self._cards if card.revealed)
 
     @cached_property
     def red_cards(self) -> CardSet:
