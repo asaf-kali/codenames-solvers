@@ -1,3 +1,5 @@
+import pytest
+
 from codenames.game.base import CardColor, TeamColor
 from codenames.game.player import Player
 
@@ -12,4 +14,6 @@ def test_player_team_card_color():
 
     assert p1.team_card_color == CardColor.RED
     assert p2.team_card_color == CardColor.BLUE
-    assert p3.team_card_color is None
+
+    with pytest.raises(ValueError):
+        _ = p3.team_card_color
