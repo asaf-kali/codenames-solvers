@@ -236,7 +236,8 @@ class GameManager:
     def _process_guess(self, guess: Guess):
         if guess.card_index == PASS_GUESS:
             log.info("Guesser passed the turn")
-            return self._end_turn()
+            self._end_turn()
+            return
         if guess.card_index == QUIT_GAME:
             log.info("Guesser quit the game")
             raise QuitGame()
@@ -246,15 +247,21 @@ class GameManager:
         self.given_guesses.append(given_guess)
         if self._check_winner():
             log.info("Winner is found, turn is over")
-            return self._end_turn()
+            self._end_turn()
+            return
         if not given_guess.was_correct:
             log.info("Guesser wrong, turn is over")
             return self._end_turn()
         self.left_guesses -= 1
-        if self.left_guesses == 0 and not self.bonus_given:
-            log.info("Giving bonus guess!")
-            self.bonus_given = True
-            self.left_guesses += 1
+        if self.left_guesses > 0:
+            return
+        if self.bonus_given:
+            log.info("Bonus already given, turn is over")
+            self._end_turn()
+            return
+        log.info("Giving bonus guess!")
+        self.bonus_given = True
+        self.left_guesses += 1
 
     def _reveal_guessed_card(self, guess: Guess) -> Card:
         if guess.card_index < 0 or guess.card_index >= self.board.size:
