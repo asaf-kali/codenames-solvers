@@ -25,7 +25,7 @@ def test_blue_reveals_all_and_wins(board_10: Board):
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
     manager.run_game(language="english", board=board_10)
-    assert manager.winner == Winner(TeamColor.BLUE, reason=WinningReason.TARGET_SCORE)
+    assert manager.winner == Winner(TeamColor.BLUE, reason=WinningReason.TARGET_SCORE_REACHED)
 
 
 def test_red_reveals_all_and_wins(board_10: Board):
@@ -38,7 +38,7 @@ def test_red_reveals_all_and_wins(board_10: Board):
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
     manager.run_game(language="english", board=board_10)
-    assert manager.winner == Winner(TeamColor.RED, reason=WinningReason.TARGET_SCORE)
+    assert manager.winner == Winner(TeamColor.RED, reason=WinningReason.TARGET_SCORE_REACHED)
 
 
 def test_blue_picks_black_and_red_wins(board_10: Board):
@@ -48,7 +48,7 @@ def test_blue_picks_black_and_red_wins(board_10: Board):
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
     manager.run_game(language="english", board=board_10)
-    assert manager.winner == Winner(TeamColor.RED, reason=WinningReason.OPPONENT_HITS_BLACK)
+    assert manager.winner == Winner(TeamColor.RED, reason=WinningReason.OPPONENT_HIT_BLACK)
 
 
 def test_blue_picks_red_and_red_wins(board_10: Board):
@@ -60,7 +60,7 @@ def test_blue_picks_red_and_red_wins(board_10: Board):
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
     manager.run_game(language="english", board=board_10)
-    assert manager.winner == Winner(TeamColor.RED, reason=WinningReason.TARGET_SCORE)
+    assert manager.winner == Winner(TeamColor.RED, reason=WinningReason.TARGET_SCORE_REACHED)
 
 
 def test_hint_subscribers_are_notified(board_10: Board):
