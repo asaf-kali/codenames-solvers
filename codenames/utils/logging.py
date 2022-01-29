@@ -79,7 +79,6 @@ def configure_logging(formatter: str = None, level: str = None, mute_solvers: bo
         "loggers": {
             "selenium": {"level": "INFO"},
             "urllib3": {"level": "INFO"},
-            "codenames": {"level": "DEBUG"},
             "matplotlib.font_manager": {"propagate": False},
             # "findfont": {"level": "error"},
         },
