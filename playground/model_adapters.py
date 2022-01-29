@@ -31,6 +31,8 @@ class HebrewSuffixAdapter(ModelFormatAdapter):
         return replace_to_non_suffix_letter(word)
 
     def to_board_format(self, word: str) -> str:
+        if word.endswith("סקופ"):
+            return word
         return replace_to_suffix_letter(word)
 
 

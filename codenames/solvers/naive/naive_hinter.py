@@ -2,7 +2,7 @@ import itertools
 import logging
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Iterable, List, Optional
+from typing import Callable, Iterable, List, Optional
 from uuid import uuid4
 
 import editdistance as editdistance
@@ -99,14 +99,14 @@ class Proposal:
         )
 
 
-def calculate_proposal_grade(proposal: Proposal) -> float:
+def default_proposal_grade_calculator(proposal: Proposal) -> float:
     """
     High grade is good.
     """
     grade = (
         1.5 * len(proposal.word_group)
-        + 1.5 * proposal.hint_word_frequency
-        - 2.5 * proposal.distance_group
+        + 1.2 * proposal.hint_word_frequency
+        - 2.5 * proposal.distance_group  # High group distance is bad.
         + 1.0 * proposal.distance_gray
         + 1.5 * proposal.distance_opponent
         + 2.0 * proposal.distance_black
@@ -126,8 +126,9 @@ class NaiveProposalsGenerator:
     model: KeyedVectors
     model_adapter: ModelFormatAdapter
     game_state: HinterGameState
-    proposals_thresholds: ProposalThresholds
     team_card_color: CardColor
+    proposals_thresholds: ProposalThresholds
+    proposal_grade_calculator: Callable[[Proposal], float]
     thresholds_filter_active: bool
     gradual_distances_filter_active: bool
     similarities_top_n: int
@@ -234,7 +235,7 @@ class NaiveProposalsGenerator:
             return None
         if not self.proposal_satisfy_thresholds(proposal=proposal):
             return None
-        proposal.grade = calculate_proposal_grade(proposal)
+        proposal.grade = self.proposal_grade_calculator(proposal)
         return proposal
 
     def create_proposals_from_similarities(
@@ -287,6 +288,7 @@ class NaiveHinter(Hinter):
         max_group_size: int = 3,
         model_adapter: ModelFormatAdapter = DEFAULT_MODEL_ADAPTER,
         gradual_distances_filter_active: bool = True,
+        proposal_grade_calculator: Callable[[Proposal], float] = default_proposal_grade_calculator,
     ):
         super().__init__(name=name)
         self.model = model
@@ -295,6 +297,7 @@ class NaiveHinter(Hinter):
         self.proposals_thresholds = proposals_thresholds
         self.model_adapter = model_adapter
         self.gradual_distances_filter_active = gradual_distances_filter_active
+        self.proposal_grade_calculator = proposal_grade_calculator
 
     def on_game_start(self, language: str, board: Board):
         self.model = load_language(language=language)  # type: ignore
@@ -319,8 +322,9 @@ class NaiveHinter(Hinter):
             model=self.model,
             model_adapter=self.model_adapter,
             game_state=game_state,
-            proposals_thresholds=self.proposals_thresholds,
             team_card_color=self.team_color.as_card_color,  # type: ignore
+            proposals_thresholds=self.proposals_thresholds,
+            proposal_grade_calculator=self.proposal_grade_calculator,
             thresholds_filter_active=thresholds_filter_active,
             gradual_distances_filter_active=self.gradual_distances_filter_active,
             similarities_top_n=similarities_top_n,
