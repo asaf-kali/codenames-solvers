@@ -2,6 +2,7 @@
 .idea/
 nx.html
 media/
+exports/
 
 # Language data files
 language_data/*.bin

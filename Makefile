@@ -45,6 +45,7 @@ lint-check:
 lint:
 	@make lint-only --no-print-directory
 	@make lint-check --no-print-directory
+	pre-commit run --all-files
 
 unzip_data:
 	echo "TODO"
