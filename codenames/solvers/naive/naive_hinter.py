@@ -5,6 +5,7 @@ from functools import cached_property
 from typing import Iterable, List, Optional
 from uuid import uuid4
 
+import editdistance as editdistance
 import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
@@ -42,6 +43,15 @@ class ProposalThresholds:
     min_distance_gray: float = 0.26  # Can't be closer to gray then X.
     min_distance_opponent: float = 0.28  # Can't be closer to opponent then X.
     min_distance_black: float = 0.30  # Can't be closer to black then X.
+
+    @staticmethod
+    def from_max_distance_group(max_distance_group: float) -> "ProposalThresholds":
+        return ProposalThresholds(
+            max_distance_group=max_distance_group,
+            min_distance_gray=max_distance_group * 1.05,
+            min_distance_opponent=max_distance_group * 1.14,
+            min_distance_black=max_distance_group * 1.18,
+        )
 
 
 class ThresholdDistances(dict):
@@ -95,12 +105,20 @@ def calculate_proposal_grade(proposal: Proposal) -> float:
     """
     grade = (
         1.5 * len(proposal.word_group)
+        + 1.5 * proposal.hint_word_frequency
         - 2.5 * proposal.distance_group
         + 1.0 * proposal.distance_gray
         + 1.5 * proposal.distance_opponent
         + 2.0 * proposal.distance_black
     )
     return float(np.nan_to_num(grade, nan=-100))
+
+
+def group_is_closest(proposal: Proposal) -> bool:
+    return all(
+        proposal.distance_group < other_distance
+        for other_distance in {proposal.distance_gray, proposal.distance_opponent, proposal.distance_black}
+    )
 
 
 @dataclass
@@ -111,6 +129,8 @@ class NaiveProposalsGenerator:
     proposals_thresholds: ProposalThresholds
     team_card_color: CardColor
     thresholds_filter_active: bool
+    gradual_distances_filter_active: bool
+    similarities_top_n: int
 
     def __post_init__(self):
         unrevealed_cards = self.game_state.board.unrevealed_cards
@@ -173,21 +193,28 @@ class NaiveProposalsGenerator:
         really_good = distances.min >= -0.05 and distances.total >= 0.45
         return pass_thresholds or really_good
 
-    def should_filter_hint(self, word: str, filter_expressions: Iterable[str]) -> bool:
+    def should_filter_hint(self, hint: str, word_group: WordGroup, filter_expressions: Iterable[str]) -> bool:
         # if "_" in word:
         #     return True
         # if word in BANNED_WORDS:
         #     return True
-        word = self.board_format(word)
+        hint = self.board_format(hint)
         for filter_expression in filter_expressions:
-            if word in filter_expression or filter_expression in word:
+            if hint in filter_expression or filter_expression in hint:
+                return True
+        for word in word_group:
+            edit_distance = editdistance.eval(hint, word)
+            if len(word) <= 4 or len(hint) <= 4:
+                if edit_distance <= 1:
+                    return True
+            elif edit_distance <= 2:
                 return True
         return False
 
     def proposal_from_similarity(self, word_group: WordGroup, similarity: Similarity) -> Optional[Proposal]:
         hint, similarity_score = similarity
         # word = format_word(word)
-        if self.should_filter_hint(word=hint, filter_expressions=self.game_state.illegal_words):
+        if self.should_filter_hint(hint=hint, word_group=word_group, filter_expressions=self.game_state.illegal_words):
             return None
         hint_vector = self.model[hint]
         hint_to_group = cosine_distance(hint_vector, self.word_group_vectors(word_group))
@@ -203,6 +230,8 @@ class NaiveProposalsGenerator:
             distance_opponent=np.min(hint_to_opponent),
             distance_black=np.min(hint_to_black),
         )
+        if self.gradual_distances_filter_active and not group_is_closest(proposal=proposal):
+            return None
         if not self.proposal_satisfy_thresholds(proposal=proposal):
             return None
         proposal.grade = calculate_proposal_grade(proposal)
@@ -229,7 +258,7 @@ class NaiveProposalsGenerator:
             return []
         # distances = cosine_distance(centroid, vectors)
         # group_similarity = np.mean(distances)
-        similarities = self.model.most_similar(centroid)  # type: ignore
+        similarities = self.model.most_similar(centroid, topn=self.similarities_top_n)  # type: ignore
         return self.create_proposals_from_similarities(word_group=word_group, similarities=similarities)
 
     def create_proposals_for_group_size(self, group_size: int) -> List[Proposal]:
@@ -257,13 +286,15 @@ class NaiveHinter(Hinter):
         proposals_thresholds: ProposalThresholds = DEFAULT_THRESHOLDS,
         max_group_size: int = 3,
         model_adapter: ModelFormatAdapter = DEFAULT_MODEL_ADAPTER,
+        gradual_distances_filter_active: bool = True,
     ):
         super().__init__(name=name)
-        self.model: KeyedVectors = model
+        self.model = model
         self.max_group_size = max_group_size
         self.opponent_card_color = None
         self.proposals_thresholds = proposals_thresholds
         self.model_adapter = model_adapter
+        self.gradual_distances_filter_active = gradual_distances_filter_active
 
     def on_game_start(self, language: str, board: Board):
         self.model = load_language(language=language)  # type: ignore
@@ -281,7 +312,9 @@ class NaiveHinter(Hinter):
         log.info(f"Picked proposal: {best_proposal.detailed_string}")
         return best_proposal
 
-    def pick_hint(self, game_state: HinterGameState, thresholds_filter_active: bool = True) -> Hint:
+    def pick_hint(
+        self, game_state: HinterGameState, thresholds_filter_active: bool = True, similarities_top_n: int = 10
+    ) -> Hint:
         proposal_generator = NaiveProposalsGenerator(
             model=self.model,
             model_adapter=self.model_adapter,
@@ -289,15 +322,18 @@ class NaiveHinter(Hinter):
             proposals_thresholds=self.proposals_thresholds,
             team_card_color=self.team_color.as_card_color,  # type: ignore
             thresholds_filter_active=thresholds_filter_active,
+            gradual_distances_filter_active=self.gradual_distances_filter_active,
+            similarities_top_n=similarities_top_n,
         )
         proposals = proposal_generator.generate_proposals(self.max_group_size)
         try:
             proposal = self.pick_best_proposal(proposals=proposals)
-            return Hint(proposal.hint_word, proposal.card_count, for_words=proposal.word_group)
+            word_group_board_format = tuple(self.model_adapter.to_board_format(word) for word in proposal.word_group)
+            return Hint(proposal.hint_word, proposal.card_count, for_words=word_group_board_format)
         except NoProposalsFound:
             log.warning("No legal proposals found.")
             if not thresholds_filter_active:
                 random_word = uuid4().hex[:4]
                 return Hint(random_word, 2)
             log.info("Trying without thresholds filtering.")
-            return self.pick_hint(game_state=game_state, thresholds_filter_active=False)
+            return self.pick_hint(game_state=game_state, thresholds_filter_active=False, similarities_top_n=50)
