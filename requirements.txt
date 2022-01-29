@@ -8,6 +8,7 @@ generic-iterative-stemmer~=0.2
 # Algo
 networkx~=2.6
 python-louvain~=0.15
+editdistance~=0.6
 
 # Web
 selenium~=4.1.0
