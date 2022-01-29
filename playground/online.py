@@ -14,6 +14,7 @@ from codenames.utils import configure_logging
 from language_data.model_loader import (  # noqa
     IS_STEMMED_ENV_KEY,
     MODEL_NAME_ENV_KEY,
+    ModelIdentifier,
     load_language_async,
 )
 from playground.model_adapters import HEBREW_SUFFIX_ADAPTER  # noqa
@@ -22,25 +23,24 @@ from playground.printer import print_results
 configure_logging(level="DEBUG", mute_solvers=False, mute_online=False)
 log = logging.getLogger(__name__)
 
-# os.environ[MODEL_NAME_ENV_KEY] = "google-300"
-# os.environ[MODEL_NAME_ENV_KEY] = "wiki-50"
-os.environ[MODEL_NAME_ENV_KEY] = "wiki-100"
-# os.environ[MODEL_NAME_ENV_KEY] = "skv-ft-150"
-# os.environ[IS_STEMMED_ENV_KEY] = "1"
-load_language_async(language="hebrew")  # type: ignore
+# model_id, adapter = ModelIdentifier("english", "wiki-50", False), DEFAULT_MODEL_ADAPTER
+# model_id, adapter = ModelIdentifier("english", "google-300", False), DEFAULT_MODEL_ADAPTER
+# model_id, adapter = ModelIdentifier("hebrew", "ft-200", False), DEFAULT_MODEL_ADAPTER
+model_id, adapter = ModelIdentifier("hebrew", "skv-ft-150", True), HEBREW_SUFFIX_ADAPTER
+
+os.environ[MODEL_NAME_ENV_KEY] = model_id.model_name
+os.environ[IS_STEMMED_ENV_KEY] = "1" if model_id.is_stemmed else ""
+
+load_language_async(language=model_id.language)  # type: ignore
 
 
 def online_game():
     online_manager = None
     try:
-        # adapter = HEBREW_SUFFIX_ADAPTER
-        adapter = DEFAULT_MODEL_ADAPTER
         blue_hinter = NaiveHinter("Leonardo", model_adapter=adapter)
-        blue_guesser = NaiveGuesser("Bard", model_adapter=adapter)
         red_hinter = NaiveHinter("Adam", model_adapter=adapter)
-        # red_hinter = None
-        # red_guesser = NaiveGuesser("Eve", model_adapter=adapter)
-        red_guesser = None
+        blue_guesser = NaiveGuesser("Bard", model_adapter=adapter)
+        red_guesser = NaiveGuesser("Eve", model_adapter=adapter)
         online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
         online_manager.auto_start(language=NamecodingLanguage.HEBREW, clock=False)
         # online_manager.auto_start(language=NamecodingLanguage.ENGLISH, clock=False)
@@ -49,9 +49,8 @@ def online_game():
     except:  # noqa
         log.exception("Error occurred")
     finally:
-        online_manager.close()
         print_results(online_manager.game_manager)
-    log.info("Done")
+        online_manager.close()
 
 
 # def adapter_playground():
