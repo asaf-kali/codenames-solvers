@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from codenames.game.base import Board, Guess, Hint, TeamColor
+from codenames.game.base import Board, GivenGuess, GivenHint, Guess, Hint, TeamColor
 from codenames.game.manager import PASS_GUESS, GameManager, Winner, WinningReason
 from codenames.tests import constants
 from codenames.tests.testing_players import PredictedTurn, build_teams
@@ -60,7 +60,23 @@ def test_blue_picks_red_and_red_wins(board_10: Board):
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
     manager.run_game(language="english", board=board_10)
+
+    expected_given_hints = [
+        GivenHint(word="a", card_amount=2, team_color=TeamColor.BLUE),
+        GivenHint(word="b", card_amount=2, team_color=TeamColor.RED),
+        GivenHint(word="c", card_amount=1, team_color=TeamColor.BLUE),
+    ]
     assert manager.winner == Winner(TeamColor.RED, reason=WinningReason.TARGET_SCORE_REACHED)
+    assert manager.given_hints == expected_given_hints
+    assert manager.given_guesses == [
+        GivenGuess(given_hint=expected_given_hints[0], guessed_card=board_10[0]),
+        GivenGuess(given_hint=expected_given_hints[0], guessed_card=board_10[7]),
+        GivenGuess(given_hint=expected_given_hints[1], guessed_card=board_10[4]),
+        GivenGuess(given_hint=expected_given_hints[1], guessed_card=board_10[5]),
+        GivenGuess(given_hint=expected_given_hints[1], guessed_card=board_10[1]),
+        GivenGuess(given_hint=expected_given_hints[2], guessed_card=board_10[2]),
+        GivenGuess(given_hint=expected_given_hints[2], guessed_card=board_10[6]),
+    ]
 
 
 def test_hint_subscribers_are_notified(board_10: Board):
@@ -94,6 +110,33 @@ def test_hint_subscribers_are_notified(board_10: Board):
             red_team.hinter,
             Hint(word="D", card_amount=1),
         ),
+    ]
+
+
+def test_turns_switch_when_guessers_use_extra_guess(board_10: Board):
+    all_turns = [
+        PredictedTurn(hint=Hint("A", 2), guesses=[0, 1, 2]),
+        PredictedTurn(hint=Hint("B", 1), guesses=[4, 5]),
+        PredictedTurn(hint=Hint("C", 1), guesses=[3]),
+    ]
+    blue_team, red_team = build_teams(all_turns=all_turns)
+    manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
+    manager.run_game(language="english", board=board_10)
+
+    expected_given_hints = [
+        GivenHint(word="a", card_amount=2, team_color=TeamColor.BLUE),
+        GivenHint(word="b", card_amount=1, team_color=TeamColor.RED),
+        GivenHint(word="c", card_amount=1, team_color=TeamColor.BLUE),
+    ]
+    assert manager.winner == Winner(team_color=TeamColor.BLUE, reason=WinningReason.TARGET_SCORE_REACHED)
+    assert manager.given_hints == expected_given_hints
+    assert manager.given_guesses == [
+        GivenGuess(given_hint=expected_given_hints[0], guessed_card=board_10[0]),
+        GivenGuess(given_hint=expected_given_hints[0], guessed_card=board_10[1]),
+        GivenGuess(given_hint=expected_given_hints[0], guessed_card=board_10[2]),
+        GivenGuess(given_hint=expected_given_hints[1], guessed_card=board_10[4]),
+        GivenGuess(given_hint=expected_given_hints[1], guessed_card=board_10[5]),
+        GivenGuess(given_hint=expected_given_hints[2], guessed_card=board_10[3]),
     ]
 
 

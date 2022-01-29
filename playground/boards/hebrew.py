@@ -32,7 +32,7 @@ HEBREW_BOARD_1 = words_to_random_board(words=HEBREW_WORDS, seed=1)
 HEBREW_BOARD_2 = words_to_random_board(words=HEBREW_WORDS, seed=2)
 HEBREW_BOARD_3 = words_to_random_board(words=HEBREW_WORDS, seed=3)
 
-# Regex: '# Parsed card: (.*) (.*)' -> '# Card("$1", color=CardColor.$2),'
+# Regex: 'Parsed card: (.*) (.*)' -> 'Card("$2", color=CardColor.$1),'
 
 HEBREW_BOARD_DIFFICULT = Board(
     [
@@ -177,5 +177,35 @@ HEBREW_BOARD_7 = Board(
         Card("מפגש", color=CardColor.RED),
         Card("כלי", color=CardColor.GRAY),
         Card("חיל", color=CardColor.RED),
+    ]
+)
+
+HEBREW_BOARD_8 = Board(
+    [
+        Card("לילה", color=CardColor.GRAY),
+        Card("דרך", color=CardColor.BLUE),
+        Card("שממה", color=CardColor.GRAY),
+        Card("כנס", color=CardColor.RED),
+        Card("שיח", color=CardColor.BLUE),
+        Card("לימון", color=CardColor.RED),
+        Card("נשמה", color=CardColor.BLUE),
+        Card("פאה", color=CardColor.GRAY),
+        Card("כלא", color=CardColor.RED),
+        Card("טורניר", color=CardColor.BLUE),
+        Card("שיט", color=CardColor.BLACK),
+        Card("מת", color=CardColor.BLUE),
+        Card("מתח", color=CardColor.RED),
+        Card("אף", color=CardColor.RED),
+        Card("אור", color=CardColor.RED),
+        Card("סבא", color=CardColor.GRAY),
+        Card("רעב", color=CardColor.GRAY),
+        Card("נמל", color=CardColor.BLUE),
+        Card("קצב", color=CardColor.BLUE),
+        Card("מטריה", color=CardColor.BLUE),
+        Card("דבר", color=CardColor.GRAY),
+        Card("שר", color=CardColor.BLUE),
+        Card("מצקת", color=CardColor.RED),
+        Card("עם", color=CardColor.GRAY),
+        Card("אפריקה", color=CardColor.RED),
     ]
 )
