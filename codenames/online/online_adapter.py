@@ -198,7 +198,7 @@ class NamecodingPlayerAdapter:
             return self
         start_game_button = lobby_page.find_element(by=By.ID, value="start-game-button")
         poll_condition(
-            lambda: start_game_button.get_attribute("disabled") is None, timeout_sec=60, poll_interval_sec=0.5
+            lambda: start_game_button.get_attribute("disabled") is None, timeout_sec=300, poll_interval_sec=0.5
         )
         start_game_button.click()
         return self

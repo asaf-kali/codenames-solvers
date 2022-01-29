@@ -38,17 +38,17 @@ class NoProposalsFound(Exception):
 # min_distance_black:     high = fewer results
 @dataclass
 class ProposalThresholds:
-    min_frequency: float = 0.85  # Can't be less common than X.
-    max_distance_group: float = 0.25  # Can't be far from the group more than X.
-    min_distance_gray: float = 0.26  # Can't be closer to gray then X.
-    min_distance_opponent: float = 0.28  # Can't be closer to opponent then X.
-    min_distance_black: float = 0.30  # Can't be closer to black then X.
+    min_frequency: float = 0  # Can't be less common than X.
+    max_distance_group: float = 1  # Can't be far from the group more than X.
+    min_distance_gray: float = 0  # Can't be closer to gray then X.
+    min_distance_opponent: float = 0  # Can't be closer to opponent then X.
+    min_distance_black: float = 0  # Can't be closer to black then X.
 
     @staticmethod
     def from_max_distance_group(max_distance_group: float) -> "ProposalThresholds":
         return ProposalThresholds(
             max_distance_group=max_distance_group,
-            min_distance_gray=max_distance_group * 1.05,
+            min_distance_gray=max_distance_group * 1.04,
             min_distance_opponent=max_distance_group * 1.14,
             min_distance_black=max_distance_group * 1.18,
         )
@@ -64,7 +64,7 @@ class ThresholdDistances(dict):
         return sum(self.values())
 
 
-DEFAULT_THRESHOLDS = ProposalThresholds()
+DEFAULT_THRESHOLDS = ProposalThresholds(min_frequency=0.85, max_distance_group=0.30)
 
 
 @dataclass
@@ -104,12 +104,12 @@ def default_proposal_grade_calculator(proposal: Proposal) -> float:
     High grade is good.
     """
     grade = (
-        1.5 * len(proposal.word_group)
-        + 1.2 * proposal.hint_word_frequency
-        - 2.5 * proposal.distance_group  # High group distance is bad.
+        1.6 * len(proposal.word_group)
+        + 1.8 * proposal.hint_word_frequency
+        - 3.5 * proposal.distance_group  # High group distance is bad.
         + 1.0 * proposal.distance_gray
-        + 1.5 * proposal.distance_opponent
-        + 2.0 * proposal.distance_black
+        + 2.0 * proposal.distance_opponent
+        + 3.0 * proposal.distance_black
     )
     return float(np.nan_to_num(grade, nan=-100))
 
@@ -263,7 +263,7 @@ class NaiveProposalsGenerator:
         return self.create_proposals_from_similarities(word_group=word_group, similarities=similarities)
 
     def create_proposals_for_group_size(self, group_size: int) -> List[Proposal]:
-        log.info(f"Creating proposals for group size {wrap(group_size)}...")
+        log.debug(f"Creating proposals for group size {wrap(group_size)}...")
         proposals = []
         for card_group in itertools.combinations(self.team_unrevealed_cards, group_size):
             word_group = tuple(self.model_format(card.word) for card in card_group)
@@ -284,9 +284,9 @@ class NaiveHinter(Hinter):
         self,
         name: str,
         model: KeyedVectors = None,
-        proposals_thresholds: ProposalThresholds = DEFAULT_THRESHOLDS,
+        proposals_thresholds: ProposalThresholds = None,
         max_group_size: int = 3,
-        model_adapter: ModelFormatAdapter = DEFAULT_MODEL_ADAPTER,
+        model_adapter: ModelFormatAdapter = None,
         gradual_distances_filter_active: bool = True,
         proposal_grade_calculator: Callable[[Proposal], float] = default_proposal_grade_calculator,
     ):
@@ -294,8 +294,8 @@ class NaiveHinter(Hinter):
         self.model = model
         self.max_group_size = max_group_size
         self.opponent_card_color = None
-        self.proposals_thresholds = proposals_thresholds
-        self.model_adapter = model_adapter
+        self.proposals_thresholds = proposals_thresholds or DEFAULT_THRESHOLDS
+        self.model_adapter = model_adapter or DEFAULT_MODEL_ADAPTER
         self.gradual_distances_filter_active = gradual_distances_filter_active
         self.proposal_grade_calculator = proposal_grade_calculator
 
@@ -308,11 +308,12 @@ class NaiveHinter(Hinter):
         log.debug(f"Got {len(proposals)} proposals.")
         if len(proposals) == 0:
             raise NoProposalsFound()
+        print_top_n = 5
         proposals.sort(key=lambda proposal: -proposal.grade)
-        best_5_repr = "\n".join(str(p) for p in proposals[:5])
-        log.info(f"Best 5 proposals: \n{best_5_repr}")
+        best_ton_n_repr = "\n".join(str(p) for p in proposals[:print_top_n])
+        log.info(f"Best {print_top_n} proposals: \n{best_ton_n_repr}")
         best_proposal = proposals[0]
-        log.info(f"Picked proposal: {best_proposal.detailed_string}")
+        log.debug(f"Picked proposal: {best_proposal.detailed_string}")
         return best_proposal
 
     def pick_hint(
@@ -335,9 +336,9 @@ class NaiveHinter(Hinter):
             word_group_board_format = tuple(self.model_adapter.to_board_format(word) for word in proposal.word_group)
             return Hint(proposal.hint_word, proposal.card_count, for_words=word_group_board_format)
         except NoProposalsFound:
-            log.warning("No legal proposals found.")
-            if not thresholds_filter_active:
+            log.debug("No legal proposals found.")
+            if not thresholds_filter_active and similarities_top_n >= 20:
                 random_word = uuid4().hex[:4]
-                return Hint(random_word, 2)
+                return Hint(random_word, 1)
             log.info("Trying without thresholds filtering.")
             return self.pick_hint(game_state=game_state, thresholds_filter_active=False, similarities_top_n=50)
