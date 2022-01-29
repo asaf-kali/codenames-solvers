@@ -42,8 +42,8 @@ class Team:
 
 
 class WinningReason(Enum):
-    TARGET_SCORE = "Target score reached"
-    OPPONENT_HITS_BLACK = "Opponent hit black card"
+    TARGET_SCORE_REACHED = "Target score reached"
+    OPPONENT_HIT_BLACK = "Opponent hit black card"
     OPPONENT_QUIT = "Opponent quit"
 
 
@@ -51,6 +51,9 @@ class WinningReason(Enum):
 class Winner:
     team_color: TeamColor
     reason: WinningReason
+
+    def __str__(self) -> str:
+        return f"{self.team_color.value} team ({self.reason.value})"
 
 
 # Manager
@@ -275,11 +278,11 @@ class GameManager:
                 continue
             if card_color == CardColor.BLACK:
                 winner_color = guess.team.opponent
-                self.winner = Winner(team_color=winner_color, reason=WinningReason.OPPONENT_HITS_BLACK)
+                self.winner = Winner(team_color=winner_color, reason=WinningReason.OPPONENT_HIT_BLACK)
                 return True
             team_color = card_color.as_team_color  # type: ignore
             score_target[team_color] -= 1
             if score_target[team_color] == 0:
-                self.winner = Winner(team_color=team_color, reason=WinningReason.TARGET_SCORE)
+                self.winner = Winner(team_color=team_color, reason=WinningReason.TARGET_SCORE_REACHED)
                 return True
         return False
