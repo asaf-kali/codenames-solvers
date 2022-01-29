@@ -32,6 +32,7 @@ os.environ[MODEL_NAME_ENV_KEY] = model_id.model_name
 os.environ[IS_STEMMED_ENV_KEY] = "1" if model_id.is_stemmed else ""
 
 load_language_async(language=model_id.language)  # type: ignore
+namecoding_language = NamecodingLanguage.HEBREW if model_id.language == "hebrew" else NamecodingLanguage.ENGLISH
 
 
 def online_game():
@@ -42,8 +43,7 @@ def online_game():
         blue_guesser = NaiveGuesser("Bard", model_adapter=adapter)
         red_guesser = NaiveGuesser("Eve", model_adapter=adapter)
         online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
-        online_manager.auto_start(language=NamecodingLanguage.HEBREW, clock=False)
-        # online_manager.auto_start(language=NamecodingLanguage.ENGLISH, clock=False)
+        online_manager.auto_start(language=namecoding_language, clock=False)
     except QuitGame:
         log.info("Game quit")
     except:  # noqa

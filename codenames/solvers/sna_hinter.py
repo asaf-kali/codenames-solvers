@@ -15,7 +15,10 @@ from gensim.models import KeyedVectors
 from pandas import Series
 
 from codenames.game import Board, CardColor, Hint, Hinter, HinterGameState, WordGroup
-from codenames.solvers.naive.naive_hinter import Proposal, calculate_proposal_grade
+from codenames.solvers.naive.naive_hinter import (
+    Proposal,
+    default_proposal_grade_calculator,
+)
 from codenames.solvers.utils.algebra import cosine_distance, single_gram_schmidt
 from codenames.utils import RUN_ID, get_exports_folder
 from language_data.model_loader import load_language
@@ -349,7 +352,7 @@ class SnaHinter(Hinter):
             distance_opponent=centroid_to_opponent,
             distance_black=centroid_to_black,
         )
-        proposal.grade = calculate_proposal_grade(proposal)
+        proposal.grade = default_proposal_grade_calculator(proposal)
 
         return proposal
 
