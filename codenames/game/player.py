@@ -18,12 +18,9 @@ class PlayerRole(Enum):
 
 
 class Player:
-    name: str
-    team_color: Optional[TeamColor]
-
     def __init__(self, name: str):
-        self.name = name
-        self.team_color = None
+        self.name: str = name
+        self.team_color: Optional[TeamColor] = None
 
     def __str__(self):
         team = ""
@@ -40,9 +37,9 @@ class Player:
         return False
 
     @property
-    def team_card_color(self) -> Optional[CardColor]:
+    def team_card_color(self) -> CardColor:
         if self.team_color is None:
-            return None
+            raise ValueError("Team color not set")
         return self.team_color.as_card_color
 
     def on_game_start(self, language: str, board: Board):
