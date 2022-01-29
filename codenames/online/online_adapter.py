@@ -1,9 +1,10 @@
 import logging
 from enum import Enum
 from time import sleep
+from typing import Optional, Set
 
 from selenium import webdriver
-from selenium.common.exceptions import NoAlertPresentException
+from selenium.common.exceptions import NoAlertPresentException, NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
@@ -13,6 +14,7 @@ from codenames.game import (
     Card,
     CardColor,
     Guess,
+    GuesserGameState,
     Hint,
     Player,
     PlayerRole,
@@ -44,12 +46,17 @@ def fill_input(element: WebElement, value: str):
     sleep(0.1)
 
 
+def _is_card_revealed(card_element: ShadowRootElement) -> bool:
+    image_overlay = card_element.find_element(by=By.ID, value="image-overlay")
+    revealed = image_overlay.get_attribute("revealed") is not None
+    return revealed
+
+
 def _parse_card(card_element: ShadowRootElement) -> Card:
     word = card_element.find_element(by=By.ID, value="bottom").text.strip().lower()
     namecoding_color = card_element.find_element(by=By.ID, value="right").get_attribute("team")
     card_color = parse_card_color(namecoding_color=namecoding_color)
-    image_overlay = card_element.find_element(by=By.ID, value="image-overlay")
-    revealed = image_overlay.get_attribute("revealed") is not None
+    revealed = _is_card_revealed(card_element=card_element)
     card = Card(word=word, color=card_color, revealed=revealed)
     log.debug(f"Parsed card: {card}")
     return card
@@ -138,7 +145,9 @@ class NamecodingPlayerAdapter:
     def get_game_id(self) -> str:
         lobby_page = self.get_lobby_page()
         game_id_container = lobby_page.find_element(by=By.ID, value="game-code")
-        return game_id_container.text
+        game_id = game_id_container.text.strip()
+        log.debug(f"Game ID is {wrap(game_id)}.")
+        return game_id
 
     def choose_role(self) -> "NamecodingPlayerAdapter":
         log.info(f"{self.log_prefix} is picking role...")
@@ -180,27 +189,31 @@ class NamecodingPlayerAdapter:
             sleep(0.1)
         return self
 
-    def start_game(self) -> "NamecodingPlayerAdapter":
+    def click_start_game(self) -> "NamecodingPlayerAdapter":
         log.info(f"{self.log_prefix} is starting the game!")
-        lobby_page = self.get_lobby_page()
+        try:
+            lobby_page = self.get_lobby_page()
+        except NoSuchElementException:
+            log.warning("Lobby page is not found, assuming start was alread clicked.")
+            return self
         start_game_button = lobby_page.find_element(by=By.ID, value="start-game-button")
         poll_condition(lambda: start_game_button.get_attribute("disabled") is None)
         start_game_button.click()
         return self
 
-    def is_my_turn(self) -> bool:
-        clue_area = self.get_clue_area()
-        if (
-            self.player.role == PlayerRole.HINTER
-            and clue_area.find_elements(by=By.ID, value="submit-clue-button") != []
-        ):
-            return True
-        if (
-            self.player.role == PlayerRole.GUESSER
-            and clue_area.find_elements(by=By.ID, value="finish-turn-button") != []
-        ):
-            return True
-        return False
+    # def is_my_turn(self) -> bool:
+    #     clue_area = self.get_clue_area()
+    #     if (
+    #         self.player.role == PlayerRole.HINTER
+    #         and clue_area.find_elements(by=By.ID, value="submit-clue-button") != []
+    #     ):
+    #         return True
+    #     if (
+    #         self.player.role == PlayerRole.GUESSER
+    #         and clue_area.find_elements(by=By.ID, value="finish-turn-button") != []
+    #     ):
+    #         return True
+    #     return False
 
     def parse_board(self) -> Board:
         log.debug("Parsing board...")
@@ -210,6 +223,19 @@ class NamecodingPlayerAdapter:
         cards = [_parse_card(card_element) for card_element in card_elements]
         log.debug("Parse board done")
         return Board(cards)
+
+    def detect_visibility_change(self, revealed_card_indexes: Set[int]) -> Optional[int]:
+        log.debug("Looking for visibility change...")
+        game_page = self.get_game_page()
+        card_containers = game_page.find_elements(by=By.ID, value="card-padding-container")
+        for i, card_container in enumerate(card_containers):
+            card_root = get_shadow_root(card_container, "card-element")
+            is_revealed = _is_card_revealed(card_root)
+            if is_revealed and i not in revealed_card_indexes:
+                log.debug(f"Found a visibility change at index {wrap(i)}")
+                return i
+        log.debug("No visibility change found")
+        return None
 
     def transmit_hint(self, hint: Hint) -> "NamecodingPlayerAdapter":
         log.debug(f"Sending hint: {hint}")
@@ -258,8 +284,41 @@ class NamecodingPlayerAdapter:
         sleep(0.5)
         return self
 
+    def poll_hint_given(self) -> Hint:
+        log.debug("Polling for hint given...")
+        clue_area = self.get_clue_area()
+        sleep(0.1)
+
+        poll_condition(lambda: self.has_clue_text(clue_area), timeout_seconds=600)
+        clue_input = clue_area.find_element(by=By.ID, value="clue-text")
+        cards_input = clue_area.find_element(by=By.ID, value="cards-num-container")
+        return Hint(clue_input.text.strip(), int(cards_input.text[0]))
+
+    def poll_guess_given(self, game_state: GuesserGameState) -> Guess:
+        log.debug("Polling for guess given...")
+        revealed_card_indexes = game_state.board.revealed_card_indexes
+        clue_area = self.get_clue_area()
+        should_return = False
+        while not should_return:
+            if not self.has_clue_text(clue_area):
+                log.debug("No clue text found, detecting changes last time...")
+                should_return = True
+            card_index = self.detect_visibility_change(revealed_card_indexes)
+            if card_index is not None:
+                return Guess(card_index)
+        log.debug("Returning pass guess.")
+        return Guess(PASS_GUESS)
+
+    def has_clue_text(self, clue_area: ShadowRootElement = None) -> bool:
+        if not clue_area:
+            clue_area = self.get_clue_area()
+        return clue_area.find_elements(by=By.ID, value="clue-text") != []
+
     def close(self):
-        self.driver.close()
+        try:
+            self.driver.close()
+        except:  # noqa
+            pass
 
 
 def parse_card_color(namecoding_color: str) -> CardColor:

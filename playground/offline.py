@@ -14,6 +14,7 @@ from language_data.model_loader import IS_STEMMED_ENV_KEY, MODEL_NAME_ENV_KEY  #
 from playground.boards.english import *  # noqa
 from playground.boards.hebrew import *  # noqa
 from playground.model_adapters import HEBREW_SUFFIX_ADAPTER
+from playground.printer import print_results
 
 configure_logging(mute_solvers=True)
 log = logging.getLogger(__name__)
@@ -49,16 +50,6 @@ def run_offline():
     finally:
         print_results(game_manager)
     log.info("Done")
-
-
-def print_results(game_manager: GameManager):
-    if game_manager is None:
-        return
-    log.info(f"Winner: {game_manager.winner}")
-    print("Hints:")
-    for hint in game_manager.raw_hints:
-        print(hint)
-    print(game_manager.board)
 
 
 if __name__ == "__main__":
