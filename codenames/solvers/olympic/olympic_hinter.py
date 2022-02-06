@@ -89,7 +89,7 @@ class OlympicProposal:
 
     @property
     def detailed_string(self) -> str:
-        return json.dumps(self.__dict__)
+        return json.dumps(self.__dict__, ensure_ascii=False)
 
 
 # def group_is_closest(proposal: OlympicProposal) -> bool:
