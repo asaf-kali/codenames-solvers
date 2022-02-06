@@ -27,8 +27,8 @@ log = logging.getLogger(__name__)
 # model_id = ModelIdentifier("english", "google-300", False)
 # model_id = ModelIdentifier("hebrew", "twitter", False)
 # model_id = ModelIdentifier("hebrew", "ft-200", False)
-# model_id = ModelIdentifier("hebrew", "skv-ft-150", True)
-model_id = ModelIdentifier("hebrew", "skv-cbow-150", True)
+model_id = ModelIdentifier("hebrew", "skv-ft-150", True)
+# model_id = ModelIdentifier("hebrew", "skv-cbow-150", True)
 
 os.environ[MODEL_NAME_ENV_KEY] = model_id.model_name
 os.environ[IS_STEMMED_ENV_KEY] = "1" if model_id.is_stemmed else ""
@@ -44,9 +44,9 @@ def run_online():
     try:
         blue_hinter = NaiveHinter("Einstein", model_adapter=adapter)
         red_hinter = NaiveHinter("Yoda", model_adapter=adapter)
-        blue_guesser = NaiveGuesser("Newton", model_adapter=adapter)
-        red_guesser = NaiveGuesser("Anakin", model_adapter=adapter)
-        online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
+        # blue_guesser = NaiveGuesser("Newton", model_adapter=adapter)
+        # red_guesser = NaiveGuesser("Anakin", model_adapter=adapter)
+        online_manager = NamecodingGameManager(blue_hinter, red_hinter, None, None, show_host=False)
         # online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, show_host=False)
         online_manager.auto_start(language=namecoding_language, clock=False)
     except QuitGame:

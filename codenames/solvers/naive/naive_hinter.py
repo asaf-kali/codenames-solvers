@@ -64,7 +64,7 @@ class ThresholdDistances(dict):
         return sum(self.values())
 
 
-DEFAULT_THRESHOLDS = ProposalThresholds(min_frequency=0.85, max_distance_group=0.30)
+DEFAULT_THRESHOLDS = ProposalThresholds(min_frequency=0.82, max_distance_group=0.27, min_distance_black=0.43)
 
 
 @dataclass
