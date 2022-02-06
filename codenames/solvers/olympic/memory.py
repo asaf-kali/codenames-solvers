@@ -27,10 +27,15 @@ class Memory:
         new.memory = self.memory.copy()
         return new
 
+
+
+    def normalize_guesser_state(self):
+        self.guesser_board_state /= np.sum(self.guesser_board_state, axis=1)[:None]
+
+
     def normalize_memory(self):
-        for color in self.memory.columns:
-            column = self.memory[color]
-            self.memory[color] = column / column.sum()
+        self.memory = self.memory.div(self.memory.sum(axis=1), axis=0)
+
 
     def update_memory(self, word: str, team_color: TeamColor) -> "Memory":
         turn_color = team_color.as_card_color

@@ -20,6 +20,7 @@ from codenames.game.base import (
     Similarity,
     WordGroup,
 )
+from codenames.solvers.olympic.memory import Memory
 from codenames.solvers.utils.algebra import cosine_distance
 from codenames.utils import wrap
 from language_data.model_loader import load_language
@@ -321,11 +322,8 @@ class ComplexHinter(Hinter):
     def on_game_start(self, language: str, board: Board):
         self.model = load_language(language=language)  # type: ignore
         self.opponent_card_color = self.team_color.opponent.as_card_color  # type: ignore
-        self.guesser_board_state = np.ones((board.size, len(np.unique(board.all_colors))))
-        self.normalize_guesser_state()
+        self.memory = Memory(alpha = 4,delta = 0.1,model = self.model, board = board)
 
-    def normalize_guesser_state(self):
-        self.guesser_board_state /= np.sum(self.guesser_board_state, axis=1)[:None]
 
     @classmethod
     def pick_best_proposal(cls, proposals: List[Proposal]) -> Proposal:
