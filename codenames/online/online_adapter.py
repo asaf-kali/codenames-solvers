@@ -146,7 +146,6 @@ class NamecodingPlayerAdapter:
         lobby_page = self.get_lobby_page()
         game_id_container = lobby_page.find_element(by=By.ID, value="game-code")
         game_id = game_id_container.text.strip()
-        log.debug(f"Game ID is {wrap(game_id)}.")
         return game_id
 
     def choose_role(self) -> "NamecodingPlayerAdapter":

@@ -80,7 +80,6 @@ def configure_logging(formatter: str = None, level: str = None, mute_solvers: bo
             "selenium": {"level": "INFO"},
             "urllib3": {"level": "INFO"},
             "matplotlib.font_manager": {"propagate": False},
-            # "findfont": {"level": "error"},
         },
     }
 

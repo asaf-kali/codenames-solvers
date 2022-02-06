@@ -129,6 +129,7 @@ class NamecodingGameManager:
         host = NamecodingPlayerAdapter(player=host_player, headless=not self._show_host)
         host.open().host_game().choose_role().ready()
         self._running_game_id = host.get_game_id()
+        print(f"Running game id: {self._running_game_id}")
         self.host = host
         return self
 
