@@ -9,6 +9,7 @@ from codenames.solvers import (  # type: ignore  # noqa
     NaiveHinter,
     SnaHinter,
 )
+from codenames.solvers.naive.naive_cli_guesser import NaiveCliGuesser
 from codenames.solvers.olympic.olympic_hinter import OlympicHinter
 from codenames.utils import configure_logging
 from codenames.utils.loader.model_loader import (  # noqa
@@ -37,15 +38,15 @@ os.environ[IS_STEMMED_ENV_KEY] = "1" if model_id.is_stemmed else ""
 adapter = HEBREW_SUFFIX_ADAPTER if model_id.language == "hebrew" and model_id.is_stemmed else DEFAULT_MODEL_ADAPTER
 
 
-def run_offline(board: Board = HEBREW_BOARD_7):  # noqa
+def run_offline(board: Board = HEBREW_BOARD_8):  # noqa
     log.info("Running offline game...")
     game_manager = None
     try:
         blue_hinter = OlympicHinter("Einstein", model_adapter=adapter)
         red_hinter = OlympicHinter("Yoda", model_adapter=adapter)
         # blue_guesser = NaiveGuesser("Newton", model_adapter=adapter)
-        blue_guesser = CliGuesser("Newton")
-        red_guesser = NaiveGuesser("Anakin", model_adapter=adapter)
+        blue_guesser = NaiveCliGuesser(name="Newton", model_adapter=adapter)
+        red_guesser = NaiveCliGuesser(name="Anakin", model_adapter=adapter)
         game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
         game_manager.run_game(language=model_id.language, board=board)  # noqa
     except QuitGame:

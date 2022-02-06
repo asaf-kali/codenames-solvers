@@ -201,22 +201,27 @@ class ComplexProposalsGenerator:
         if self.get_word_frequency(hint) < 0.85:
             return []
         memory = self.memory.get_updated_memory(hint, self.team_card_color)
-        scores = memory.get_scores_for_color(self.team_card_color)
-        unrevealed_card_mask = self.game_state.board.mask_of_unrevealed_cards_for_color(self.team_card_color)
-        bad_cards_idxs_sorted = np.argsort(scores[~unrevealed_card_mask])
-        r_i = int(bad_cards_idxs_sorted[0])
-        r = self.game_state.board[r_i]
-        my_cards_idxs_sorted = np.argsort(scores[unrevealed_card_mask])
+        scores = np.array(memory.get_scores_for_color(self.team_card_color))
+        revealed_mask = self.game_state.board.revealed_cards_mask()
+        color_mask = self.game_state.board.card_color_mask(self.team_card_color)
+        scores_1, scores_2 = scores.copy(), scores.copy()
+        scores_1[~color_mask & ~revealed_mask] = -np.inf
+        scores_2[color_mask & ~revealed_mask] = -np.inf
+        scores_3 = np.vstack([scores_1, scores_2])  # noqa
+        bad_cards_idx_sorted = np.argsort(scores_1)[::-1]
+        worst_card_idx = int(bad_cards_idx_sorted[0])
+        worst_card = self.game_state.board[worst_card_idx]
+        my_cards_idx_sorted = np.argsort(scores_2)[::-1]
         proposals = []
         for n in range(self.max_group_size):
-            b_n_i = int(my_cards_idxs_sorted[n - 1])
+            b_n_i = int(my_cards_idx_sorted[n - 1])
             b_n = self.game_state.board[b_n_i]
-            f_hint_n = self.model.similarity(hint, b_n.word) / self.model.similarity(hint, r.word)
+            f_hint_n = self.model.similarity(hint, b_n.word) / self.model.similarity(hint, worst_card.word)
             proposal = OlympicProposal(
                 word_group=word_group,
                 hint_word=hint,
                 n=n,
-                r=r.word,
+                r=worst_card.word,
                 b_n=b_n.word,
                 grade=float(f_hint_n),
             )

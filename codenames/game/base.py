@@ -192,8 +192,11 @@ class Board:
             table.rows.append(row)
         return str(table)
 
-    def mask_of_unrevealed_cards_for_color(self, color: CardColor) -> np.ndarray:
-        idxs = [i for i, card in enumerate(self._cards) if card.color == color and not card.revealed]
+    def revealed_cards_mask(self) -> np.ndarray:
+        return np.array([card.revealed for card in self._cards])
+
+    def card_color_mask(self, card_color: CardColor) -> np.ndarray:
+        idxs = [i for i, card in enumerate(self._cards) if card.color == card_color]
         mask = np.zeros(self.size, dtype=bool)
         mask[idxs] = True
         return mask
