@@ -22,6 +22,7 @@ from codenames.game.base import (
 )
 from codenames.solvers.utils.algebra import cosine_distance
 from codenames.utils import wrap
+from codenames.utils.async_task_manager import AsyncTaskManager
 from language_data.model_loader import load_language
 
 log = logging.getLogger(__name__)
@@ -265,10 +266,13 @@ class NaiveProposalsGenerator:
     def create_proposals_for_group_size(self, group_size: int) -> List[Proposal]:
         log.debug(f"Creating proposals for group size {wrap(group_size)}...")
         proposals = []
+        task_manager = AsyncTaskManager()
         for card_group in itertools.combinations(self.team_unrevealed_cards, group_size):
             word_group = tuple(self.model_format(card.word) for card in card_group)
-            word_group_proposals = self.create_proposals_for_word_group(word_group=word_group)
-            proposals.extend(word_group_proposals)
+            task_manager.add_task(self.create_proposals_for_word_group, args=(word_group,))
+        log.debug("Waiting for task manager to finish...")
+        for result in task_manager:
+            proposals.extend(result)
         return proposals
 
     def generate_proposals(self, max_group_size: int):
@@ -285,7 +289,7 @@ class NaiveHinter(Hinter):
         name: str,
         model: KeyedVectors = None,
         proposals_thresholds: ProposalThresholds = None,
-        max_group_size: int = 3,
+        max_group_size: int = 4,
         model_adapter: ModelFormatAdapter = None,
         gradual_distances_filter_active: bool = True,
         proposal_grade_calculator: Callable[[Proposal], float] = default_proposal_grade_calculator,
