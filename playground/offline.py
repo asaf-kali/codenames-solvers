@@ -9,6 +9,7 @@ from codenames.solvers import (  # type: ignore  # noqa
     NaiveHinter,
     SnaHinter,
 )
+from codenames.solvers.olympic.olympic_hinter import OlympicHinter
 from codenames.utils import configure_logging
 from codenames.utils.loader.model_loader import (  # noqa
     IS_STEMMED_ENV_KEY,
@@ -21,7 +22,7 @@ from playground.boards.hebrew import *  # noqa
 from playground.model_adapters import HEBREW_SUFFIX_ADAPTER  # noqa
 from playground.printer import print_results
 
-configure_logging(level="INFO", mute_solvers=False)
+configure_logging(level="DEBUG", mute_solvers=False)
 log = logging.getLogger(__name__)
 
 # model_id = ModelIdentifier("english", "wiki-50", False)
@@ -40,10 +41,10 @@ def run_offline(board: Board = HEBREW_BOARD_7):  # noqa
     log.info("Running offline game...")
     game_manager = None
     try:
-        blue_hinter = NaiveHinter("Einstein", model_adapter=adapter)
-        red_hinter = NaiveHinter("Yoda", model_adapter=adapter)
-        blue_guesser = NaiveGuesser("Newton", model_adapter=adapter)
-        # blue_guesser = CliGuesser("Newton")
+        blue_hinter = OlympicHinter("Einstein", model_adapter=adapter)
+        red_hinter = OlympicHinter("Yoda", model_adapter=adapter)
+        # blue_guesser = NaiveGuesser("Newton", model_adapter=adapter)
+        blue_guesser = CliGuesser("Newton")
         red_guesser = NaiveGuesser("Anakin", model_adapter=adapter)
         game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
         game_manager.run_game(language=model_id.language, board=board)  # noqa

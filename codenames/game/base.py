@@ -4,6 +4,8 @@ from enum import Enum
 from functools import cached_property
 from typing import Iterable, List, Optional, Set, Tuple, Union
 
+import numpy as np
+
 from codenames.game.exceptions import CardNotFoundError
 from codenames.utils import wrap
 
@@ -189,6 +191,12 @@ class Board:
             row = [LTR + str(self[i]) for i in range(start_index, end_index)]
             table.rows.append(row)
         return str(table)
+
+    def mask_of_unrevealed_cards_for_color(self, color: CardColor) -> np.ndarray:
+        idxs = [i for i, card in enumerate(self._cards) if card.color == color and not card.revealed]
+        mask = np.zeros(self.size, dtype=bool)
+        mask[idxs] = True
+        return mask
 
     def cards_for_color(self, card_color: CardColor) -> CardSet:
         return set(card for card in self._cards if card.color == card_color)

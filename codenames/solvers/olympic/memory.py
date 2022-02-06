@@ -3,7 +3,7 @@ import copy
 import pandas as pd
 from gensim.models import KeyedVectors
 
-from codenames.game import Board, CardColor, TeamColor
+from codenames.game import Board, CardColor
 
 
 class Memory:
@@ -27,26 +27,21 @@ class Memory:
         new.memory = self.memory.copy()
         return new
 
-
-
-    def normalize_guesser_state(self):
-        self.guesser_board_state /= np.sum(self.guesser_board_state, axis=1)[:None]
-
-
     def normalize_memory(self):
         self.memory = self.memory.div(self.memory.sum(axis=1), axis=0)
 
-
-    def update_memory(self, word: str, team_color: TeamColor) -> "Memory":
-        turn_color = team_color.as_card_color
-        opponent_color = turn_color.opponent
+    def get_updated_memory(self, word: str, team_color: CardColor) -> "Memory":
+        opponent_color = team_color.opponent
         copy_memory = copy.deepcopy(self)
         for i in range(self.board.size):
             card = self.board[i]
             similarity = max(self.model.similarity(word, card.word), 0)
-            copy_memory.memory[turn_color][i] += self.alpha * similarity + self.delta
+            copy_memory.memory[team_color][i] += self.alpha * similarity + self.delta
             copy_memory.memory[opponent_color][i] += self.delta
             copy_memory.memory[CardColor.GRAY][i] += self.delta
             copy_memory.memory[CardColor.BLACK][i] += self.delta
         copy_memory.normalize_memory()
         return copy_memory
+
+    def get_scores_for_color(self, color: CardColor) -> pd.Series:
+        return self.memory[color].values

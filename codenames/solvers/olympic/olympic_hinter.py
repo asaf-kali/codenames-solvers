@@ -1,8 +1,9 @@
 import itertools
+import json
 import logging
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Callable, Iterable, List, Optional
+from typing import Iterable, List
 from uuid import uuid4
 
 import editdistance as editdistance
@@ -23,6 +24,7 @@ from codenames.game.base import (
 from codenames.solvers.olympic.memory import Memory
 from codenames.solvers.utils.algebra import cosine_distance
 from codenames.utils import wrap
+from codenames.utils.async_task_manager import AsyncTaskManager
 from language_data.model_loader import load_language
 
 log = logging.getLogger(__name__)
@@ -69,14 +71,12 @@ DEFAULT_THRESHOLDS = ProposalThresholds(min_frequency=0.85, max_distance_group=0
 
 
 @dataclass
-class Proposal:
+class OlympicProposal:
     word_group: WordGroup
     hint_word: str
-    hint_word_frequency: float
-    distance_group: float
-    distance_gray: float
-    distance_opponent: float
-    distance_black: float
+    n: int
+    r: str
+    b_n: str
     grade: float = 0
 
     def __str__(self) -> str:
@@ -88,38 +88,14 @@ class Proposal:
 
     @property
     def detailed_string(self) -> str:
-        return (
-            f"Proposal(word_group={self.word_group}, "
-            f"hint_word={self.hint_word}, "
-            f"hint_word_frequency={self.hint_word_frequency:.3f}, "
-            f"distance_group={self.distance_group:.3f}, "
-            f"distance_gray={self.distance_gray:.3f}, "
-            f"distance_opponent={self.distance_opponent:.3f}, "
-            f"distance_black={self.distance_black:.3f}, "
-            f"grade={self.grade:.3f})"
-        )
+        return json.dumps(self.__dict__)
 
 
-def default_proposal_grade_calculator(proposal: Proposal) -> float:
-    """
-    High grade is good.
-    """
-    grade = (
-            1.6 * len(proposal.word_group)
-            + 1.8 * proposal.hint_word_frequency
-            - 3.5 * proposal.distance_group  # High group distance is bad.
-            + 1.0 * proposal.distance_gray
-            + 2.0 * proposal.distance_opponent
-            + 3.0 * proposal.distance_black
-    )
-    return float(np.nan_to_num(grade, nan=-100))
-
-
-def group_is_closest(proposal: Proposal) -> bool:
-    return all(
-        proposal.distance_group < other_distance
-        for other_distance in {proposal.distance_gray, proposal.distance_opponent, proposal.distance_black}
-    )
+# def group_is_closest(proposal: OlympicProposal) -> bool:
+#     return all(
+#         proposal.distance_group < other_distance
+#         for other_distance in {proposal.distance_gray, proposal.distance_opponent, proposal.distance_black}
+#     )
 
 
 @dataclass
@@ -129,10 +105,12 @@ class ComplexProposalsGenerator:
     game_state: HinterGameState
     team_card_color: CardColor
     proposals_thresholds: ProposalThresholds
-    proposal_grade_calculator: Callable[[Proposal], float]
+    # proposal_grade_calculator: Callable[[OlympicProposal], float]
     thresholds_filter_active: bool
     gradual_distances_filter_active: bool
     similarities_top_n: int
+    max_group_size: int
+    memory: Memory
 
     def __post_init__(self):
         unrevealed_cards = self.game_state.board.unrevealed_cards
@@ -181,19 +159,19 @@ class ComplexProposalsGenerator:
     def board_format(self, word: str) -> str:
         return self.model_adapter.to_board_format(word)
 
-    def proposal_satisfy_thresholds(self, proposal: Proposal) -> bool:
-        if not self.thresholds_filter_active:
-            return True
-        distances = ThresholdDistances(
-            frequency=proposal.hint_word_frequency - self.proposals_thresholds.min_frequency,
-            group=self.proposals_thresholds.max_distance_group - proposal.distance_group,
-            gray=proposal.distance_gray - self.proposals_thresholds.min_distance_gray,
-            opponent=proposal.distance_opponent - self.proposals_thresholds.min_distance_opponent,
-            black=proposal.distance_black - self.proposals_thresholds.min_distance_black,
-        )
-        pass_thresholds = distances.min >= 0
-        really_good = distances.min >= -0.05 and distances.total >= 0.45
-        return pass_thresholds or really_good
+    # def proposal_satisfy_thresholds(self, proposal: OlympicProposal) -> bool:
+    #     if not self.thresholds_filter_active:
+    #         return True
+    #     distances = ThresholdDistances(
+    #         frequency=proposal.hint_word_frequency - self.proposals_thresholds.min_frequency,
+    #         group=self.proposals_thresholds.max_distance_group - proposal.distance_group,
+    #         gray=proposal.distance_gray - self.proposals_thresholds.min_distance_gray,
+    #         opponent=proposal.distance_opponent - self.proposals_thresholds.min_distance_opponent,
+    #         black=proposal.distance_black - self.proposals_thresholds.min_distance_black,
+    #     )
+    #     pass_thresholds = distances.min >= 0
+    #     really_good = distances.min >= -0.05 and distances.total >= 0.45
+    #     return pass_thresholds or really_good
 
     def should_filter_hint(self, hint: str, word_group: WordGroup, filter_expressions: Iterable[str]) -> bool:
         # if "_" in word:
@@ -213,62 +191,71 @@ class ComplexProposalsGenerator:
                 return True
         return False
 
-    def proposal_from_similarity(self, word_group: WordGroup, similarity: Similarity) -> Optional[Proposal]:
+    def proposal_from_similarity(self, word_group: WordGroup, similarity: Similarity) -> List[OlympicProposal]:
         hint, similarity_score = similarity
         # word = format_word(word)
         if self.should_filter_hint(hint=hint, word_group=word_group, filter_expressions=self.game_state.illegal_words):
-            return None
-        hint_vector = self.model[hint]
-        hint_to_group = cosine_distance(hint_vector, self.word_group_vectors(word_group))
-        hint_to_gray = cosine_distance(hint_vector, self.gray_vectors)
-        hint_to_opponent = cosine_distance(hint_vector, self.opponent_vectors)
-        hint_to_black = cosine_distance(hint_vector, self.black_vectors)
-        proposal = Proposal(
-            word_group=word_group,
-            hint_word=self.board_format(hint),
-            hint_word_frequency=self.get_word_frequency(hint),
-            distance_group=np.max(hint_to_group),
-            distance_gray=np.min(hint_to_gray),
-            distance_opponent=np.min(hint_to_opponent),
-            distance_black=np.min(hint_to_black),
-        )
-        if self.gradual_distances_filter_active and not group_is_closest(proposal=proposal):
-            return None
-        if not self.proposal_satisfy_thresholds(proposal=proposal):
-            return None
-        proposal.grade = self.proposal_grade_calculator(proposal)
-        return proposal
-
-    def create_proposals_from_similarities(
-            self, word_group: WordGroup, similarities: List[Similarity]
-    ) -> List[Proposal]:
+            return []
+        # hint_vector = self.model[hint]
+        if self.get_word_frequency(hint) < 0.85:
+            return []
+        memory = self.memory.get_updated_memory(hint, self.team_card_color)
+        scores = memory.get_scores_for_color(self.team_card_color)
+        unrevealed_card_mask = self.game_state.board.mask_of_unrevealed_cards_for_color(self.team_card_color)
+        bad_cards_idxs_sorted = np.argsort(scores[~unrevealed_card_mask])
+        r_i = int(bad_cards_idxs_sorted[0])
+        r = self.game_state.board[r_i]
+        my_cards_idxs_sorted = np.argsort(scores[unrevealed_card_mask])
         proposals = []
-        for similarity in similarities:
-            proposal = self.proposal_from_similarity(word_group=word_group, similarity=similarity)
-            if proposal is not None:
-                proposals.append(proposal)
+        for n in range(self.max_group_size):
+            b_n_i = int(my_cards_idxs_sorted[n - 1])
+            b_n = self.game_state.board[b_n_i]
+            f_hint_n = self.model.similarity(hint, b_n.word) / self.model.similarity(hint, r.word)
+            proposal = OlympicProposal(
+                word_group=word_group,
+                hint_word=hint,
+                n=n,
+                r=r.word,
+                b_n=b_n.word,
+                grade=float(f_hint_n),
+            )
+            proposals.append(proposal)
+        # if self.gradual_distances_filter_active and not group_is_closest(proposal=proposal):
+        #     return None
+        # if not self.proposal_satisfy_thresholds(proposal=proposal):
+        #     return None
+        # proposal.grade = self.proposal_grade_calculator(proposal)
         return proposals
 
-    def create_proposals_for_word_group(self, word_group: WordGroup) -> List[Proposal]:
+    def create_proposals_from_similarities(
+        self, word_group: WordGroup, similarities: List[Similarity]
+    ) -> List[OlympicProposal]:
+        proposals = []
+        for similarity in similarities:
+            similarity_proposals = self.proposal_from_similarity(word_group=word_group, similarity=similarity)
+            proposals.extend(similarity_proposals)
+        return proposals
+
+    def create_proposals_for_word_group(self, word_group: WordGroup) -> List[OlympicProposal]:
         # log.debug(f"Creating proposals for group: {word_group}.")
         vectors = self.model[word_group]  # type: ignore
         centroid = np.mean(vectors, axis=0)
         group_vectors = self.word_group_vectors(word_group)
-
-        if self.cleared_for_proposal(group_vectors, centroid):
+        if self.is_cleared_for_proposal(group_vectors, centroid):
             similarities = self.model.most_similar(centroid, topn=self.similarities_top_n)  # type: ignore
             return self.create_proposals_from_similarities(word_group=word_group, similarities=similarities)
-        # distances = cosine_distance(centroid, vectors)
-        # group_similarity = np.mean(distances)
+        return []
 
-
-    def create_proposals_for_group_size(self, group_size: int) -> List[Proposal]:
+    def create_proposals_for_group_size(self, group_size: int) -> List[OlympicProposal]:
         log.debug(f"Creating proposals for group size {wrap(group_size)}...")
         proposals = []
+        task_manager = AsyncTaskManager()
         for card_group in itertools.combinations(self.team_unrevealed_cards, group_size):
             word_group = tuple(self.model_format(card.word) for card in card_group)
-            word_group_proposals = self.create_proposals_for_word_group(word_group=word_group)
-            proposals.extend(word_group_proposals)
+            task_manager.add_task(self.create_proposals_for_word_group, args=(word_group,))
+        log.debug("Waiting for task manager to finish...")
+        for result in task_manager:
+            proposals.extend(result)
         return proposals
 
     def generate_proposals(self, max_group_size: int):
@@ -278,18 +265,18 @@ class ComplexProposalsGenerator:
             proposals.extend(group_size_proposals)
         return proposals
 
-    def local_maximum(self, centroid: np.ndarray, n: int):
-        my_relevant_cards = self.game_state.board.unrevealed_cards_for_color(self.team_card_color)
-        my_relevant_words = [self.model_format(card.word) for card in my_relevant_cards]
-        my_relevant_vectors = self.model[my_relevant_words]
-        numerator = self.model.cosine_similarities(centroid, my_relevant_vectors)
-        pass
+    # def local_maximum(self, centroid: np.ndarray, n: int):
+    #     my_relevant_cards = self.game_state.board.unrevealed_cards_for_color(self.team_card_color)
+    #     my_relevant_words = [self.model_format(card.word) for card in my_relevant_cards]
+    #     my_relevant_vectors = self.model[my_relevant_words]
+    #     # numerator = self.model.cosine_similarities(centroid, my_relevant_vectors)
+    #     pass
 
-    def cleared_for_proposal(self, group_vectors, centroid):
+    def is_cleared_for_proposal(self, group_vectors, centroid) -> bool:
         centroid_to_group = cosine_distance(centroid, group_vectors)
         max_centroid_to_group = np.max(centroid_to_group)
 
-        wrong_cards =  self.game_state.board.unrevealed_cards
+        wrong_cards = self.game_state.board.unrevealed_cards
         wrong_cards = wrong_cards.difference(self.game_state.board.unrevealed_cards_for_color(self.team_card_color))
         wrong_words = tuple(self.model_format(card.word) for card in wrong_cards)
         wrong_vectors = self.word_group_vectors(wrong_words)
@@ -299,16 +286,16 @@ class ComplexProposalsGenerator:
         return max_centroid_to_group < min_centroid_to_group
 
 
-class ComplexHinter(Hinter):
+class OlympicHinter(Hinter):
     def __init__(
-            self,
-            name: str,
-            model: KeyedVectors = None,
-            proposals_thresholds: ProposalThresholds = None,
-            max_group_size: int = 3,
-            model_adapter: ModelFormatAdapter = None,
-            gradual_distances_filter_active: bool = True,
-            proposal_grade_calculator: Callable[[Proposal], float] = default_proposal_grade_calculator,
+        self,
+        name: str,
+        model: KeyedVectors = None,
+        proposals_thresholds: ProposalThresholds = None,
+        max_group_size: int = 3,
+        model_adapter: ModelFormatAdapter = None,
+        gradual_distances_filter_active: bool = True,
+        # proposal_grade_calculator: Callable[[OlympicProposal], float] = default_proposal_grade_calculator,
     ):
         super().__init__(name=name)
         self.model = model
@@ -317,16 +304,16 @@ class ComplexHinter(Hinter):
         self.proposals_thresholds = proposals_thresholds or DEFAULT_THRESHOLDS
         self.model_adapter = model_adapter or DEFAULT_MODEL_ADAPTER
         self.gradual_distances_filter_active = gradual_distances_filter_active
-        self.proposal_grade_calculator = proposal_grade_calculator
+        # self.proposal_grade_calculator = proposal_grade_calculator
+        self.memory = None
 
     def on_game_start(self, language: str, board: Board):
         self.model = load_language(language=language)  # type: ignore
         self.opponent_card_color = self.team_color.opponent.as_card_color  # type: ignore
-        self.memory = Memory(alpha = 4,delta = 0.1,model = self.model, board = board)
-
+        self.memory = Memory(alpha=4, delta=0.1, model=self.model, board=board)  # type: ignore
 
     @classmethod
-    def pick_best_proposal(cls, proposals: List[Proposal]) -> Proposal:
+    def pick_best_proposal(cls, proposals: List[OlympicProposal]) -> OlympicProposal:
         log.debug(f"Got {len(proposals)} proposals.")
         if len(proposals) == 0:
             raise NoProposalsFound()
@@ -339,7 +326,7 @@ class ComplexHinter(Hinter):
         return best_proposal
 
     def pick_hint(
-            self, game_state: HinterGameState, thresholds_filter_active: bool = True, similarities_top_n: int = 10
+        self, game_state: HinterGameState, thresholds_filter_active: bool = True, similarities_top_n: int = 10
     ) -> Hint:
         proposal_generator = ComplexProposalsGenerator(
             model=self.model,
@@ -347,10 +334,12 @@ class ComplexHinter(Hinter):
             game_state=game_state,
             team_card_color=self.team_color.as_card_color,  # type: ignore
             proposals_thresholds=self.proposals_thresholds,
-            proposal_grade_calculator=self.proposal_grade_calculator,
+            # proposal_grade_calculator=self.proposal_grade_calculator,
             thresholds_filter_active=thresholds_filter_active,
             gradual_distances_filter_active=self.gradual_distances_filter_active,
             similarities_top_n=similarities_top_n,
+            max_group_size=self.max_group_size,
+            memory=self.memory,  # type: ignore
         )
         proposals = proposal_generator.generate_proposals(self.max_group_size)
         try:
