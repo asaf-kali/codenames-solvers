@@ -1,5 +1,0 @@
-- id: lint
-  name: run lint command
-  entry: "make lint-only"
-  language: system
-  pass_filenames: false
