@@ -16,6 +16,7 @@ from codenames.game.base import (
     Board,
     CardColor,
     CardSet,
+    GivenHint,
     Hint,
     HinterGameState,
     Similarity,
@@ -305,12 +306,17 @@ class OlympicHinter(Hinter):
         self.model_adapter = model_adapter or DEFAULT_MODEL_ADAPTER
         self.gradual_distances_filter_active = gradual_distances_filter_active
         # self.proposal_grade_calculator = proposal_grade_calculator
-        self.memory = None
+        self.memory: Memory = None  # type: ignore
 
     def on_game_start(self, language: str, board: Board):
         self.model = load_language(language=language)  # type: ignore
         self.opponent_card_color = self.team_color.opponent.as_card_color  # type: ignore
         self.memory = Memory(alpha=4, delta=0.1, model=self.model, board=board)  # type: ignore
+
+    def on_hint_given(self, given_hint: GivenHint):
+        self.memory = self.memory.get_updated_memory(
+            word=given_hint.word, team_color=given_hint.team_color.as_card_color
+        )
 
     @classmethod
     def pick_best_proposal(cls, proposals: List[OlympicProposal]) -> OlympicProposal:
