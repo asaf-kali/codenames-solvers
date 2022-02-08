@@ -1,6 +1,14 @@
-from codenames.game.base import TeamColor
+from unittest.mock import MagicMock
+
+from codenames.game.base import GivenGuess, GivenHint, Hint, TeamColor
 from codenames.game.manager import GameManager
-from codenames.tests.testing_players import TestGuesser, TestHinter
+from codenames.tests.constants import board_10
+from codenames.tests.testing_players import (
+    PredictedTurn,
+    TestGuesser,
+    TestHinter,
+    build_teams,
+)
 
 
 def test_game_manager_assigns_team_colors_to_players_on_game_manager_construction():
@@ -20,3 +28,42 @@ def test_game_manager_assigns_team_colors_to_players_on_game_manager_constructio
     assert red_hinter.team_color == TeamColor.RED
     assert blue_guesser.team_color == TeamColor.BLUE
     assert red_guesser.team_color == TeamColor.RED
+
+
+def test_game_manager_notifies_all_players_on_hint_given():
+    all_turns = [
+        PredictedTurn(hint=Hint("A", 2), guesses=[0, 1, 2]),
+        PredictedTurn(hint=Hint("B", 1), guesses=[4, 9]),
+    ]
+    blue_team, red_team = build_teams(all_turns=all_turns)
+    manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
+    on_hint_given_mock = MagicMock()
+    on_guess_given_mock = MagicMock()
+    board = board_10()
+    for player in manager.players:
+        player.on_hint_given = on_hint_given_mock
+        player.on_guess_given = on_guess_given_mock
+    manager.run_game(language="english", board=board)
+
+    expected_given_hint_1 = GivenHint("a", 2, TeamColor.BLUE)
+    expected_given_hint_2 = GivenHint("b", 1, TeamColor.RED)
+    assert on_hint_given_mock.call_count == 2 * 4
+    assert on_hint_given_mock.call_args_list[0][1] == {"given_hint": expected_given_hint_1}
+    assert on_hint_given_mock.call_args_list[4][1] == {"given_hint": expected_given_hint_2}
+
+    assert on_guess_given_mock.call_count == 5 * 4
+    assert on_guess_given_mock.call_args_list[0][1] == {
+        "given_guess": GivenGuess(given_hint=expected_given_hint_1, guessed_card=board[0])
+    }
+    assert on_guess_given_mock.call_args_list[4][1] == {
+        "given_guess": GivenGuess(given_hint=expected_given_hint_1, guessed_card=board[1])
+    }
+    assert on_guess_given_mock.call_args_list[8][1] == {
+        "given_guess": GivenGuess(given_hint=expected_given_hint_1, guessed_card=board[2])
+    }
+    assert on_guess_given_mock.call_args_list[12][1] == {
+        "given_guess": GivenGuess(given_hint=expected_given_hint_2, guessed_card=board[4])
+    }
+    assert on_guess_given_mock.call_args_list[16][1] == {
+        "given_guess": GivenGuess(given_hint=expected_given_hint_2, guessed_card=board[9])
+    }
