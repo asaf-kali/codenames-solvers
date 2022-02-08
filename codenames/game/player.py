@@ -4,6 +4,8 @@ from typing import Optional
 from codenames.game.base import (
     Board,
     CardColor,
+    GivenGuess,
+    GivenHint,
     Guess,
     GuesserGameState,
     Hint,
@@ -43,6 +45,12 @@ class Player:
         return self.team_color.as_card_color
 
     def on_game_start(self, language: str, board: Board):
+        pass
+
+    def on_hint_given(self, given_hint: GivenHint):
+        pass
+
+    def on_guess_given(self, given_guess: GivenGuess):
         pass
 
 

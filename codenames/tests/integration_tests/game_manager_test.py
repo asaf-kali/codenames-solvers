@@ -6,9 +6,6 @@ from codenames.game.base import Board, GivenGuess, GivenHint, Guess, Hint, TeamC
 from codenames.game.manager import PASS_GUESS, GameManager, Winner, WinningReason
 from codenames.tests import constants
 from codenames.tests.testing_players import PredictedTurn, build_teams
-from codenames.utils import configure_logging
-
-configure_logging()
 
 
 @pytest.fixture()

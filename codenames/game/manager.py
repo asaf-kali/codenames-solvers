@@ -215,6 +215,8 @@ class GameManager:
         )
         log.info(f"Hinter: {wrap(hint.word)} {hint.card_amount} card(s)")
         self.given_hints.append(given_hint)
+        for player in self.players:
+            player.on_hint_given(given_hint=given_hint)
         self.left_guesses = given_hint.card_amount
         return given_hint
 
@@ -245,6 +247,8 @@ class GameManager:
         given_guess = GivenGuess(given_hint=self.last_given_hint, guessed_card=guessed_card)
         log.info(f"Guesser: {given_guess}")
         self.given_guesses.append(given_guess)
+        for player in self.players:
+            player.on_guess_given(given_guess=given_guess)
         if self._check_winner():
             log.info("Winner is found, turn is over")
             self._end_turn()
