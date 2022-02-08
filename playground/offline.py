@@ -9,7 +9,7 @@ from codenames.solvers import (  # type: ignore  # noqa
     NaiveHinter,
     SnaHinter,
 )
-from codenames.solvers.naive.naive_cli_guesser import NaiveCliGuesser
+from codenames.solvers.naive.naive_cli_guesser import ModelAwareCliGuesser
 from codenames.solvers.olympic.olympic_hinter import OlympicHinter
 from codenames.utils import configure_logging
 from codenames.utils.loader.model_loader import (  # noqa
@@ -45,8 +45,8 @@ def run_offline(board: Board = HEBREW_BOARD_8):  # noqa
         blue_hinter = OlympicHinter("Einstein", model_adapter=adapter)
         red_hinter = OlympicHinter("Yoda", model_adapter=adapter)
         # blue_guesser = NaiveGuesser("Newton", model_adapter=adapter)
-        blue_guesser = NaiveCliGuesser(name="Newton", model_adapter=adapter)
-        red_guesser = NaiveCliGuesser(name="Anakin", model_adapter=adapter)
+        blue_guesser = ModelAwareCliGuesser(name="Newton", model_adapter=adapter)
+        red_guesser = ModelAwareCliGuesser(name="Anakin", model_adapter=adapter)
         game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
         game_manager.run_game(language=model_id.language, board=board)  # noqa
     except QuitGame:

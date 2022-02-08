@@ -7,11 +7,9 @@ from gensim.models import KeyedVectors
 from codenames.game import (
     DEFAULT_MODEL_ADAPTER,
     Board,
-    CardNotFoundError,
     Guess,
     GuesserGameState,
     ModelFormatAdapter,
-    canonical_format,
 )
 from codenames.solvers import CliGuesser
 from language_data.model_loader import load_language
@@ -19,7 +17,7 @@ from language_data.model_loader import load_language
 log = logging.getLogger(__name__)
 
 
-class NaiveCliGuesser(CliGuesser):
+class ModelAwareCliGuesser(CliGuesser):
     def __init__(
         self, name: str, model: KeyedVectors = None, model_adapter: ModelFormatAdapter = DEFAULT_MODEL_ADAPTER
     ):
@@ -31,24 +29,8 @@ class NaiveCliGuesser(CliGuesser):
         self.model = load_language(language=language)  # type: ignore
 
     def guess(self, game_state: GuesserGameState) -> Guess:
-        print("\n", game_state.board.printable_string, "\n", sep="")
-        while True:
-            data = input("Please enter your guess word or card index: ")
-            if data == "":
-                self.show_sims(game_state)
-                continue
-            data = canonical_format(data)
-            print()
-            try:
-                index = int(data.strip())
-            except ValueError:
-                try:
-                    index = game_state.board.find_card_index(data)
-                except CardNotFoundError:
-                    index = None  # type: ignore
-            if index is None:
-                continue
-            return Guess(card_index=index)
+        self.show_sims(game_state)
+        return super().guess(game_state)
 
     def show_sims(self, game_state):
         current_hint_word = game_state.current_hint.formatted_word

@@ -1,4 +1,3 @@
-import itertools
 import json
 import logging
 from dataclasses import dataclass
@@ -6,10 +5,10 @@ from functools import cached_property
 from typing import Iterable, List
 from uuid import uuid4
 
-import editdistance as editdistance
 import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
+from tqdm import tqdm
 
 from codenames.game import DEFAULT_MODEL_ADAPTER, Hinter, ModelFormatAdapter
 from codenames.game.base import (
@@ -19,12 +18,10 @@ from codenames.game.base import (
     GivenHint,
     Hint,
     HinterGameState,
-    Similarity,
     WordGroup,
 )
 from codenames.solvers.olympic.memory import Memory
 from codenames.solvers.utils.algebra import cosine_distance
-from codenames.utils import wrap
 from codenames.utils.async_task_manager import AsyncTaskManager
 from language_data.model_loader import load_language
 
@@ -112,6 +109,7 @@ class ComplexProposalsGenerator:
     similarities_top_n: int
     max_group_size: int
     memory: Memory
+    vocabulary_size: int = 1000
 
     def __post_init__(self):
         unrevealed_cards = self.game_state.board.unrevealed_cards
@@ -174,7 +172,7 @@ class ComplexProposalsGenerator:
     #     really_good = distances.min >= -0.05 and distances.total >= 0.45
     #     return pass_thresholds or really_good
 
-    def should_filter_hint(self, hint: str, word_group: WordGroup, filter_expressions: Iterable[str]) -> bool:
+    def should_filter_hint(self, hint: str, filter_expressions: Iterable[str]) -> bool:
         # if "_" in word:
         #     return True
         # if word in BANNED_WORDS:
@@ -183,19 +181,18 @@ class ComplexProposalsGenerator:
         for filter_expression in filter_expressions:
             if hint in filter_expression or filter_expression in hint:
                 return True
-        for word in word_group:
-            edit_distance = editdistance.eval(hint, word)
-            if len(word) <= 4 or len(hint) <= 4:
-                if edit_distance <= 1:
-                    return True
-            elif edit_distance <= 2:
-                return True
+        # for word in word_group:
+        #     edit_distance = editdistance.eval(hint, word)
+        #     if len(word) <= 4 or len(hint) <= 4:
+        #         if edit_distance <= 1:
+        #             return True
+        #     elif edit_distance <= 2:
+        #         return True
         return False
 
-    def proposal_from_similarity(self, word_group: WordGroup, similarity: Similarity) -> List[OlympicProposal]:
-        hint, similarity_score = similarity
+    def proposals_for_hint(self, hint: str) -> List[OlympicProposal]:
         # word = format_word(word)
-        if self.should_filter_hint(hint=hint, word_group=word_group, filter_expressions=self.game_state.illegal_words):
+        if self.should_filter_hint(hint=hint, filter_expressions=self.game_state.illegal_words):
             return []
         # hint_vector = self.model[hint]
         if self.get_word_frequency(hint) < 0.85:
@@ -218,7 +215,7 @@ class ComplexProposalsGenerator:
             b_n = self.game_state.board[b_n_i]
             f_hint_n = self.model.similarity(hint, b_n.word) / self.model.similarity(hint, worst_card.word)
             proposal = OlympicProposal(
-                word_group=word_group,
+                word_group=(),
                 hint_word=hint,
                 n=n,
                 r=worst_card.word,
@@ -233,42 +230,47 @@ class ComplexProposalsGenerator:
         # proposal.grade = self.proposal_grade_calculator(proposal)
         return proposals
 
-    def create_proposals_from_similarities(
-        self, word_group: WordGroup, similarities: List[Similarity]
-    ) -> List[OlympicProposal]:
-        proposals = []
-        for similarity in similarities:
-            similarity_proposals = self.proposal_from_similarity(word_group=word_group, similarity=similarity)
-            proposals.extend(similarity_proposals)
-        return proposals
+    # def create_proposals_from_similarities(
+    #     self, word_group: WordGroup, similarities: List[Similarity]
+    # ) -> List[OlympicProposal]:
+    #     proposals = []
+    #     for similarity in similarities:
+    #         similarity_proposals = self.proposal_from_similarity(word_group=word_group, similarity=similarity)
+    #         proposals.extend(similarity_proposals)
+    #     return proposals
 
-    def create_proposals_for_word_group(self, word_group: WordGroup) -> List[OlympicProposal]:
-        # log.debug(f"Creating proposals for group: {word_group}.")
-        vectors = self.model[word_group]  # type: ignore
-        centroid = np.mean(vectors, axis=0)
-        group_vectors = self.word_group_vectors(word_group)
-        if self.is_cleared_for_proposal(group_vectors, centroid):
-            similarities = self.model.most_similar(centroid, topn=self.similarities_top_n)  # type: ignore
-            return self.create_proposals_from_similarities(word_group=word_group, similarities=similarities)
-        return []
+    # def create_proposals_for_word_group(self, word_group: WordGroup) -> List[OlympicProposal]:
+    #     # log.debug(f"Creating proposals for group: {word_group}.")
+    #     vectors = self.model[word_group]  # type: ignore
+    #     centroid = np.mean(vectors, axis=0)
+    #     group_vectors = self.word_group_vectors(word_group)
+    #     if self.is_cleared_for_proposal(group_vectors, centroid):
+    #         similarities = self.model.most_similar(centroid, topn=self.similarities_top_n)  # type: ignore
+    #         return self.create_proposals_from_similarities(word_group=word_group, similarities=similarities)
+    #     return []
 
-    def create_proposals_for_group_size(self, group_size: int) -> List[OlympicProposal]:
-        log.debug(f"Creating proposals for group size {wrap(group_size)}...")
+    # def create_proposals_for_group_size(self, group_size: int) -> List[OlympicProposal]:
+    #     log.debug(f"Creating proposals for group size {wrap(group_size)}...")
+    #     proposals = []
+    #     task_manager = AsyncTaskManager()
+    #     for card_group in itertools.combinations(self.team_unrevealed_cards, group_size):
+    #         word_group = tuple(self.model_format(card.word) for card in card_group)
+    #         task_manager.add_task(self.create_proposals_for_word_group, args=(word_group,))
+    #     log.debug("Waiting for task manager to finish...")
+    #     for result in task_manager:
+    #         proposals.extend(result)
+    #     return proposals
+
+    def generate_proposals(self) -> List[OlympicProposal]:
+        log.debug("Generating proposals...")
         proposals = []
+
         task_manager = AsyncTaskManager()
-        for card_group in itertools.combinations(self.team_unrevealed_cards, group_size):
-            word_group = tuple(self.model_format(card.word) for card in card_group)
-            task_manager.add_task(self.create_proposals_for_word_group, args=(word_group,))
+        for word in self.model.index_to_key[: self.vocabulary_size]:
+            task_manager.add_task(self.proposals_for_hint, args=(word,))
         log.debug("Waiting for task manager to finish...")
-        for result in task_manager:
+        for result in tqdm(task_manager, total=task_manager.total_task_count):
             proposals.extend(result)
-        return proposals
-
-    def generate_proposals(self, max_group_size: int):
-        proposals = []
-        for group_size in range(max_group_size, 0, -1):
-            group_size_proposals = self.create_proposals_for_group_size(group_size=group_size)
-            proposals.extend(group_size_proposals)
         return proposals
 
     # def local_maximum(self, centroid: np.ndarray, n: int):
@@ -352,7 +354,7 @@ class OlympicHinter(Hinter):
             max_group_size=self.max_group_size,
             memory=self.memory,  # type: ignore
         )
-        proposals = proposal_generator.generate_proposals(self.max_group_size)
+        proposals = proposal_generator.generate_proposals()
         try:
             proposal = self.pick_best_proposal(proposals=proposals)
             word_group_board_format = tuple(self.model_adapter.to_board_format(word) for word in proposal.word_group)
