@@ -20,7 +20,7 @@ from codenames.game.base import (
     WordGroup,
 )
 from codenames.solvers.olympic.memory import Memory
-from codenames.solvers.utils.algebra import cosine_distance, cosine_similarity
+from codenames.solvers.utils.algebra import cosine_distance
 from codenames.utils.async_task_manager import AsyncTaskManager
 from language_data.model_loader import load_language
 
@@ -228,13 +228,17 @@ class ComplexProposalsGenerator:
     def init_similarity_cache(self, filtered_vocabulary: List[str]) -> SimilarityCache:
         log.debug(f"Initializing similarity cache with {len(filtered_vocabulary)} words...")
         board_words_model_format = [self.model_format(word) for word in self.game_state.board.all_words]
-        board_vectors = np.array(list(self.model[word] for word in board_words_model_format))
-        vocabulary_vectors = np.array(self.model[filtered_vocabulary])
-        cosine_similarities: np.ndarray = cosine_similarity(board_vectors.T, vocabulary_vectors.T)  # type: ignore
         similarity_cache = SimilarityCache(self.model)
-        for i, j in np.ndindex(cosine_similarities.shape):  # type: ignore
-            word1, word2 = board_words_model_format[i], filtered_vocabulary[j]
-            similarity_cache[word1, word2] = cosine_similarities[i, j]
+        for board_word in board_words_model_format:
+            for vocabulary_word in filtered_vocabulary:
+                similarity_cache[board_word, vocabulary_word] = self.model.similarity(board_word, vocabulary_word)
+
+        # board_vectors = np.array(list(self.model[word] for word in board_words_model_format))
+        # vocabulary_vectors = np.array(self.model[filtered_vocabulary])
+        # cosine_similarities: np.ndarray = cosine_similarity(board_vectors.T, vocabulary_vectors.T)  # type: ignore
+        # for i, j in np.ndindex(cosine_similarities.shape):  # type: ignore
+        #     word1, word2 = board_words_model_format[i], filtered_vocabulary[j]
+        #     similarity_cache[word1, word2] = cosine_similarities[i, j]
         log.debug("Initialized similarity cache done.")
         return similarity_cache
 
@@ -272,13 +276,20 @@ class ComplexProposalsGenerator:
             best_nth_cards = [self.game_state.board[i] for i in best_nth_card_idxs]
             for i, (hint, best_card, worst_card) in enumerate(zip(filtered_vocabulary, best_nth_cards, worst_cards)):
                 best_card_word, worst_card_word = self.model_format(best_card.word), self.model_format(worst_card.word)
-                ratio = similarity_cache[hint, best_card_word] / similarity_cache[hint, worst_card_word]
+                good_similarity, bad_similarity = (
+                    similarity_cache[hint, best_card_word],
+                    similarity_cache[hint, worst_card_word],
+                )
+                if good_similarity < 0.1 or bad_similarity > 0.1:
+                    continue
+                ratio = good_similarity / bad_similarity
+                grade = ratio * group_size
                 proposal = OlympicProposal(
                     hint_word=hint,
                     n=group_size,
                     best_nth=best_card.word,
                     worst=worst_card.word,
-                    grade=float(ratio) * group_size,
+                    grade=grade,
                     my_scores=my_cards_scores[i],
                 )
                 proposals.append(proposal)
@@ -374,7 +385,8 @@ class OlympicHinter(Hinter):
             similarities_top_n=similarities_top_n,
             max_group_size=self.max_group_size,
             memory=self.memory,  # type: ignore
-            vocabulary=self.model.index_to_key[:1000],  # type: ignore
+            vocabulary=self.model.index_to_key[:5000],  # type: ignore
+            # vocabulary=["אווירי"],
         )
         proposals = proposal_generator.generate_proposals()
         try:
