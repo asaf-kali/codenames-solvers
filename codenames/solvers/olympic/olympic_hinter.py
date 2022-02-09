@@ -1,8 +1,7 @@
-import json
 import logging
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Iterable, List
+from typing import Dict, Iterable, List, Tuple
 from uuid import uuid4
 
 import numpy as np
@@ -21,7 +20,7 @@ from codenames.game.base import (
     WordGroup,
 )
 from codenames.solvers.olympic.memory import Memory
-from codenames.solvers.utils.algebra import cosine_distance
+from codenames.solvers.utils.algebra import cosine_distance, cosine_similarity
 from codenames.utils.async_task_manager import AsyncTaskManager
 from language_data.model_loader import load_language
 
@@ -68,25 +67,35 @@ class ThresholdDistances(dict):
 DEFAULT_THRESHOLDS = ProposalThresholds(min_frequency=0.85, max_distance_group=0.30)
 
 
-@dataclass
 class OlympicProposal:
-    word_group: WordGroup
-    hint_word: str
-    n: int
-    r: str
-    b_n: str
-    grade: float = 0
+    def __init__(
+        self,
+        hint_word: str,
+        n: int = None,
+        best_nth: str = None,
+        worst: str = None,
+        word_group: WordGroup = None,
+        grade: float = 0,
+        **kwargs,
+    ):
+        self.hint_word = hint_word
+        self.n = n
+        self.best_nth = best_nth
+        self.worst = worst
+        self.word_group = word_group or tuple()
+        self.grade = grade
+        self.extra = kwargs
 
     def __str__(self) -> str:
-        return f"{self.word_group} = ('{self.hint_word}', {self.grade:.2f})"
+        return f"hint={self.hint_word} for={self.best_nth} n={self.n} grade={self.grade:.2f}"
 
     @property
     def card_count(self) -> int:
-        return len(self.word_group)
+        return self.n or 0
 
     @property
     def detailed_string(self) -> str:
-        return json.dumps(self.__dict__, ensure_ascii=False)
+        return str(self.__dict__)
 
 
 # def group_is_closest(proposal: OlympicProposal) -> bool:
@@ -94,6 +103,29 @@ class OlympicProposal:
 #         proposal.distance_group < other_distance
 #         for other_distance in {proposal.distance_gray, proposal.distance_opponent, proposal.distance_black}
 #     )
+
+SimilarityKey = Tuple[str, str]
+
+
+class SimilarityCache:
+    def __init__(self, model: KeyedVectors):
+        self._cache: Dict[SimilarityKey, float] = {}
+        self._model = model
+
+    def __getitem__(self, key: SimilarityKey) -> float:
+        return self.similarity(*key)
+
+    def __setitem__(self, key: SimilarityKey, value: float):
+        self._cache[(key[0], key[1])] = value
+        self._cache[(key[1], key[0])] = value
+
+    def similarity(self, word1: str, word2: str) -> float:
+        try:
+            return self._cache[(word1, word2)]
+        except KeyError:
+            similarity = self._model.similarity(word1, word2)
+            self[(word1, word2)] = similarity
+            return similarity
 
 
 @dataclass
@@ -109,7 +141,7 @@ class ComplexProposalsGenerator:
     similarities_top_n: int
     max_group_size: int
     memory: Memory
-    vocabulary_size: int = 1000
+    vocabulary: List[str]
 
     def __post_init__(self):
         unrevealed_cards = self.game_state.board.unrevealed_cards
@@ -190,88 +222,77 @@ class ComplexProposalsGenerator:
         #         return True
         return False
 
-    def proposals_for_hint(self, hint: str) -> List[OlympicProposal]:
-        # word = format_word(word)
-        if self.should_filter_hint(hint=hint, filter_expressions=self.game_state.illegal_words):
-            return []
-        # hint_vector = self.model[hint]
-        if self.get_word_frequency(hint) < 0.85:
-            return []
-        memory = self.memory.get_updated_memory(hint, self.team_card_color)
-        scores = np.array(memory.get_scores_for_color(self.team_card_color))
-        revealed_mask = self.game_state.board.revealed_cards_mask()
-        color_mask = self.game_state.board.card_color_mask(self.team_card_color)
-        scores_1, scores_2 = scores.copy(), scores.copy()
-        scores_1[~color_mask & ~revealed_mask] = -np.inf
-        scores_2[color_mask & ~revealed_mask] = -np.inf
-        scores_3 = np.vstack([scores_1, scores_2])  # noqa
-        bad_cards_idx_sorted = np.argsort(scores_1)[::-1]
-        worst_card_idx = int(bad_cards_idx_sorted[0])
-        worst_card = self.game_state.board[worst_card_idx]
-        my_cards_idx_sorted = np.argsort(scores_2)[::-1]
-        proposals = []
-        for n in range(self.max_group_size):
-            b_n_i = int(my_cards_idx_sorted[n - 1])
-            b_n = self.game_state.board[b_n_i]
-            f_hint_n = self.model.similarity(hint, b_n.word) / self.model.similarity(hint, worst_card.word)
-            proposal = OlympicProposal(
-                word_group=(),
-                hint_word=hint,
-                n=n,
-                r=worst_card.word,
-                b_n=b_n.word,
-                grade=float(f_hint_n),
-            )
-            proposals.append(proposal)
-        # if self.gradual_distances_filter_active and not group_is_closest(proposal=proposal):
-        #     return None
-        # if not self.proposal_satisfy_thresholds(proposal=proposal):
-        #     return None
-        # proposal.grade = self.proposal_grade_calculator(proposal)
-        return proposals
+    def filtered_vocabulary(self, filter_expressions: Iterable[str]) -> List[str]:
+        return [word for word in self.vocabulary if not self.should_filter_hint(word, filter_expressions)]
 
-    # def create_proposals_from_similarities(
-    #     self, word_group: WordGroup, similarities: List[Similarity]
-    # ) -> List[OlympicProposal]:
-    #     proposals = []
-    #     for similarity in similarities:
-    #         similarity_proposals = self.proposal_from_similarity(word_group=word_group, similarity=similarity)
-    #         proposals.extend(similarity_proposals)
-    #     return proposals
-
-    # def create_proposals_for_word_group(self, word_group: WordGroup) -> List[OlympicProposal]:
-    #     # log.debug(f"Creating proposals for group: {word_group}.")
-    #     vectors = self.model[word_group]  # type: ignore
-    #     centroid = np.mean(vectors, axis=0)
-    #     group_vectors = self.word_group_vectors(word_group)
-    #     if self.is_cleared_for_proposal(group_vectors, centroid):
-    #         similarities = self.model.most_similar(centroid, topn=self.similarities_top_n)  # type: ignore
-    #         return self.create_proposals_from_similarities(word_group=word_group, similarities=similarities)
-    #     return []
-
-    # def create_proposals_for_group_size(self, group_size: int) -> List[OlympicProposal]:
-    #     log.debug(f"Creating proposals for group size {wrap(group_size)}...")
-    #     proposals = []
-    #     task_manager = AsyncTaskManager()
-    #     for card_group in itertools.combinations(self.team_unrevealed_cards, group_size):
-    #         word_group = tuple(self.model_format(card.word) for card in card_group)
-    #         task_manager.add_task(self.create_proposals_for_word_group, args=(word_group,))
-    #     log.debug("Waiting for task manager to finish...")
-    #     for result in task_manager:
-    #         proposals.extend(result)
-    #     return proposals
+    def init_similarity_cache(self, filtered_vocabulary: List[str]) -> SimilarityCache:
+        log.debug(f"Initializing similarity cache with {len(filtered_vocabulary)} words...")
+        board_words_model_format = [self.model_format(word) for word in self.game_state.board.all_words]
+        board_vectors = np.array(list(self.model[word] for word in board_words_model_format))
+        vocabulary_vectors = np.array(self.model[filtered_vocabulary])
+        cosine_similarities: np.ndarray = cosine_similarity(board_vectors.T, vocabulary_vectors.T)  # type: ignore
+        similarity_cache = SimilarityCache(self.model)
+        for i, j in np.ndindex(cosine_similarities.shape):  # type: ignore
+            word1, word2 = board_words_model_format[i], filtered_vocabulary[j]
+            similarity_cache[word1, word2] = cosine_similarities[i, j]
+        log.debug("Initialized similarity cache done.")
+        return similarity_cache
 
     def generate_proposals(self) -> List[OlympicProposal]:
-        log.debug("Generating proposals...")
-        proposals = []
+        filtered_vocabulary = self.filtered_vocabulary(filter_expressions=self.game_state.illegal_words)
+        similarity_cache = self.init_similarity_cache(filtered_vocabulary)
 
-        task_manager = AsyncTaskManager()
-        for word in self.model.index_to_key[: self.vocabulary_size]:
-            task_manager.add_task(self.proposals_for_hint, args=(word,))
-        log.debug("Waiting for task manager to finish...")
-        for result in tqdm(task_manager, total=task_manager.total_task_count):
-            proposals.extend(result)
+        my_color_scores = self.generate_possible_scores(filtered_vocabulary)
+
+        revealed_mask = self.game_state.board.revealed_cards_mask()
+        my_color_mask = self.game_state.board.card_color_mask(self.team_card_color)
+
+        my_unrevealed_cards_mask = my_color_mask & ~revealed_mask
+        other_unrevealed_cards_mask = ~my_color_mask & ~revealed_mask
+
+        amount_of_my_cards = np.count_nonzero(my_unrevealed_cards_mask)
+        amount_of_other_cards = np.count_nonzero(other_unrevealed_cards_mask)
+
+        # Fill -inf where card color doesn't match or card is revealed
+        my_cards_scores, other_cards_scores = my_color_scores.copy(), my_color_scores.copy()
+        my_cards_scores[:, ~my_unrevealed_cards_mask] = -np.inf
+        other_cards_scores[:, ~other_unrevealed_cards_mask] = -np.inf
+
+        # Preform arg sort on scores, slice out -inf scores, reverse (high scores = low index)
+        my_cards_idx_sorted = np.argsort(my_cards_scores)[:, : -amount_of_my_cards - 1 : -1]
+        other_cards_idx_sorted = np.argsort(other_cards_scores)[:, : -amount_of_other_cards - 1 : -1]
+
+        worst_card_idxs = [int(i) for i in other_cards_idx_sorted[:, 0]]
+        worst_cards = [self.game_state.board[i] for i in worst_card_idxs]
+        proposals = []
+        for n in range(self.max_group_size):
+            group_size = n + 1
+            log.debug(f"Generating {group_size}-word group proposals...")
+            best_nth_card_idxs = [int(i) for i in my_cards_idx_sorted[:, n]]
+            best_nth_cards = [self.game_state.board[i] for i in best_nth_card_idxs]
+            for i, (hint, best_card, worst_card) in enumerate(zip(filtered_vocabulary, best_nth_cards, worst_cards)):
+                best_card_word, worst_card_word = self.model_format(best_card.word), self.model_format(worst_card.word)
+                ratio = similarity_cache[hint, best_card_word] / similarity_cache[hint, worst_card_word]
+                proposal = OlympicProposal(
+                    hint_word=hint,
+                    n=group_size,
+                    best_nth=best_card.word,
+                    worst=worst_card.word,
+                    grade=float(ratio) * group_size,
+                    my_scores=my_cards_scores[i],
+                )
+                proposals.append(proposal)
         return proposals
+
+    def generate_possible_scores(self, filtered_vocabulary: List[str]) -> np.ndarray:
+        log.debug("Generating possible scores...")
+        task_manager = AsyncTaskManager()
+        for hint in filtered_vocabulary:
+            task_manager.add_task(self.memory.get_updated_memory, args=(hint, self.team_card_color))
+        memories = list(tqdm(task_manager, total=len(filtered_vocabulary)))
+        my_color_scores = np.array([memory.get_scores_for_color(self.team_card_color) for memory in memories])
+        log.debug("Generated possible scores done.")
+        return my_color_scores
 
     # def local_maximum(self, centroid: np.ndarray, n: int):
     #     my_relevant_cards = self.game_state.board.unrevealed_cards_for_color(self.team_card_color)
@@ -300,7 +321,7 @@ class OlympicHinter(Hinter):
         name: str,
         model: KeyedVectors = None,
         proposals_thresholds: ProposalThresholds = None,
-        max_group_size: int = 3,
+        max_group_size: int = 4,
         model_adapter: ModelFormatAdapter = None,
         gradual_distances_filter_active: bool = True,
         # proposal_grade_calculator: Callable[[OlympicProposal], float] = default_proposal_grade_calculator,
@@ -353,6 +374,7 @@ class OlympicHinter(Hinter):
             similarities_top_n=similarities_top_n,
             max_group_size=self.max_group_size,
             memory=self.memory,  # type: ignore
+            vocabulary=self.model.index_to_key[:1000],  # type: ignore
         )
         proposals = proposal_generator.generate_proposals()
         try:
