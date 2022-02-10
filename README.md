@@ -2,7 +2,8 @@
 
 [![Tests](https://github.com/mkali-personal/codenames/actions/workflows/tests.yml/badge.svg)](https://github.com/mkali-personal/codenames/actions/workflows/tests.yml)
 [![Lint](https://github.com/mkali-personal/codenames/actions/workflows/lint.yml/badge.svg)](https://github.com/mkali-personal/codenames/actions/workflows/lint.yml)
-[![Video](https://github.com/mkali-personal/codenames/actions/workflows/video.yml/badge.svg)](https://github.com/mkali-personal/codenames/actions/workflows/video.yml)
+
+[//]: # ([![Video]&#40;https://github.com/mkali-personal/codenames/actions/workflows/video.yml/badge.svg&#41;]&#40;https://github.com/mkali-personal/codenames/actions/workflows/video.yml&#41;)
 
 Code infrastructure and player algorithms for the Codenames board game.
 
