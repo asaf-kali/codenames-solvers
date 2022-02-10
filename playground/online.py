@@ -45,8 +45,8 @@ def run_online():
         blue_hinter = NaiveHinter("Einstein", model_adapter=adapter)
         red_hinter = NaiveHinter("Yoda", model_adapter=adapter)
         # blue_guesser = NaiveGuesser("Newton", model_adapter=adapter)
-        # red_guesser = NaiveGuesser("Anakin", model_adapter=adapter)
-        online_manager = NamecodingGameManager(blue_hinter, red_hinter, None, None, show_host=False)
+        red_guesser = NaiveGuesser("Anakin", model_adapter=adapter)
+        online_manager = NamecodingGameManager(blue_hinter, red_hinter, None, red_guesser, show_host=False)
         # online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, show_host=False)
         online_manager.auto_start(language=namecoding_language, clock=False)
     except QuitGame:
