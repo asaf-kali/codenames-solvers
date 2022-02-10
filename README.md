@@ -6,6 +6,8 @@
 
 Code infrastructure and player algorithms for the Codenames board game.
 
+This is the active fork of [mkali-personal/codenames](https://github.com/mkali-personal/codenames).
+
 ## Intro
 
 * This is based on [Google's word2vec algorithm](https://code.google.com/archive/p/word2vec/).
