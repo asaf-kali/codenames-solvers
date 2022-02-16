@@ -131,11 +131,14 @@ class Board:
             raise IndexError(f"Index out of bounds: {item}")
         return self._cards[item]
 
-    def __str__(self) -> str:
-        return self.printable_string
+    def __iter__(self):
+        return iter(self._cards)
 
     def __len__(self) -> int:
         return self.size
+
+    def __str__(self) -> str:
+        return self.printable_string
 
     @property
     def size(self) -> int:
