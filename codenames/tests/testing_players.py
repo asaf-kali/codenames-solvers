@@ -25,16 +25,17 @@ class TestHinter(Hinter):
         auto_quit: bool = False,
     ):
         super().__init__(name=name)
-        self.hints = iter(hints)
+        self.hints = list(hints)
+        self.current_index = 0
         self.auto_quit = auto_quit
 
     def pick_hint(self, game_state: HinterGameState) -> Hint:
-        try:
-            hint = next(self.hints)
-        except StopIteration:
+        if self.current_index >= len(self.hints):
             if self.auto_quit:
                 raise QuitGame(self)
             raise UnexpectedEndOfInput(self)
+        hint = self.hints[self.current_index]
+        self.current_index += 1
         return hint
 
 
@@ -46,16 +47,17 @@ class TestGuesser(Guesser):
         auto_quit: bool = False,
     ):
         super().__init__(name=name)
-        self.guesses = iter(guesses)
+        self.guesses = list(guesses)
+        self.current_index = 0
         self.auto_quit = auto_quit
 
     def guess(self, game_state: GuesserGameState) -> Guess:
-        try:
-            guess = next(self.guesses)
-        except StopIteration:
+        if self.current_index >= len(self.guesses):
             if self.auto_quit:
                 raise QuitGame(self)
             raise UnexpectedEndOfInput(self)
+        guess = self.guesses[self.current_index]
+        self.current_index += 1
         return guess
 
 

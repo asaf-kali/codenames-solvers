@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
-from codenames.game.base import GivenGuess, GivenHint, Hint, TeamColor
-from codenames.game.manager import GameManager
+from codenames.game.base import CardColor, GivenGuess, GivenHint, Guess, Hint, TeamColor
+from codenames.game.manager import GameManager, Winner, WinningReason
 from codenames.tests.constants import board_10
 from codenames.tests.testing_players import (
     PredictedTurn,
@@ -67,3 +67,17 @@ def test_game_manager_notifies_all_players_on_hint_given():
     assert on_guess_given_mock.call_args_list[16][1] == {
         "given_guess": GivenGuess(given_hint=expected_given_hint_2, guessed_card=board[9])
     }
+
+
+def test_game_starts_with_team_with_most_cards():
+    blue_team, red_team = build_teams(all_turns=[])
+    red_team.hinter.hints = [Hint("A", 2)]
+    red_team.guesser.guesses = [Guess(9)]
+    manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
+    board = board_10()
+    board._cards[3].color = CardColor.RED
+    assert len(board.red_cards) > len(board.blue_cards)
+    manager.run_game(language="english", board=board)
+
+    assert manager.winner is not None
+    assert manager.winner == Winner(team_color=TeamColor.BLUE, reason=WinningReason.OPPONENT_HIT_BLACK)
