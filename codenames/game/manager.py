@@ -149,6 +149,9 @@ class GameManager:
     def initialize_game(self, language: str, board: Board):
         self._reset_state(language=language, board=board)
         self._notify_game_starts()
+        self.current_team_color = (
+            TeamColor.BLUE if len(self.board.blue_cards) >= len(self.board.red_cards) else TeamColor.RED
+        )
 
     def run_game(self, language: str, board: Board) -> TeamColor:
         self.initialize_game(language=language, board=board)
