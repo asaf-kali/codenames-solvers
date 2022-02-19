@@ -4,8 +4,8 @@ import pytest
 
 from codenames.game.base import Board, GivenGuess, GivenHint, Guess, Hint, TeamColor
 from codenames.game.manager import PASS_GUESS, GameManager, Winner, WinningReason
-from codenames.tests import constants
-from codenames.tests.testing_players import PredictedTurn, build_teams
+from tests import constants
+from tests.testing_players import PredictedTurn, build_teams
 
 
 @pytest.fixture()

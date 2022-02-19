@@ -2,7 +2,7 @@ import pytest
 
 from codenames.game.base import Board, two_integer_factors
 from codenames.game.exceptions import CardNotFoundError
-from codenames.tests import constants
+from tests import constants
 
 
 @pytest.fixture()

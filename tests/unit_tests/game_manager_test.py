@@ -2,13 +2,8 @@ from unittest.mock import MagicMock
 
 from codenames.game.base import CardColor, GivenGuess, GivenHint, Guess, Hint, TeamColor
 from codenames.game.manager import GameManager, Winner, WinningReason
-from codenames.tests.constants import board_10
-from codenames.tests.testing_players import (
-    PredictedTurn,
-    TestGuesser,
-    TestHinter,
-    build_teams,
-)
+from tests.constants import board_10
+from tests.testing_players import PredictedTurn, TestGuesser, TestHinter, build_teams
 
 
 def test_game_manager_assigns_team_colors_to_players_on_game_manager_construction():
