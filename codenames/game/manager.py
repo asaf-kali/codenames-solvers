@@ -121,13 +121,19 @@ class GameManager:
 
     @property
     def hinter_state(self) -> HinterGameState:
-        return HinterGameState(board=self.board, given_hints=self.given_hints, given_guesses=self.given_guesses)
+        return HinterGameState(
+            board=self.board,
+            current_team_color=self.current_team_color,
+            given_hints=self.given_hints,
+            given_guesses=self.given_guesses,
+        )
 
     @property
     def guesser_state(self) -> GuesserGameState:
         board = self.board.censured
         return GuesserGameState(
             board=board,
+            current_team_color=self.current_team_color,
             given_hints=self.given_hints,
             given_guesses=self.given_guesses,
             left_guesses=self.left_guesses,
