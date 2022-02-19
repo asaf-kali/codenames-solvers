@@ -10,7 +10,7 @@ from codenames.game.manager import GameManager
 from codenames.solvers.naive.naive_guesser import NaiveGuesser
 from codenames.solvers.naive.naive_hinter import NaiveHinter
 
-VECTORS_FILE_NAME = "codenames/tests/small_model.csv"
+VECTORS_FILE_NAME = "tests/small_model.csv"
 BOARD_WORDS = [
     "cloak",
     "kiss",
