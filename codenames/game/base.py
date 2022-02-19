@@ -260,6 +260,7 @@ class GivenGuess:
 @dataclass
 class HinterGameState:
     board: Board
+    current_team_color: TeamColor
     given_hints: List[GivenHint]
     given_guesses: List[GivenGuess]
 
@@ -275,15 +276,12 @@ class HinterGameState:
 @dataclass
 class GuesserGameState:
     board: Board
+    current_team_color: TeamColor
     given_hints: List[GivenHint]
     given_guesses: List[GivenGuess]
     left_guesses: int
     bonus_given: bool
 
-    @property
+    @cached_property
     def current_hint(self) -> GivenHint:
         return self.given_hints[-1]
-
-    @property
-    def given_hint_words(self) -> WordGroup:
-        return tuple(hint.word for hint in self.given_hints)

@@ -1,7 +1,7 @@
 import random
 from typing import Iterable, Sequence, Tuple
 
-from codenames.game.base import BLACK_AMOUNT, Board, Card, CardColor, HinterGameState
+from codenames.game.base import BLACK_AMOUNT, Board, Card, CardColor
 
 
 def _extract_random_subset(elements: Sequence, subset_size: int) -> Tuple[tuple, tuple]:
@@ -33,8 +33,3 @@ def words_to_random_board(words: Iterable[str], seed: int = None) -> Board:
     all_cards = red_cards + blue_cards + gray_cards + black_cards
     random.shuffle(all_cards)
     return Board(all_cards)
-
-
-def build_simple_state(words: Iterable[str]) -> HinterGameState:
-    board = words_to_random_board(words)
-    return HinterGameState(board=board, given_hints=[], given_guesses=[])
