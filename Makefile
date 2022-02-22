@@ -14,7 +14,7 @@ install-dev:
 	@make install-test --no-print-directory
 	pre-commit install
 
-install: install-dev
+install: install-dev test
 
 test:
 	python -m pytest -s
