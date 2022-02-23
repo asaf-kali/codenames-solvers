@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 
-from language_data.model_loader import load_language
+from codenames.utils.loader.model_loader import load_language
 
 # %% Load original spammy model:
 model = load_language("english", None)
