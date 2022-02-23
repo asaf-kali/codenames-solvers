@@ -23,7 +23,7 @@ from codenames.game.base import (
 from codenames.solvers.utils.algebra import cosine_distance
 from codenames.utils import wrap
 from codenames.utils.async_task_manager import AsyncTaskManager
-from language_data.model_loader import load_language
+from codenames.utils.loader.model_loader import load_language
 
 log = logging.getLogger(__name__)
 

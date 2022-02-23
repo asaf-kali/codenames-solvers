@@ -21,7 +21,7 @@ from codenames.solvers.naive.naive_hinter import (
 )
 from codenames.solvers.utils.algebra import cosine_distance, single_gram_schmidt
 from codenames.utils import RUN_ID, get_exports_folder
-from language_data.model_loader import load_language
+from codenames.utils.loader.model_loader import load_language
 
 plt.style.use("fivethirtyeight")
 

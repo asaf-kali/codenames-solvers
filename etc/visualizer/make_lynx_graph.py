@@ -5,8 +5,8 @@ import community
 import networkx as nx
 
 from codenames.game.builder import words_to_random_board
+from codenames.utils.loader.model_loader import load_language
 from codenames.visualizer import render
-from language_data.model_loader import load_language
 
 model = load_language("english", "google-300")
 words = [

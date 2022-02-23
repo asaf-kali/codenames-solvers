@@ -12,7 +12,7 @@ from codenames.game import (
     GuesserGameState,
     ModelFormatAdapter,
 )
-from language_data.model_loader import load_language
+from codenames.utils.loader.model_loader import load_language
 
 log = logging.getLogger(__name__)
 
