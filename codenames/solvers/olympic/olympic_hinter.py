@@ -1,10 +1,9 @@
 import logging
-from typing import Iterable, List, Optional, Tuple, no_type_check
+from typing import Iterable, List, Optional, Tuple
 from uuid import uuid4
 
 import numpy as np
 from gensim.models import KeyedVectors
-from tqdm import tqdm
 
 from codenames.game import DEFAULT_MODEL_ADAPTER, Hinter, ModelFormatAdapter
 from codenames.game.base import (
@@ -15,7 +14,6 @@ from codenames.game.base import (
     HinterGameState,
     WordGroup,
 )
-from codenames.utils.async_task_manager import AsyncTaskManager
 from codenames.utils.loader.model_loader import load_language
 
 log = logging.getLogger(__name__)
@@ -34,42 +32,6 @@ def card_color_mask(board: Board, card_color: CardColor) -> np.ndarray:
     mask = np.zeros(board.size, dtype=bool)
     mask[idxs] = True
     return mask
-
-
-# min_frequency:         high = more results
-# max_distance_group:     high = more results
-# min_distance_gray:      high = fewer results
-# min_distance_opponent:  high = fewer results
-# min_distance_black:     high = fewer results
-# @dataclass
-# class ProposalThresholds:
-#     min_frequency: float = 0  # Can't be less common than X.
-#     max_distance_group: float = 1  # Can't be far from the group more than X.
-#     min_distance_gray: float = 0  # Can't be closer to gray then X.
-#     min_distance_opponent: float = 0  # Can't be closer to opponent then X.
-#     min_distance_black: float = 0  # Can't be closer to black then X.
-#
-#     @staticmethod
-#     def from_max_distance_group(max_distance_group: float) -> "ProposalThresholds":
-#         return ProposalThresholds(
-#             max_distance_group=max_distance_group,
-#             min_distance_gray=max_distance_group * 1.04,
-#             min_distance_opponent=max_distance_group * 1.14,
-#             min_distance_black=max_distance_group * 1.18,
-#         )
-
-
-# class ThresholdDistances(dict):
-#     @property
-#     def min(self) -> float:
-#         return min(self.values())
-#
-#     @property
-#     def total(self) -> float:
-#         return sum(self.values())
-#
-#
-# DEFAULT_THRESHOLDS = ProposalThresholds(min_frequency=0.85, max_distance_group=0.30)
 
 
 class OlympicProposal:
@@ -97,13 +59,6 @@ class OlympicProposal:
     @property
     def detailed_string(self) -> str:
         return str(self.__dict__)
-
-
-# def group_is_closest(proposal: OlympicProposal) -> bool:
-#     return all(
-#         proposal.distance_group < other_distance
-#         for other_distance in {proposal.distance_gray, proposal.distance_opponent, proposal.distance_black}
-#     )
 
 
 def normalize_vectors(u: np.ndarray) -> np.ndarray:
@@ -244,16 +199,19 @@ class ComplexProposalsGenerator:
     def generate_vocabulary(self) -> List[str]:
         amount_of_words = len(self.model.index_to_key) * self.most_common_ratio
         vocabulary = self.model.index_to_key[: int(amount_of_words)]
-        return list(vocabulary)
+        filtered_vocabulary = self.filtered_vocabulary(
+            vocabulary=vocabulary, filter_expressions=self.game_state.illegal_words
+        )
+        return list(filtered_vocabulary)
 
     @property
-    def unrevealed_words(self) -> List[str]:
-        return [self.model_format(card.word) for card in self.game_state.board.unrevealed_cards]
+    def board_words(self) -> List[str]:
+        return [self.model_format(card.word) for card in self.game_state.board]
 
     def generate_proposals(self) -> List[OlympicProposal]:
         vocabulary = self.vocabulary or self.generate_vocabulary()
         heuristics_calculator = HeuristicsCalculator(
-            board_words=self.unrevealed_words,
+            board_words=self.board_words,
             model=self.model,
             current_heuristic=self.current_heuristic,
             team_card_color=self.team_card_color,
@@ -274,38 +232,30 @@ class ComplexProposalsGenerator:
         my_unrevealed_cards_mask = my_color_mask & unrevealed_mask
         other_unrevealed_cards_mask = ~my_color_mask & unrevealed_mask
 
-        # Create scores
+        vocab_indices = np.repeat(np.arange(len(vocabulary))[np.newaxis], repeats=self.top_n, axis=0).T
+
         my_cards_scores = heuristics.copy()[:, :, my_color_index]
-        # other_cards_scores = heuristics[:, :, other_colors_mask]
-        # other_cards_scores = np.max(other_cards_scores, axis=2)
         my_cards_scores[:, ~my_unrevealed_cards_mask] = -np.inf
-        # other_cards_scores[:, ~other_unrevealed_cards_mask] = -np.inf
-
         amount_of_my_cards = np.count_nonzero(my_unrevealed_cards_mask)
-        # amount_of_other_cards = np.count_nonzero(other_unrevealed_cards_mask)
-
         # Preform arg sort on scores, slice out -inf scores, reverse (high scores = low index)
         my_cards_idx_sorted = np.argsort(my_cards_scores)[:, : -amount_of_my_cards - 1 : -1]
-        # other_cards_idx_sorted = np.argsort(other_cards_scores)[:, : -amount_of_other_cards - 1: -1]
         # my_cards_idx_sorted[i, j] = My j's best card index given hint word i
-        # other_cards_idx_sorted[i, j, k] = Other j's worst card index given hint word i for color k
-        other_cards_similarities = similarities_relu[:, other_unrevealed_cards_mask]
-
-        vocab_indices = np.repeat(np.arange(len(vocabulary))[np.newaxis], repeats=self.top_n, axis=0).T
         my_nth_card_idx = my_cards_idx_sorted[:, : self.top_n]
         my_top_n_similarities = similarities_relu[vocab_indices, my_nth_card_idx]
 
+        other_cards_similarities = similarities_relu[:, other_unrevealed_cards_mask]
         others_top_similarities_indices = np.argmax(other_cards_similarities, axis=1)
         others_top_similarities = other_cards_similarities[vocab_indices[:, 0], others_top_similarities_indices]
+
         olympia_ratio = np.divide(my_top_n_similarities.T, others_top_similarities + self.ratio_epsilon).T
         best_hints_indices = np.argmax(olympia_ratio, axis=0)
         proposals = []
         for group_size, hint_index in enumerate(best_hints_indices):
             hint_word = vocabulary[hint_index]
             best_nth_indices = my_cards_idx_sorted[hint_index, : group_size + 1]
-            best_nth = tuple(self.unrevealed_words[i] for i in best_nth_indices)
+            best_nth = tuple(self.board_words[i] for i in best_nth_indices)
             worst_idx = others_top_similarities_indices[hint_index]
-            worst = self.unrevealed_words[worst_idx]
+            worst = self.board_words[worst_idx]
             proposal = OlympicProposal(
                 hint_word=self.board_format(hint_word),
                 best_nth=best_nth,
@@ -314,82 +264,6 @@ class ComplexProposalsGenerator:
             proposals.append(proposal)
 
         return proposals
-
-    @no_type_check
-    def generate_proposals_2(self) -> List[OlympicProposal]:  # noqa
-        vocabulary = self.vocabulary or self.generate_vocabulary()
-        filtered_vocabulary = self.filtered_vocabulary(
-            vocabulary=vocabulary, filter_expressions=self.game_state.illegal_words
-        )
-
-        my_color_scores = self.generate_possible_scores(filtered_vocabulary=filtered_vocabulary)
-
-        revealed_mask = ~unrevealed_cards_mask(self.game_state.board)
-        my_color_mask = card_color_mask(self.game_state.board, self.team_card_color)
-
-        my_unrevealed_cards_mask = my_color_mask & ~revealed_mask
-        other_unrevealed_cards_mask = ~my_color_mask & ~revealed_mask
-
-        amount_of_my_cards = np.count_nonzero(my_unrevealed_cards_mask)
-        amount_of_other_cards = np.count_nonzero(other_unrevealed_cards_mask)
-
-        # Fill -inf where card color doesn't match or card is revealed
-        my_cards_scores, other_cards_scores = my_color_scores.copy(), my_color_scores.copy()
-        my_cards_scores[:, ~my_unrevealed_cards_mask] = -np.inf
-        other_cards_scores[:, ~other_unrevealed_cards_mask] = -np.inf
-
-        # Preform arg sort on scores, slice out -inf scores, reverse (high scores = low index)
-        my_cards_idx_sorted = np.argsort(my_cards_scores)[:, : -amount_of_my_cards - 1 : -1]
-        other_cards_idx_sorted = np.argsort(other_cards_scores)[:, : -amount_of_other_cards - 1 : -1]
-
-        worst_card_idxs = [int(i) for i in other_cards_idx_sorted[:, 0]]
-        worst_cards = [self.game_state.board[i] for i in worst_card_idxs]
-        proposals = []
-        for n in range(self.max_group_size):
-            group_size = n + 1
-            log.debug(f"Generating {group_size}-word group proposals...")
-            best_nth_card_idxs = [int(i) for i in my_cards_idx_sorted[:, n]]
-            best_nth_cards = [self.game_state.board[i] for i in best_nth_card_idxs]
-            for i, (hint, best_card, worst_card) in enumerate(zip(filtered_vocabulary, best_nth_cards, worst_cards)):
-                best_card_word, worst_card_word = self.model_format(best_card.word), self.model_format(worst_card.word)
-                best_index, worst_index, hint_index = (
-                    self.model.key_to_index[best_card_word],
-                    self.model.key_to_index[worst_card_word],
-                    self.model.key_to_index[hint],
-                )
-                good_similarity, bad_similarity = (
-                    self.similarities[hint_index, best_index],
-                    self.similarities[hint_index, worst_index],
-                )
-                if good_similarity < 0.1:
-                    continue
-                ratio = abs(good_similarity / (bad_similarity + self.ratio_epsilon))
-                grade = ratio * group_size
-                proposal = OlympicProposal(
-                    hint_word=hint,
-                    group_size=group_size,
-                    best_nth=best_card.word,
-                    worst=worst_card.word,
-                    grade=grade,
-                    my_scores=my_cards_scores[i],
-                )
-                proposals.append(proposal)
-        return proposals
-
-    def generate_possible_scores(self, filtered_vocabulary: List[str]) -> np.ndarray:
-        log.debug("Generating possible scores...")
-        task_manager = AsyncTaskManager()
-        for hint in filtered_vocabulary:
-            task_manager.add_task(
-                self.current_heuristic.get_updated_board_heuristic,  # type: ignore
-                args=(hint, self.team_card_color),
-            )
-        memories = list(tqdm(task_manager, total=len(filtered_vocabulary)))
-        my_color_scores = np.array(
-            [board_heuristic.get_scores_for_color(self.team_card_color) for board_heuristic in memories]
-        )
-        log.debug("Generated possible scores done.")
-        return my_color_scores
 
 
 class OlympicHinter(Hinter):
@@ -429,14 +303,14 @@ class OlympicHinter(Hinter):
                 board_words=self.board_words,
                 model=self.model,
                 current_heuristic=self.board_heuristic,
-                team_card_color=self.team_card_color,
+                team_card_color=given_hint.team_color.as_card_color,
                 alpha=self.alpha,
                 delta=self.delta,
             )
-            updated_heuristic = heuristic_calculator.calculate_heuristics_for_vocabulary(
+            updated_heuristics, _ = heuristic_calculator.calculate_heuristics_for_vocabulary(
                 vocabulary=[self.model_format(given_hint.word)]
             )
-            self.board_heuristic = updated_heuristic[0]
+            self.board_heuristic = updated_heuristics[0]
 
         except Exception as e:
             log.warning(f"Hint {given_hint.word} not found in model, error: {e}")
