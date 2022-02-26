@@ -40,15 +40,15 @@ os.environ[IS_STEMMED_ENV_KEY] = "1" if model_id.is_stemmed else ""
 adapter = HEBREW_SUFFIX_ADAPTER if model_id.language == "hebrew" and model_id.is_stemmed else DEFAULT_MODEL_ADAPTER
 
 
-def run_offline(board: Board = HEBREW_BOARD_7):  # noqa
+def run_offline(board: Board = HEBREW_BOARD_6):  # noqa
     log.info("Running offline game...")
     game_manager = None
     try:
         blue_hinter = OlympicHinter("Einstein", model_adapter=adapter)
         red_hinter = OlympicHinter("Yoda", model_adapter=adapter)
         # blue_guesser = NaiveGuesser("Newton", model_adapter=adapter)
-        blue_guesser = ModelAwareCliGuesser(name="Newton", model_adapter=adapter)
-        red_guesser = ModelAwareCliGuesser(name="Anakin", model_adapter=adapter)
+        blue_guesser = NaiveGuesser(name="Newton", model_adapter=adapter)
+        red_guesser = NaiveGuesser(name="Anakin", model_adapter=adapter)
         game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
         game_manager.run_game(language=model_id.language, board=board)  # noqa
     except QuitGame:
