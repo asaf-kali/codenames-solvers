@@ -152,7 +152,6 @@ class ComplexProposalsGenerator:
         delta: float,
         similarities: np.ndarray = None,
         vocabulary: Optional[List[str]] = None,
-        top_n: int = 5,
         most_common_ratio: float = 0.15,
         min_hint_frequency: float = 0.8,
         max_group_size: int = 4,
@@ -168,7 +167,6 @@ class ComplexProposalsGenerator:
         self.delta = delta
         self.similarities = similarities
         self.vocabulary = vocabulary
-        self.top_n = top_n
         self.most_common_ratio = most_common_ratio
         self.min_hint_frequency = min_hint_frequency
         self.max_group_size = max_group_size
@@ -221,7 +219,7 @@ class ComplexProposalsGenerator:
         heuristics, similarities = heuristics_calculator.calculate_heuristics_for_vocabulary(vocabulary)
         similarities_relu: np.ndarray = np.maximum(similarities, 0)
         # heuristics.shape = (vocabulary_size, board_size, colors)
-        # heuristics[i, j, k] = P(card[j].color = colors[k] | hint = vocabulary[i])
+        # heuristics[i, j, k]= P(card[j].color = colors[k] | hint = vocabulary[i])
 
         # Create card color and revealed masks
         my_color_index = get_card_color_index(self.team_card_color)
@@ -231,22 +229,18 @@ class ComplexProposalsGenerator:
         my_color_mask = card_color_mask(self.game_state.board, self.team_card_color)
         my_unrevealed_cards_mask = my_color_mask & unrevealed_mask
         other_unrevealed_cards_mask = ~my_color_mask & unrevealed_mask
-
-        vocab_indices = np.repeat(np.arange(len(vocabulary))[np.newaxis], repeats=self.top_n, axis=0).T
-
+        amount_of_my_cards = np.count_nonzero(my_unrevealed_cards_mask)
+        vocab_indices = np.repeat(np.arange(len(vocabulary))[np.newaxis], repeats=amount_of_my_cards, axis=0).T
         my_cards_scores = heuristics.copy()[:, :, my_color_index]
         my_cards_scores[:, ~my_unrevealed_cards_mask] = -np.inf
-        amount_of_my_cards = np.count_nonzero(my_unrevealed_cards_mask)
         # Preform arg sort on scores, slice out -inf scores, reverse (high scores = low index)
         my_cards_idx_sorted = np.argsort(my_cards_scores)[:, : -amount_of_my_cards - 1 : -1]
         # my_cards_idx_sorted[i, j] = My j's best card index given hint word i
-        my_nth_card_idx = my_cards_idx_sorted[:, : self.top_n]
+        my_nth_card_idx = my_cards_idx_sorted[:, :amount_of_my_cards]
         my_top_n_similarities = similarities_relu[vocab_indices, my_nth_card_idx]
-
         other_cards_similarities = similarities_relu[:, other_unrevealed_cards_mask]
         others_top_similarities_indices = np.argmax(other_cards_similarities, axis=1)
         others_top_similarities = other_cards_similarities[vocab_indices[:, 0], others_top_similarities_indices]
-
         olympia_ratio = np.divide(my_top_n_similarities.T, others_top_similarities + self.ratio_epsilon).T
         best_hints_indices = np.argmax(olympia_ratio, axis=0)
         proposals = []
@@ -320,6 +314,9 @@ class OlympicHinter(Hinter):
         log.debug(f"Got {len(proposals)} proposals.")
         if len(proposals) == 0:
             raise NoProposalsFound()
+        for proposal in proposals:
+            if proposal.group_size == 2:
+                return proposal
         print_top_n = 5
         proposals.sort(key=lambda proposal: -proposal.grade)
         best_ton_n_repr = "\n".join(str(p) for p in proposals[:print_top_n])
