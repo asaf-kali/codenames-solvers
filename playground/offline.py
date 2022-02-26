@@ -40,7 +40,7 @@ os.environ[IS_STEMMED_ENV_KEY] = "1" if model_id.is_stemmed else ""
 adapter = HEBREW_SUFFIX_ADAPTER if model_id.language == "hebrew" and model_id.is_stemmed else DEFAULT_MODEL_ADAPTER
 
 
-def run_offline(board: Board = HEBREW_BOARD_8):  # noqa
+def run_offline(board: Board = HEBREW_BOARD_7):  # noqa
     log.info("Running offline game...")
     game_manager = None
     try:

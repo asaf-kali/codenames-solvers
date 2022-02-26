@@ -10,6 +10,7 @@ from codenames.solvers import (  # type: ignore  # noqa
     NaiveHinter,
     SnaHinter,
 )
+from codenames.solvers.olympic.olympic_hinter import OlympicHinter  # noqa
 from codenames.utils import configure_logging
 from codenames.utils.loader.model_loader import (  # noqa
     IS_STEMMED_ENV_KEY,
@@ -42,11 +43,11 @@ def run_online():
     log.info("Running online game...")
     online_manager = None
     try:
-        blue_hinter = NaiveHinter("Einstein", model_adapter=adapter)
-        red_hinter = NaiveHinter("Yoda", model_adapter=adapter)
+        blue_hinter = OlympicHinter("Einstein", model_adapter=adapter)
+        red_hinter = OlympicHinter("Yoda", model_adapter=adapter)
         # blue_guesser = NaiveGuesser("Newton", model_adapter=adapter)
-        red_guesser = NaiveGuesser("Anakin", model_adapter=adapter)
-        online_manager = NamecodingGameManager(blue_hinter, red_hinter, None, red_guesser, show_host=False)
+        # red_guesser = NaiveGuesser("Anakin", model_adapter=adapter)
+        online_manager = NamecodingGameManager(blue_hinter, red_hinter, None, None, show_host=False)
         # online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, show_host=False)
         online_manager.auto_start(language=namecoding_language, clock=False)
     except QuitGame:
