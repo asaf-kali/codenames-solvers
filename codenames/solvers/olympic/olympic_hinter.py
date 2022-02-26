@@ -154,7 +154,6 @@ class ComplexProposalsGenerator:
         vocabulary: Optional[List[str]] = None,
         most_common_ratio: float = 0.15,
         min_hint_frequency: float = 0.8,
-        max_group_size: int = 4,
         ratio_epsilon: float = 0.3,
     ):
         self.model = model
@@ -169,7 +168,6 @@ class ComplexProposalsGenerator:
         self.vocabulary = vocabulary
         self.most_common_ratio = most_common_ratio
         self.min_hint_frequency = min_hint_frequency
-        self.max_group_size = max_group_size
         self.ratio_epsilon = ratio_epsilon
 
     def get_word_frequency(self, word: str) -> float:
@@ -265,7 +263,6 @@ class OlympicHinter(Hinter):
         self,
         name: str,
         model: KeyedVectors = None,
-        max_group_size: int = 4,
         model_adapter: ModelFormatAdapter = None,
         gradual_distances_filter_active: bool = True,
         alpha: float = 4,
@@ -273,7 +270,6 @@ class OlympicHinter(Hinter):
     ):
         super().__init__(name=name)
         self.model: KeyedVectors = model
-        self.max_group_size = max_group_size
         self.opponent_card_color = None
         self.model_adapter = model_adapter or DEFAULT_MODEL_ADAPTER
         self.gradual_distances_filter_active = gradual_distances_filter_active
@@ -336,7 +332,6 @@ class OlympicHinter(Hinter):
             game_state=game_state,
             team_card_color=self.team_card_color,
             thresholds_filter_active=thresholds_filter_active,
-            max_group_size=self.max_group_size,
             current_heuristic=self.board_heuristic,
             alpha=self.alpha,
             delta=self.delta,
