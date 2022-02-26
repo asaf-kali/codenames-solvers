@@ -1,6 +1,5 @@
 import logging
-import typing
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Tuple, no_type_check
 from uuid import uuid4
 
 import numpy as np
@@ -17,7 +16,7 @@ from codenames.game.base import (
     WordGroup,
 )
 from codenames.utils.async_task_manager import AsyncTaskManager
-from language_data.model_loader import load_language
+from codenames.utils.loader.model_loader import load_language
 
 log = logging.getLogger(__name__)
 
@@ -77,27 +76,23 @@ class OlympicProposal:
     def __init__(
         self,
         hint_word: str,
-        n: int = None,
-        best_nth: str = None,
+        best_nth: WordGroup = None,
         worst: str = None,
-        word_group: WordGroup = None,
         grade: float = 0,
         **kwargs,
     ):
         self.hint_word = hint_word
-        self.n = n
         self.best_nth = best_nth
         self.worst = worst
-        self.word_group = word_group or tuple()
         self.grade = grade
         self.extra = kwargs
 
     def __str__(self) -> str:
-        return f"hint={self.hint_word} for={self.best_nth} n={self.n} grade={self.grade:.2f}"
+        return f"hint={self.hint_word} for={self.best_nth} n={self.group_size} grade={self.grade:.2f}"
 
     @property
-    def card_count(self) -> int:
-        return self.n or 0
+    def group_size(self) -> int:
+        return len(self.best_nth) if self.best_nth else -1
 
     @property
     def detailed_string(self) -> str:
@@ -165,9 +160,9 @@ class HeuristicsCalculator:
         cosine_similarities = cosine_similarity(board_vectors, vocabulary_vectors)
         return cosine_similarities
 
-    def calculate_heuristics_for_vocabulary(self, vocabulary: List[str]) -> np.ndarray:
+    def calculate_heuristics_for_vocabulary(self, vocabulary: List[str]) -> Tuple[np.ndarray, np.ndarray]:
         similarities = self.calculate_similarities_to_board(vocabulary=vocabulary)
-        return self.calculate_heuristics_for_similarities(similarities=similarities)
+        return self.calculate_heuristics_for_similarities(similarities=similarities), similarities
 
     def calculate_heuristics_for_similarities(self, similarities: np.ndarray) -> np.ndarray:
         """
@@ -181,7 +176,7 @@ class HeuristicsCalculator:
         futures = np.array([self.current_heuristic] * vocabulary_size)
 
         alpha = np.zeros(shape=futures.shape)
-        alpha[:, :, my_color_index] = self.alpha * similarities
+        alpha[:, :, my_color_index] = self.alpha * np.maximum(similarities, 0)
         # TODO: Alpha can be negative, think about how to treat this.
 
         result = futures + self.delta + alpha
@@ -202,11 +197,11 @@ class ComplexProposalsGenerator:
         delta: float,
         similarities: np.ndarray = None,
         vocabulary: Optional[List[str]] = None,
+        top_n: int = 5,
         most_common_ratio: float = 0.15,
         min_hint_frequency: float = 0.8,
         max_group_size: int = 4,
-        similarities_top_n: int = 10,
-        ratio_epsilon: float = 0.1,
+        ratio_epsilon: float = 0.3,
     ):
         self.model = model
         self.model_adapter = model_adapter
@@ -218,10 +213,10 @@ class ComplexProposalsGenerator:
         self.delta = delta
         self.similarities = similarities
         self.vocabulary = vocabulary
+        self.top_n = top_n
         self.most_common_ratio = most_common_ratio
         self.min_hint_frequency = min_hint_frequency
         self.max_group_size = max_group_size
-        self.similarities_top_n = similarities_top_n
         self.ratio_epsilon = ratio_epsilon
 
     def get_word_frequency(self, word: str) -> float:
@@ -265,7 +260,8 @@ class ComplexProposalsGenerator:
             alpha=self.alpha,
             delta=self.delta,
         )
-        heuristics = heuristics_calculator.calculate_heuristics_for_vocabulary(vocabulary)
+        heuristics, similarities = heuristics_calculator.calculate_heuristics_for_vocabulary(vocabulary)
+        similarities_relu: np.ndarray = np.maximum(similarities, 0)
         # heuristics.shape = (vocabulary_size, board_size, colors)
         # heuristics[i, j, k] = P(card[j].color = colors[k] | hint = vocabulary[i])
 
@@ -279,23 +275,47 @@ class ComplexProposalsGenerator:
         other_unrevealed_cards_mask = ~my_color_mask & unrevealed_mask
 
         # Create scores
-        my_cards_scores = heuristics[:, :, my_color_index]
-        other_cards_scores = heuristics[:, :, other_colors_mask]
+        my_cards_scores = heuristics.copy()[:, :, my_color_index]
+        # other_cards_scores = heuristics[:, :, other_colors_mask]
+        # other_cards_scores = np.max(other_cards_scores, axis=2)
         my_cards_scores[:, ~my_unrevealed_cards_mask] = -np.inf
-        other_cards_scores[:, ~other_unrevealed_cards_mask] = -np.inf
+        # other_cards_scores[:, ~other_unrevealed_cards_mask] = -np.inf
 
         amount_of_my_cards = np.count_nonzero(my_unrevealed_cards_mask)
-        amount_of_other_cards = np.count_nonzero(other_unrevealed_cards_mask)
+        # amount_of_other_cards = np.count_nonzero(other_unrevealed_cards_mask)
 
         # Preform arg sort on scores, slice out -inf scores, reverse (high scores = low index)
         my_cards_idx_sorted = np.argsort(my_cards_scores)[:, : -amount_of_my_cards - 1 : -1]
-        other_cards_idx_sorted = np.argsort(other_cards_scores)[:, : -amount_of_other_cards - 1 : -1]
+        # other_cards_idx_sorted = np.argsort(other_cards_scores)[:, : -amount_of_other_cards - 1: -1]
         # my_cards_idx_sorted[i, j] = My j's best card index given hint word i
         # other_cards_idx_sorted[i, j, k] = Other j's worst card index given hint word i for color k
+        other_cards_similarities = similarities_relu[:, other_unrevealed_cards_mask]
 
-        return []
+        vocab_indices = np.repeat(np.arange(len(vocabulary))[np.newaxis], repeats=self.top_n, axis=0).T
+        my_nth_card_idx = my_cards_idx_sorted[:, : self.top_n]
+        my_top_n_similarities = similarities_relu[vocab_indices, my_nth_card_idx]
 
-    @typing.no_type_check
+        others_top_similarities_indices = np.argmax(other_cards_similarities, axis=1)
+        others_top_similarities = other_cards_similarities[vocab_indices[:, 0], others_top_similarities_indices]
+        olympia_ratio = np.divide(my_top_n_similarities.T, others_top_similarities + self.ratio_epsilon).T
+        best_hints_indices = np.argmax(olympia_ratio, axis=0)
+        proposals = []
+        for group_size, hint_index in enumerate(best_hints_indices):
+            hint_word = vocabulary[hint_index]
+            best_nth_indices = my_cards_idx_sorted[hint_index, : group_size + 1]
+            best_nth = tuple(self.unrevealed_words[i] for i in best_nth_indices)
+            worst_idx = others_top_similarities_indices[hint_index]
+            worst = self.unrevealed_words[worst_idx]
+            proposal = OlympicProposal(
+                hint_word=self.board_format(hint_word),
+                best_nth=best_nth,
+                worst=worst,
+            )
+            proposals.append(proposal)
+
+        return proposals
+
+    @no_type_check
     def generate_proposals_2(self) -> List[OlympicProposal]:  # noqa
         vocabulary = self.vocabulary or self.generate_vocabulary()
         filtered_vocabulary = self.filtered_vocabulary(
@@ -347,7 +367,7 @@ class ComplexProposalsGenerator:
                 grade = ratio * group_size
                 proposal = OlympicProposal(
                     hint_word=hint,
-                    n=group_size,
+                    group_size=group_size,
                     best_nth=best_card.word,
                     worst=worst_card.word,
                     grade=grade,
@@ -435,7 +455,9 @@ class OlympicHinter(Hinter):
         return best_proposal
 
     def pick_hint(
-        self, game_state: HinterGameState, thresholds_filter_active: bool = True, similarities_top_n: int = 10
+        self,
+        game_state: HinterGameState,
+        thresholds_filter_active: bool = True,
     ) -> Hint:
         proposal_generator = ComplexProposalsGenerator(
             model=self.model,
@@ -443,7 +465,6 @@ class OlympicHinter(Hinter):
             game_state=game_state,
             team_card_color=self.team_card_color,
             thresholds_filter_active=thresholds_filter_active,
-            similarities_top_n=similarities_top_n,
             max_group_size=self.max_group_size,
             current_heuristic=self.board_heuristic,
             alpha=self.alpha,
@@ -454,12 +475,14 @@ class OlympicHinter(Hinter):
         proposals = proposal_generator.generate_proposals()
         try:
             proposal = self.pick_best_proposal(proposals=proposals)
-            word_group_board_format = tuple(self.model_adapter.to_board_format(word) for word in proposal.word_group)
-            return Hint(proposal.hint_word, proposal.card_count, for_words=word_group_board_format)
+            word_group_board_format = tuple(
+                self.model_adapter.to_board_format(word) for word in proposal.best_nth  # type: ignore
+            )
+            return Hint(proposal.hint_word, proposal.group_size, for_words=word_group_board_format)
         except NoProposalsFound:
             log.debug("No legal proposals found.")
-            if not thresholds_filter_active and similarities_top_n >= 20:
+            if not thresholds_filter_active:
                 random_word = uuid4().hex[:4]
                 return Hint(random_word, 1)
             log.info("Trying without thresholds filtering.")
-            return self.pick_hint(game_state=game_state, thresholds_filter_active=False, similarities_top_n=50)
+            return self.pick_hint(game_state=game_state, thresholds_filter_active=False)
