@@ -1,7 +1,7 @@
 import logging
 from enum import Enum
 from time import sleep
-from typing import Optional, Set
+from typing import Iterable, Optional
 
 from selenium import webdriver
 from selenium.common.exceptions import NoAlertPresentException, NoSuchElementException
@@ -225,7 +225,7 @@ class NamecodingPlayerAdapter:
         log.debug("Parse board done")
         return Board(cards)
 
-    def detect_visibility_change(self, revealed_card_indexes: Set[int]) -> Optional[int]:
+    def detect_visibility_change(self, revealed_card_indexes: Iterable[int]) -> Optional[int]:
         log.debug("Looking for visibility change...")
         game_page = self.get_game_page()
         card_containers = game_page.find_elements(by=By.ID, value="card-padding-container")

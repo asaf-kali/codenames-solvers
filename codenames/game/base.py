@@ -101,7 +101,7 @@ class Card:
         return canonical_format(self.word)
 
 
-CardSet = Set[Card]
+Cards = Tuple[Card, ...]
 LTR = "\u200E"
 
 
@@ -155,23 +155,23 @@ class Board:
         return tuple(card.revealed for card in self._cards)
 
     @property
-    def revealed_card_indexes(self) -> Set[int]:
-        return set(i for i, card in enumerate(self._cards) if card.revealed)
+    def revealed_card_indexes(self) -> Tuple[int, ...]:
+        return tuple(i for i, card in enumerate(self._cards) if card.revealed)
 
     @property
-    def unrevealed_cards(self) -> CardSet:
-        return set(card for card in self._cards if not card.revealed)
+    def unrevealed_cards(self) -> Cards:
+        return tuple(card for card in self._cards if not card.revealed)
 
     @property
-    def revealed_cards(self) -> CardSet:
-        return set(card for card in self._cards if card.revealed)
+    def revealed_cards(self) -> Cards:
+        return tuple(card for card in self._cards if card.revealed)
 
     @cached_property
-    def red_cards(self) -> CardSet:
+    def red_cards(self) -> Cards:
         return self.cards_for_color(CardColor.RED)
 
     @cached_property
-    def blue_cards(self) -> CardSet:
+    def blue_cards(self) -> Cards:
         return self.cards_for_color(CardColor.BLUE)
 
     @property
@@ -190,11 +190,11 @@ class Board:
             table.rows.append(row)
         return str(table)
 
-    def cards_for_color(self, card_color: CardColor) -> CardSet:
-        return set(card for card in self._cards if card.color == card_color)
+    def cards_for_color(self, card_color: CardColor) -> Cards:
+        return tuple(card for card in self._cards if card.color == card_color)
 
-    def unrevealed_cards_for_color(self, card_color: CardColor) -> CardSet:
-        return set(card for card in self._cards if card.color == card_color and not card.revealed)
+    def unrevealed_cards_for_color(self, card_color: CardColor) -> Cards:
+        return tuple(card for card in self._cards if card.color == card_color and not card.revealed)
 
     def find_card_index(self, word: str) -> int:
         formatted_word = canonical_format(word)

@@ -14,7 +14,7 @@ from codenames.game import DEFAULT_MODEL_ADAPTER, Hinter, ModelFormatAdapter
 from codenames.game.base import (
     Board,
     CardColor,
-    CardSet,
+    Cards,
     Hint,
     HinterGameState,
     Similarity,
@@ -156,7 +156,7 @@ class NaiveProposalsGenerator:
         return self.get_vectors(self.board_data.index.isin(word_group))
 
     @cached_property
-    def team_unrevealed_cards(self) -> CardSet:
+    def team_unrevealed_cards(self) -> Cards:
         return self.game_state.board.unrevealed_cards_for_color(self.team_card_color)
 
     @cached_property
