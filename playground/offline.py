@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 
 from codenames.game import DEFAULT_MODEL_ADAPTER, Board, QuitGame  # noqa
 from codenames.game.manager import GameManager  # noqa
@@ -23,6 +24,7 @@ from playground.boards.hebrew import *  # noqa
 from playground.model_adapters import HEBREW_SUFFIX_ADAPTER  # noqa
 from playground.printer import print_results
 
+random.seed(42)
 configure_logging(level="DEBUG", mute_solvers=False)
 log = logging.getLogger(__name__)
 
