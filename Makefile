@@ -40,7 +40,7 @@ lint-check:
 	black . -l $(LINE_LENGTH) --check
 	isort . --profile black --check --skip __init__.py
 	mypy . --ignore-missing-imports
-	flake8 . --max-line-length=$(LINE_LENGTH)
+	flake8 . --max-line-length=$(LINE_LENGTH) --ignore=E203,W503
 
 lint:
 	@make lint-only --no-print-directory
