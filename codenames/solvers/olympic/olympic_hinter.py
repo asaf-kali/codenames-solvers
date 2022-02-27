@@ -225,20 +225,17 @@ class ComplexProposalsGenerator:
             delta=self.delta,
         )
         similarities, heuristics = heuristics_calculator.calculate_heuristics_for_vocabulary(vocabulary)
-        similarities_relu: np.ndarray = np.maximum(similarities, 0)
+        similarities_relu: SimilaritiesMatrix = np.maximum(similarities, 0)
         # heuristics.shape = (vocabulary_size, board_size, colors)
         # heuristics[i, j, k]= P(card[j].color = colors[k] | hint = vocabulary[i])
 
-        # Create card color and revealed masks
-        my_color_index = get_card_color_index(self.team_card_color)
-        other_colors_mask = np.ones(shape=(4,), dtype=bool)
-        other_colors_mask[my_color_index] = False
         unrevealed_mask = unrevealed_cards_mask(self.game_state.board)
         my_color_mask = card_color_mask(self.game_state.board, self.team_card_color)
         my_unrevealed_cards_mask = my_color_mask & unrevealed_mask
         other_unrevealed_cards_mask = ~my_color_mask & unrevealed_mask
         amount_of_my_cards = np.count_nonzero(my_unrevealed_cards_mask)
         vocab_indices = np.repeat(np.arange(len(vocabulary))[np.newaxis], repeats=amount_of_my_cards, axis=0).T
+        my_color_index = get_card_color_index(self.team_card_color)
         my_cards_scores = heuristics.copy()[:, :, my_color_index]
         my_cards_scores[:, ~my_unrevealed_cards_mask] = -np.inf
         # Preform arg sort on scores, slice out -inf scores, reverse (high scores = low index)
