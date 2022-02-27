@@ -10,7 +10,7 @@ from codenames.solvers import (  # type: ignore  # noqa
     NaiveHinter,
     SnaHinter,
 )
-from codenames.solvers.naive.naive_cli_guesser import ModelAwareCliGuesser
+from codenames.solvers.naive.naive_cli_guesser import ModelAwareCliGuesser  # noqa
 from codenames.solvers.olympic.olympic_hinter import OlympicHinter
 from codenames.utils import configure_logging
 from codenames.utils.loader.model_loader import (  # noqa
