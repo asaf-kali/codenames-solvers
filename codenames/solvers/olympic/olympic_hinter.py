@@ -1,8 +1,9 @@
 import logging
 from functools import cached_property
-from typing import Iterable, List, NamedTuple, Optional, Tuple
+from typing import Iterable, List, NamedTuple, Tuple
 from uuid import uuid4
 
+import editdistance
 import numpy as np
 from gensim.models import KeyedVectors
 
@@ -59,7 +60,10 @@ class OlympicProposal:
         return f"hint={self.hint_word} for={self.best_nth_words} n={self.group_size} grade={self.grade:.2f}"
 
     def calculate_grade(self) -> float:
-        return 0 + 0.5 * self.group_size + 2.0 * self.olympic_ratio
+        optimal_size = 2.5
+        size_distance = optimal_size - abs(optimal_size - self.group_size)
+        grade = 2.0 * size_distance + 1.5 * self.olympic_ratio
+        return grade
 
     @property
     def group_size(self) -> int:
@@ -108,15 +112,15 @@ class HeuristicsResult(NamedTuple):
 class HeuristicsCalculator:
     def __init__(
         self,
-        board_words: List[str],
         model: KeyedVectors,
+        board_words: List[str],
         current_heuristic: np.ndarray,
         team_card_color: CardColor,
         alpha: float,
         delta: float,
     ):
-        self.board_words = board_words
         self.model = model
+        self.board_words = board_words
         self.current_heuristic = current_heuristic
         self.team_card_color = team_card_color
         self.alpha = alpha
@@ -169,10 +173,8 @@ class ComplexProposalsGenerator:
         current_heuristic: np.ndarray,
         alpha: float,
         delta: float,
+        vocabulary: List[str],
         similarities: np.ndarray = None,
-        vocabulary: Optional[List[str]] = None,
-        most_common_ratio: float = 0.15,
-        min_hint_frequency: float = 0.8,
         ratio_epsilon: float = 0.3,
     ):
         self.model = model
@@ -184,14 +186,8 @@ class ComplexProposalsGenerator:
         self.alpha = alpha
         self.delta = delta
         self.similarities = similarities
-        self.vocabulary = vocabulary
-        self.most_common_ratio = most_common_ratio
-        self.min_hint_frequency = min_hint_frequency
+        self.base_vocabulary = vocabulary
         self.ratio_epsilon = ratio_epsilon
-
-    def get_word_frequency(self, word: str) -> float:
-        # TODO: len(self.model.key_to_index) is linear, this should not be linear grading.
-        return 1 - self.model.key_to_index[word] / len(self.model.key_to_index)
 
     def model_format(self, word: str) -> str:
         return self.model_adapter.to_model_format(word)
@@ -199,39 +195,23 @@ class ComplexProposalsGenerator:
     def board_format(self, word: str) -> str:
         return self.model_adapter.to_board_format(word)
 
-    def should_filter_hint(self, hint: str, filter_expressions: Iterable[str]) -> bool:
-        hint = self.board_format(hint)
-        for filter_expression in filter_expressions:
-            if hint in filter_expression or filter_expression in hint:
-                return True
-        if self.get_word_frequency(self.model_format(hint)) < self.min_hint_frequency:
-            return True
-        return False
-
-    def filtered_vocabulary(self, vocabulary: List[str], filter_expressions: Iterable[str]) -> List[str]:
-        return [word for word in vocabulary if not self.should_filter_hint(word, filter_expressions)]
-
-    def generate_vocabulary(self) -> List[str]:
-        amount_of_words = len(self.model.index_to_key) * self.most_common_ratio
-        vocabulary = self.model.index_to_key[: int(amount_of_words)]
-        filtered_vocabulary = self.filtered_vocabulary(
-            vocabulary=vocabulary, filter_expressions=self.game_state.illegal_words
-        )
-        return list(filtered_vocabulary)
+    def get_updated_vocabulary(self) -> List[str]:
+        filter_expressions = [self.model_format(word) for word in self.game_state.given_hint_words]
+        return [word for word in self.base_vocabulary if word not in filter_expressions]
 
     @cached_property
     def board_words(self) -> List[str]:
         return [card.word for card in self.game_state.board]
 
     @cached_property
-    def model_words(self) -> List[str]:
+    def board_words_model_format(self) -> List[str]:
         return [self.model_format(word) for word in self.board_words]
 
     def generate_proposals(self) -> List[OlympicProposal]:
-        vocabulary = self.vocabulary or self.generate_vocabulary()
+        vocabulary = self.get_updated_vocabulary()
         heuristics_calculator = HeuristicsCalculator(
-            board_words=self.model_words,
             model=self.model,
+            board_words=self.board_words_model_format,
             current_heuristic=self.current_heuristic,
             team_card_color=self.team_card_color,
             alpha=self.alpha,
@@ -285,6 +265,34 @@ class ComplexProposalsGenerator:
         return proposals
 
 
+class VocabularyBuilder:
+    def __init__(self, model: KeyedVectors, most_common_ratio: float, filter_expressions: Iterable[str]):
+        self.model = model
+        self.most_common_ratio = most_common_ratio
+        self.filter_expressions = filter_expressions
+
+    def build_vocabulary(self) -> List[str]:
+        amount_of_words = int(len(self.model.index_to_key) * self.most_common_ratio)
+        vocabulary = self.model.index_to_key[:amount_of_words]
+        filtered_vocabulary = [word for word in vocabulary if not self.should_filter_hint(word)]
+        return filtered_vocabulary
+
+    def should_filter_hint(self, hint: str) -> bool:
+        # l1 = len(hint)
+        for expression in self.filter_expressions:
+            # removals = get_removals_count(hint, expression)
+            # longest = max(l1, l2)
+            # diff = abs(l1 - l2)
+            # l2 = len(expression)
+            edit_distance = editdistance.eval(hint, expression)
+            if len(hint) <= 4 or len(hint) <= 4:
+                if edit_distance <= 1:
+                    return True
+            elif edit_distance <= 2:
+                return True
+        return False
+
+
 class OlympicHinter(Hinter):
     def __init__(
         self,
@@ -294,6 +302,7 @@ class OlympicHinter(Hinter):
         gradual_distances_filter_active: bool = True,
         alpha: float = 4,
         delta: float = 0.1,
+        most_common_ratio: float = 0.15,
     ):
         super().__init__(name=name)
         self.model: KeyedVectors = model
@@ -302,23 +311,51 @@ class OlympicHinter(Hinter):
         self.gradual_distances_filter_active = gradual_distances_filter_active
         self.alpha = alpha
         self.delta = delta
+        self.most_common_ratio = most_common_ratio
         self.board_words: List[str] = []
         self.board_heuristic = np.array([])
+        self.vocabulary: List[str] = []
 
     def on_game_start(self, language: str, board: Board):
         self.model = load_language(language=language)  # type: ignore
         self.opponent_card_color = self.team_color.opponent.as_card_color  # type: ignore
-        self.board_words = [self.model_adapter.to_model_format(card.word) for card in board]
+        self.board_words = [self.model_format(card.word) for card in board]
         self.board_heuristic = np.array([[0.25] * 4] * board.size)
+        self.vocabulary = self.build_vocabulary()
 
-    def model_format(self, word: str) -> str:
-        return self.model_adapter.to_model_format(word)
+    def pick_hint(self, game_state: HinterGameState, thresholds_filter_active: bool = True) -> Hint:
+        proposal_generator = ComplexProposalsGenerator(
+            model=self.model,
+            model_adapter=self.model_adapter,
+            game_state=game_state,
+            team_card_color=self.team_card_color,
+            thresholds_filter_active=thresholds_filter_active,
+            current_heuristic=self.board_heuristic,
+            alpha=self.alpha,
+            delta=self.delta,
+            vocabulary=self.vocabulary,
+            # vocabulary=["אווירי"],
+        )
+        proposals = proposal_generator.generate_proposals()
+        try:
+            proposal = self.pick_best_proposal(proposals=proposals)
+            word_group_board_format = tuple(
+                self.model_adapter.to_board_format(word) for word in proposal.best_nth_words  # type: ignore
+            )
+            return Hint(proposal.hint_word, proposal.group_size, for_words=word_group_board_format)
+        except NoProposalsFound:
+            log.warning("No legal proposals found.")
+            if not thresholds_filter_active:
+                random_word = uuid4().hex[:4]
+                return Hint(random_word, 1)
+            log.info("Trying without thresholds filtering.")
+            return self.pick_hint(game_state=game_state, thresholds_filter_active=False)
 
     def on_hint_given(self, given_hint: GivenHint):
         try:
             heuristic_calculator = HeuristicsCalculator(
-                board_words=self.board_words,
                 model=self.model,
+                board_words=self.board_words,
                 current_heuristic=self.board_heuristic,
                 team_card_color=given_hint.team_color.as_card_color,
                 alpha=self.alpha,
@@ -337,9 +374,6 @@ class OlympicHinter(Hinter):
         log.debug(f"Got {len(proposals)} proposals.")
         if len(proposals) == 0:
             raise NoProposalsFound()
-        for proposal in proposals:
-            if proposal.group_size == 2:
-                return proposal
         print_top_n = 5
         proposals.sort(key=lambda proposal: -proposal.grade)
         best_ton_n_repr = "\n".join(str(p) for p in proposals[:print_top_n])
@@ -348,34 +382,11 @@ class OlympicHinter(Hinter):
         log.debug(f"Picked proposal: {best_proposal.detailed_string}")
         return best_proposal
 
-    def pick_hint(
-        self,
-        game_state: HinterGameState,
-        thresholds_filter_active: bool = True,
-    ) -> Hint:
-        proposal_generator = ComplexProposalsGenerator(
-            model=self.model,
-            model_adapter=self.model_adapter,
-            game_state=game_state,
-            team_card_color=self.team_card_color,
-            thresholds_filter_active=thresholds_filter_active,
-            current_heuristic=self.board_heuristic,
-            alpha=self.alpha,
-            delta=self.delta,
-            # vocabulary=self.model.index_to_key[:15000],
-            # vocabulary=["אווירי"],
+    def model_format(self, word: str) -> str:
+        return self.model_adapter.to_model_format(word)
+
+    def build_vocabulary(self) -> List[str]:
+        vocabulary_builder = VocabularyBuilder(
+            model=self.model, most_common_ratio=self.most_common_ratio, filter_expressions=self.board_words
         )
-        proposals = proposal_generator.generate_proposals()
-        try:
-            proposal = self.pick_best_proposal(proposals=proposals)
-            word_group_board_format = tuple(
-                self.model_adapter.to_board_format(word) for word in proposal.best_nth_words  # type: ignore
-            )
-            return Hint(proposal.hint_word, proposal.group_size, for_words=word_group_board_format)
-        except NoProposalsFound:
-            log.debug("No legal proposals found.")
-            if not thresholds_filter_active:
-                random_word = uuid4().hex[:4]
-                return Hint(random_word, 1)
-            log.info("Trying without thresholds filtering.")
-            return self.pick_hint(game_state=game_state, thresholds_filter_active=False)
+        return vocabulary_builder.build_vocabulary()
