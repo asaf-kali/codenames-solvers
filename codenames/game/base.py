@@ -2,7 +2,7 @@ import math
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
-from typing import Iterable, List, Optional, Set, Tuple, Union
+from typing import Iterable, List, Optional, Tuple, Union
 
 from codenames.game.exceptions import CardNotFoundError
 from codenames.utils import wrap
@@ -11,7 +11,6 @@ BLACK_AMOUNT = 1
 
 Similarity = Tuple[str, float]
 WordGroup = Tuple[str, ...]
-WordSet = Set[str]
 
 
 def canonical_format(word: str) -> str:
@@ -265,12 +264,12 @@ class HinterGameState:
     given_guesses: List[GivenGuess]
 
     @cached_property
-    def given_hint_words(self) -> WordSet:
-        return set(hint.formatted_word for hint in self.given_hints)
+    def given_hint_words(self) -> WordGroup:
+        return tuple(hint.formatted_word for hint in self.given_hints)
 
     @cached_property
-    def illegal_words(self) -> WordSet:
-        return {*self.board.all_words, *self.given_hint_words}
+    def illegal_words(self) -> WordGroup:
+        return *self.board.all_words, *self.given_hint_words
 
 
 @dataclass

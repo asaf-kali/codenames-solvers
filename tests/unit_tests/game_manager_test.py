@@ -111,7 +111,7 @@ def test_game_manager_hinter_state():
     assert game_state_1.current_team_color == TeamColor.BLUE
     assert game_state_1.given_hints == []
     assert game_state_1.given_guesses == []
-    assert game_state_1.given_hint_words == set()
+    assert game_state_1.given_hint_words == tuple()
 
     for card in game_state_2.board:
         assert card.color is not None
@@ -122,7 +122,7 @@ def test_game_manager_hinter_state():
         GivenGuess(given_hint=game_state_2.given_hints[0], guessed_card=board[1]),
         GivenGuess(given_hint=game_state_2.given_hints[0], guessed_card=board[2]),
     ]
-    assert game_state_2.given_hint_words == {"a"}
+    assert game_state_2.given_hint_words == ("a",)
 
 
 def test_game_manager_guesser_state():
