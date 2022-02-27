@@ -1,5 +1,5 @@
 import logging
-from typing import Iterable, List, Optional, Tuple
+from typing import Iterable, List, NamedTuple, Optional
 from uuid import uuid4
 
 import numpy as np
@@ -87,6 +87,15 @@ def get_card_color_index(card_color: CardColor) -> int:
     }[card_color]
 
 
+SimilaritiesMatrix = np.ndarray
+HeuristicsTensor = np.ndarray
+
+
+class HeuristicsResult(NamedTuple):
+    similarities: SimilaritiesMatrix
+    heuristics: HeuristicsTensor
+
+
 class HeuristicsCalculator:
     def __init__(
         self,
@@ -115,11 +124,12 @@ class HeuristicsCalculator:
         cosine_similarities = cosine_similarity(board_vectors, vocabulary_vectors)
         return cosine_similarities
 
-    def calculate_heuristics_for_vocabulary(self, vocabulary: List[str]) -> Tuple[np.ndarray, np.ndarray]:
+    def calculate_heuristics_for_vocabulary(self, vocabulary: List[str]) -> HeuristicsResult:
         similarities = self.calculate_similarities_to_board(vocabulary=vocabulary)
-        return self.calculate_heuristics_for_similarities(similarities=similarities), similarities
+        heuristics = self.calculate_heuristics_for_similarities(similarities=similarities)
+        return HeuristicsResult(similarities=similarities, heuristics=heuristics)
 
-    def calculate_heuristics_for_similarities(self, similarities: np.ndarray) -> np.ndarray:
+    def calculate_heuristics_for_similarities(self, similarities: SimilaritiesMatrix) -> HeuristicsTensor:
         """
         Calculate updated board heuristic for each word in the vocabulary.
         :return: a Probability tensor `heuristics`, where
@@ -214,7 +224,7 @@ class ComplexProposalsGenerator:
             alpha=self.alpha,
             delta=self.delta,
         )
-        heuristics, similarities = heuristics_calculator.calculate_heuristics_for_vocabulary(vocabulary)
+        similarities, heuristics = heuristics_calculator.calculate_heuristics_for_vocabulary(vocabulary)
         similarities_relu: np.ndarray = np.maximum(similarities, 0)
         # heuristics.shape = (vocabulary_size, board_size, colors)
         # heuristics[i, j, k]= P(card[j].color = colors[k] | hint = vocabulary[i])
@@ -297,7 +307,7 @@ class OlympicHinter(Hinter):
                 alpha=self.alpha,
                 delta=self.delta,
             )
-            updated_heuristics, _ = heuristic_calculator.calculate_heuristics_for_vocabulary(
+            _, updated_heuristics = heuristic_calculator.calculate_heuristics_for_vocabulary(
                 vocabulary=[self.model_format(given_hint.word)]
             )
             self.board_heuristic = updated_heuristics[0]
