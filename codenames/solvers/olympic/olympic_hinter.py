@@ -67,9 +67,9 @@ class OlympicProposal:
         return f"hint={self.hint_word} for={self.best_nth_words} n={self.group_size} grade={self.grade:.2f}"
 
     def calculate_grade(self) -> float:
-        optimal_size = 2.5
+        optimal_size = 2.6
         size_distance = optimal_size - abs(optimal_size - self.group_size)
-        grade = 2.0 * size_distance + 1.5 * self.olympic_ratio
+        grade = 1.1 * size_distance + 1.0 * self.olympic_ratio
         return grade
 
     @property
