@@ -43,12 +43,12 @@ def run_online():
     log.info("Running online game...")
     online_manager = None
     try:
-        blue_hinter = OlympicHinter("Einstein", model_adapter=adapter)
-        red_hinter = OlympicHinter("Yoda", model_adapter=adapter)
-        # blue_guesser = NaiveGuesser("Newton", model_adapter=adapter)
-        # red_guesser = NaiveGuesser("Anakin", model_adapter=adapter)
-        online_manager = NamecodingGameManager(blue_hinter, red_hinter, None, None, show_host=False)
-        # online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, show_host=False)
+        blue_hinter = OlympicHinter("Einstein", model_adapter=adapter)  # noqa
+        red_hinter = OlympicHinter("Yoda", model_adapter=adapter)  # noqa
+        blue_guesser = NaiveGuesser("Newton", model_adapter=adapter)  # noqa
+        red_guesser = NaiveGuesser("Anakin", model_adapter=adapter)  # noqa
+        online_manager = NamecodingGameManager(blue_hinter, red_hinter, None, red_guesser, show_host=False)
+        # online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
         online_manager.auto_start(language=namecoding_language, clock=False)
     except QuitGame:
         log.info("Game quit")
