@@ -49,7 +49,7 @@ for i in range(board_size):
         distance = model.similarity(v, u) + 1
         if distance > 1.13:
             vis_graph.add_edge(v, u, weight=distance)
-        louvain_weight = distance ** 10
+        louvain_weight = distance**10
         louvain.add_edge(v, u, weight=louvain_weight)
 #
 word_to_group: Dict[str, int] = community.best_partition(louvain)
