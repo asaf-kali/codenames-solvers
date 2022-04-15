@@ -61,8 +61,8 @@ class ShadowRootElement:
 
     def find_element(self, by: str, value: str) -> WebElement:
         using, value = _by_to_using(by, value)
-        return self.shadow_root.find_element(using=using, value=value)
+        return self.shadow_root.find_element(using=using, value=value)  # type: ignore
 
     def find_elements(self, by: str, value: str) -> List[WebElement]:
         using, value = _by_to_using(by, value)
-        return self.shadow_root.find_elements(using=using, value=value)
+        return self.shadow_root.find_elements(using=using, value=value)  # type: ignore

@@ -15,7 +15,7 @@ jobs:
           python-version: 3.9
       - name: Install dependencies
         run: |
-          pip install -r requirements-dev.txt
+          make install-test
       - name: Check lint
         run: |
           make lint-check

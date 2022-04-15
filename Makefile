@@ -42,9 +42,7 @@ lint-check:
 	mypy . --ignore-missing-imports
 	flake8 . --max-line-length=$(LINE_LENGTH) --ignore=E203,W503
 
-lint:
-	@make lint-only --no-print-directory
-	@make lint-check --no-print-directory
+lint: lint-only
 	pre-commit run --all-files
 
 unzip_data:

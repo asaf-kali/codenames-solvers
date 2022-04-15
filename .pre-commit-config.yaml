@@ -12,6 +12,6 @@ repos:
     hooks:
       - id: lint
         name: run lint command
-        entry: "make lint-only"
+        entry: "make lint-check"
         language: system
         pass_filenames: false
