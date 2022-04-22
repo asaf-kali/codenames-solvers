@@ -32,6 +32,7 @@ class ModelCache:
         return model_lock
 
     def load_model(self, model_identifier: ModelIdentifier) -> KeyedVectors:
+        log.info(f"Loading model {model_identifier}")
         model_lock = self._get_model_lock(model_identifier)
         with model_lock:
             if model_identifier not in self._cache:
