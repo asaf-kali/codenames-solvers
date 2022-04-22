@@ -1,4 +1,5 @@
 PYTHON_TEST_COMMAND=pytest -s
+DEL_COMMAND=gio trash
 LINE_LENGTH=120
 .PHONY: build
 
@@ -27,11 +28,12 @@ cover:
 	coverage run -m $(PYTHON_TEST_COMMAND)
 	coverage html
 	xdg-open htmlcov/index.html &
+	$(DEL_COMMAND) .coverage*
 
 # Packaging
 
 build:
-	gio trash -f dist/
+	$(DEL_COMMAND) -f dist/
 	python -m build
 
 upload:
