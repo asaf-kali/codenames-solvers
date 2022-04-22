@@ -17,7 +17,7 @@ from codenames.utils.loader.model_loader import (  # noqa
     ModelIdentifier,
     load_language_async,
 )
-from playground.model_adapters import HEBREW_SUFFIX_ADAPTER  # noqa
+from codenames.utils.model_adapters import HEBREW_SUFFIX_ADAPTER  # noqa
 from playground.printer import print_results
 from utils import configure_logging
 
