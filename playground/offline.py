@@ -12,7 +12,6 @@ from codenames.solvers import (  # type: ignore  # noqa
 )
 from codenames.solvers.naive.naive_cli_guesser import ModelAwareCliGuesser  # noqa
 from codenames.solvers.olympic.olympic_hinter import OlympicHinter
-from codenames.utils import configure_logging
 from codenames.utils.loader.model_loader import (  # noqa
     IS_STEMMED_ENV_KEY,
     MODEL_NAME_ENV_KEY,
@@ -23,6 +22,7 @@ from playground.boards.english import *  # noqa
 from playground.boards.hebrew import *  # noqa
 from playground.model_adapters import HEBREW_SUFFIX_ADAPTER  # noqa
 from playground.printer import print_results
+from utils import configure_logging
 
 random.seed(42)
 configure_logging(level="DEBUG", mute_solvers=False)
