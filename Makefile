@@ -1,4 +1,5 @@
 LINE_LENGTH=120
+.PHONY: build
 
 # Install
 
@@ -18,6 +19,18 @@ install: install-dev test
 
 test:
 	python -m pytest -s
+
+# Packaging
+
+build:
+	gio trash -f dist/
+	python -m build
+
+upload:
+	twine upload dist/*
+
+upload-test:
+	twine upload --repository testpypi dist/*
 
 # Video
 
