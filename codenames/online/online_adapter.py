@@ -24,7 +24,6 @@ from codenames.utils import wrap
 
 log = logging.getLogger(__name__)
 
-WEBDRIVER_FOLDER = "codenames/online"
 WEBAPP_URL = "https://namecoding.herokuapp.com/"
 CLEAR = "\b\b\b\b\b"
 
@@ -76,7 +75,8 @@ class NamecodingPlayerAdapter:
         if headless:
             options.add_argument("headless")
         if not chromedriver_path:
-            chromedriver_path = f"{WEBDRIVER_FOLDER}/chromedriver"  # TODO: Make this configurable (env vars).
+            log.warning("Chromedriver path not given, searching in root directory...")
+            chromedriver_path = "./chromedriver"  # TODO: Make default path a config
         self.driver = webdriver.Chrome(chromedriver_path, options=options)
         self.driver.implicitly_wait(implicitly_wait)
         self.player = player

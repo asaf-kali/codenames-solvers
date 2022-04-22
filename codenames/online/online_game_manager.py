@@ -27,10 +27,6 @@ log = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-# class OnlineGameError(Exception):
-#     pass
-
-
 def player_or_agent(player: T, role: PlayerRole) -> T:
     if player is not None:
         return player
@@ -154,11 +150,6 @@ class NamecodingGameManager:
         self._auto_start_semaphore.release()
         log.debug("Semaphore release")
         return self
-
-    # def bulk_add_to_game(self, *guests: Player) -> "NamecodingGameManager":
-    #     for guest in guests:
-    #         self.add_to_game(guest_player=guest)
-    #     return self
 
     def configure_game(
         self, language: NamecodingLanguage = NamecodingLanguage.ENGLISH, clock: bool = True
