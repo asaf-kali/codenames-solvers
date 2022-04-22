@@ -10,7 +10,6 @@ log = logging.getLogger(__name__)
 
 MODEL_NAME_ENV_KEY = "MODEL_NAME"
 IS_STEMMED_ENV_KEY = "IS_STEMMED"
-LANGUAGE_DATA_FOLDER = "language_data"
 DEFAULT_MODEL_NAME = "wiki-50"
 
 
@@ -22,6 +21,7 @@ class ModelIdentifier(NamedTuple):
 
 class ModelCache:
     def __init__(self):
+        self.language_data_folder = "language_data"
         self._cache: Dict[ModelIdentifier, KeyedVectors] = {}
         self._main_lock = Lock()
         self._model_locks: Dict[ModelIdentifier, Lock] = {}
@@ -38,13 +38,12 @@ class ModelCache:
                 self._cache[model_identifier] = self._load_model(model_identifier)
             return self._cache[model_identifier]
 
-    @classmethod
-    def _load_model(cls, model_identifier: ModelIdentifier) -> KeyedVectors:
+    def _load_model(self, model_identifier: ModelIdentifier) -> KeyedVectors:
         # TODO: in case loading fails, try gensim downloader
         # import gensim.downloader as api
         # model = api.load("wiki-he")
         log.debug("Loading model...", extra={"model": model_identifier})
-        language_base_folder = os.path.join(LANGUAGE_DATA_FOLDER, model_identifier.language)
+        language_base_folder = os.path.join(self.language_data_folder, model_identifier.language)
         model = load_kv_format(
             language_base_folder=language_base_folder,
             model_name=model_identifier.model_name,
@@ -55,6 +54,10 @@ class ModelCache:
 
 
 _model_cache = ModelCache()
+
+
+def set_language_data_folder(language_data_folder: str):
+    _model_cache.language_data_folder = language_data_folder
 
 
 def load_model(model_identifier: ModelIdentifier) -> KeyedVectors:
