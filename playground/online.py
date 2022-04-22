@@ -11,7 +11,6 @@ from codenames.solvers import (  # type: ignore  # noqa
     SnaHinter,
 )
 from codenames.solvers.olympic.olympic_hinter import OlympicHinter  # noqa
-from codenames.utils import configure_logging
 from codenames.utils.loader.model_loader import (  # noqa
     IS_STEMMED_ENV_KEY,
     MODEL_NAME_ENV_KEY,
@@ -20,6 +19,7 @@ from codenames.utils.loader.model_loader import (  # noqa
 )
 from playground.model_adapters import HEBREW_SUFFIX_ADAPTER  # noqa
 from playground.printer import print_results
+from utils import configure_logging
 
 configure_logging(level="INFO", mute_solvers=False, mute_online=True)
 log = logging.getLogger(__name__)
@@ -27,8 +27,8 @@ log = logging.getLogger(__name__)
 # model_id = ModelIdentifier("english", "wiki-50", False)
 # model_id = ModelIdentifier("english", "google-300", False)
 # model_id = ModelIdentifier("hebrew", "twitter", False)
-# model_id = ModelIdentifier("hebrew", "ft-200", False)
-model_id = ModelIdentifier("hebrew", "skv-ft-150", True)
+model_id = ModelIdentifier("hebrew", "ft-200", False)
+# model_id = ModelIdentifier("hebrew", "skv-ft-150", True)
 # model_id = ModelIdentifier("hebrew", "skv-cbow-150", True)
 
 os.environ[MODEL_NAME_ENV_KEY] = model_id.model_name
@@ -44,10 +44,10 @@ def run_online():
     online_manager = None
     try:
         blue_hinter = OlympicHinter("Einstein", model_adapter=adapter)  # noqa
-        red_hinter = OlympicHinter("Yoda", model_adapter=adapter)  # noqa
+        red_hinter = NaiveHinter("Yoda", model_adapter=adapter)  # noqa
         blue_guesser = NaiveGuesser("Newton", model_adapter=adapter)  # noqa
         red_guesser = NaiveGuesser("Anakin", model_adapter=adapter)  # noqa
-        online_manager = NamecodingGameManager(blue_hinter, red_hinter, None, red_guesser, show_host=False)
+        online_manager = NamecodingGameManager(blue_hinter, red_hinter, None, None, show_host=False)
         # online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
         online_manager.auto_start(language=namecoding_language, clock=False)
     except QuitGame:
