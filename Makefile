@@ -1,3 +1,4 @@
+PYTHON_TEST_COMMAND=pytest -s
 LINE_LENGTH=120
 .PHONY: build
 
@@ -17,8 +18,15 @@ install-dev:
 
 install: install-dev test
 
+# Test
+
 test:
-	python -m pytest -s
+	python -m $(PYTHON_TEST_COMMAND)
+
+cover:
+	coverage run -m $(PYTHON_TEST_COMMAND)
+	coverage html
+	xdg-open htmlcov/index.html &
 
 # Packaging
 
