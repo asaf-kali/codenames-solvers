@@ -23,7 +23,11 @@ from codenames.game.base import (
 from codenames.solvers.utils.algebra import cosine_distance
 from codenames.utils import wrap
 from codenames.utils.async_task_manager import AsyncTaskManager
-from codenames.utils.loader.model_loader import load_language
+from codenames.utils.loader.model_loader import (
+    ModelIdentifier,
+    load_language,
+    load_model,
+)
 
 log = logging.getLogger(__name__)
 
@@ -288,6 +292,7 @@ class NaiveHinter(Hinter):
         self,
         name: str,
         model: KeyedVectors = None,
+        model_identifier: ModelIdentifier = None,
         proposals_thresholds: ProposalThresholds = None,
         max_group_size: int = 4,
         model_adapter: ModelFormatAdapter = None,
@@ -296,6 +301,7 @@ class NaiveHinter(Hinter):
     ):
         super().__init__(name=name)
         self.model = model
+        self.model_identifier = model_identifier
         self.max_group_size = max_group_size
         self.opponent_card_color = None
         self.proposals_thresholds = proposals_thresholds or DEFAULT_THRESHOLDS
@@ -304,7 +310,12 @@ class NaiveHinter(Hinter):
         self.proposal_grade_calculator = proposal_grade_calculator
 
     def on_game_start(self, language: str, board: Board):
-        self.model = load_language(language=language)  # type: ignore
+        if self.model is not None:
+            return
+        if self.model_identifier and self.model_identifier.language == language:
+            self.model = load_model(model_identifier=self.model_identifier)
+        else:
+            self.model = load_language(language=language)
         self.opponent_card_color = self.team_color.opponent.as_card_color  # type: ignore
 
     @classmethod
