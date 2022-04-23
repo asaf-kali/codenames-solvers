@@ -1,3 +1,4 @@
+import json
 import math
 from enum import Enum
 from functools import cached_property
@@ -23,6 +24,11 @@ def get_cached_properties_names(cls: type) -> Set[str]:
 class BaseModel(PydanticBaseModel):
     class Config:
         keep_untouched = (cached_property,)
+
+    @classmethod
+    def from_json(cls, s: str) -> "BaseModel":
+        data = json.loads(s)
+        return cls(**data)
 
     def dict(self, *args, **kwargs) -> dict:
         result = super().dict(*args, **kwargs)
@@ -251,12 +257,17 @@ class GivenGuess(BaseModel):
     guessed_card: Card
 
     def __str__(self) -> str:
-        result = "Correct!" if self.was_correct else "Wrong!"
+        result = "Correct!" if self.correct else "Wrong!"
         return f"'{self.guessed_card}', {result}"
 
     @cached_property
-    def was_correct(self) -> bool:
+    def correct(self) -> bool:
         return self.team.as_card_color == self.guessed_card.color
+
+    def dict(self, *args, **kwargs) -> dict:
+        result = super().dict(*args, **kwargs)
+        result["correct"] = self.correct
+        return result
 
     @cached_property
     def team(self) -> TeamColor:
