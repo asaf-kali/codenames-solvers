@@ -12,6 +12,10 @@ class GameRuleError(Exception):
     pass
 
 
+class InvalidMove(GameRuleError):
+    pass
+
+
 class InvalidHint(GameRuleError):
     pass
 

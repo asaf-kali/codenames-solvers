@@ -2,7 +2,6 @@ from functools import cached_property
 from typing import Callable, List, Optional, Tuple
 
 from codenames.game import (
-    SEPARATOR,
     Board,
     GameState,
     GivenGuess,
@@ -17,8 +16,9 @@ from codenames.game import (
     Winner,
     log,
 )
-from codenames.game.state import _build_game_state
 from codenames.utils import wrap
+
+SEPARATOR = "\n-----\n"
 
 
 class GameRunner:
@@ -28,12 +28,13 @@ class GameRunner:
         red_hinter: Hinter,
         blue_guesser: Guesser,
         red_guesser: Guesser,
+        state: Optional[GameState] = None,
     ):
         self.blue_hinter = blue_hinter
         self.red_hinter = red_hinter
         self.blue_guesser = blue_guesser
         self.red_guesser = red_guesser
-        self.state = GameState(language="english", board=Board(cards=[]))
+        self.state: GameState = state  # type: ignore
         self.hint_given_subscribers: List[Callable[[Hinter, Hint], None]] = []
         self.guess_given_subscribers: List[Callable[[Guesser, Guess], None]] = []
         self._set_player_team_colors()
@@ -71,12 +72,10 @@ class GameRunner:
     def winner(self) -> Optional[Winner]:
         return self.state.winner
 
-    def initialize_game(self, language: str, board: Board):  # TODO: This should be removed
-        self.state = _build_game_state(language=language, board=board)
-        self._notify_game_starts()
-
     def run_game(self, language: str, board: Board) -> Winner:
-        self.initialize_game(language=language, board=board)
+        if self.state is None:
+            self.state = _build_game_state(language=language, board=board)
+        self._notify_game_starts()
         winner = self._run_rounds()
         log.info(f"{SEPARATOR}{winner.reason.value}, {wrap(winner.team_color)} team wins!")  # type: ignore
         return winner
@@ -98,7 +97,7 @@ class GameRunner:
         while not self.state.is_game_over:
             current_team = self.blue_team if self.state.current_team_color == TeamColor.BLUE else self.red_team
             self._run_team_turn(team=current_team)
-        return self.state.winner  # type: ignore
+        return self.winner  # type: ignore
 
     def _run_team_turn(self, team: Team):
         self._get_hint_from(hinter=team.hinter)
@@ -133,3 +132,18 @@ class GameRunner:
                 return given_guess
             except InvalidGuess:
                 pass
+
+
+def _build_game_state(language: str, board: Board):
+    current_team_color = _determine_first_team(board)
+    return GameState(
+        language=language,
+        board=board,
+        current_team_color=current_team_color,
+    )
+
+
+def _determine_first_team(board: Board) -> TeamColor:
+    if len(board.blue_cards) >= len(board.red_cards):
+        return TeamColor.BLUE
+    return TeamColor.RED

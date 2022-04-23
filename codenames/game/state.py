@@ -3,7 +3,7 @@ from enum import Enum
 from functools import cached_property
 from typing import List, Optional
 
-from codenames.game.base import (
+from codenames.game import (
     BaseModel,
     Board,
     Card,
@@ -12,15 +12,21 @@ from codenames.game.base import (
     GivenHint,
     Guess,
     Hint,
+    PlayerRole,
     TeamColor,
     WordGroup,
     canonical_format,
 )
-from codenames.game.exceptions import CardNotFoundError, InvalidGuess, InvalidHint
+from codenames.game.exceptions import (
+    CardNotFoundError,
+    InvalidGuess,
+    InvalidHint,
+    InvalidMove,
+)
 from codenames.utils import wrap
 
 log = logging.getLogger(__name__)
-SEPARATOR = "\n-----\n"
+
 PASS_GUESS = -1
 QUIT_GAME = -2
 
@@ -46,6 +52,7 @@ class GameState(BaseModel):
     given_hints: List[GivenHint] = []
     given_guesses: List[GivenGuess] = []
     current_team_color: TeamColor = TeamColor.BLUE
+    current_player_role: PlayerRole = PlayerRole.HINTER
     bonus_given: bool = False
     left_guesses: int = 0
     winner: Optional[Winner] = None
@@ -85,6 +92,8 @@ class GameState(BaseModel):
         return tuple(hint.word for hint in self.given_hints)
 
     def process_hint(self, hint: Hint) -> Optional[GivenHint]:
+        if self.current_player_role != PlayerRole.HINTER:
+            raise InvalidMove("It's not your turn!")
         self.raw_hints.append(hint)
         if hint.card_amount == QUIT_GAME:
             log.info("Hinter quit the game")
@@ -99,9 +108,12 @@ class GameState(BaseModel):
         log.info(f"Hinter: {wrap(hint.word)} {hint.card_amount} card(s)")
         self.given_hints.append(given_hint)
         self.left_guesses = given_hint.card_amount
+        self.current_player_role = PlayerRole.GUESSER
         return given_hint
 
     def process_guess(self, guess: Guess) -> Optional[GivenGuess]:
+        if self.current_player_role != PlayerRole.GUESSER:
+            raise InvalidMove("It's not your turn!")
         if guess.card_index == PASS_GUESS:
             log.info("Guesser passed the turn")
             self._end_turn()
@@ -144,10 +156,12 @@ class GameState(BaseModel):
         guessed_card.revealed = True
         return guessed_card
 
-    def _end_turn(self):
+    def _end_turn(self, switch_role: bool = True):
         self.left_guesses = 0
         self.bonus_given = False
         self.current_team_color = self.current_team_color.opponent
+        if switch_role:
+            self.current_player_role = self.current_player_role.other
 
     def _team_quit(self):
         winner_color = self.current_team_color.opponent
@@ -170,21 +184,6 @@ class GameState(BaseModel):
                 self.winner = Winner(team_color=team_color, reason=WinningReason.TARGET_SCORE_REACHED)
                 return True
         return False
-
-
-def _build_game_state(language: str, board: Board):
-    current_team_color = _determine_first_team(board)
-    return GameState(
-        language=language,
-        board=board,
-        current_team_color=current_team_color,
-    )
-
-
-def _determine_first_team(board: Board) -> TeamColor:
-    if len(board.blue_cards) >= len(board.red_cards):
-        return TeamColor.BLUE
-    return TeamColor.RED
 
 
 class HinterGameState(BaseModel):
