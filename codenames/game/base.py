@@ -9,9 +9,6 @@ from pydantic import validator
 from codenames.game.exceptions import CardNotFoundError
 from codenames.utils import wrap
 
-BLACK_AMOUNT = 1
-
-Similarity = Tuple[str, float]
 WordGroup = Tuple[str, ...]
 
 
@@ -141,14 +138,11 @@ class Board(BaseModel):
 
     def __getitem__(self, item: Union[int, str]) -> Card:
         if isinstance(item, str):
-            index = self.find_card_index(item)
-            if index is None:
-                raise IndexError(f"Item not found: {item}")
-            item = index
+            item = self.find_card_index(item)
         if not isinstance(item, int):
-            raise ValueError(f"Illegal index type for item: {item}")
+            raise IndexError(f"Illegal index type for card: {item}")
         if item < 0 or item >= self.size:
-            raise IndexError(f"Index out of bounds: {item}")
+            raise IndexError(f"Card index out of bounds: {item}")
         return self.cards[item]
 
     def __iter__(self):
@@ -273,31 +267,3 @@ class GivenGuess(BaseModel):
     @cached_property
     def team(self) -> TeamColor:
         return self.given_hint.team_color
-
-
-class HinterGameState(BaseModel):
-    board: Board
-    current_team_color: TeamColor
-    given_hints: List[GivenHint]
-    given_guesses: List[GivenGuess]
-
-    @cached_property
-    def given_hint_words(self) -> WordGroup:
-        return tuple(hint.formatted_word for hint in self.given_hints)
-
-    @cached_property
-    def illegal_words(self) -> WordGroup:
-        return *self.board.all_words, *self.given_hint_words
-
-
-class GuesserGameState(BaseModel):
-    board: Board
-    current_team_color: TeamColor
-    given_hints: List[GivenHint]
-    given_guesses: List[GivenGuess]
-    left_guesses: int
-    bonus_given: bool
-
-    @cached_property
-    def current_hint(self) -> GivenHint:
-        return self.given_hints[-1]

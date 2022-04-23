@@ -1,7 +1,9 @@
 import random
 from typing import Iterable, Sequence, Tuple
 
-from codenames.game.base import BLACK_AMOUNT, Board, Card, CardColor
+from codenames.game.base import Board, Card, CardColor
+
+BLACK_AMOUNT = 1
 
 
 def _extract_random_subset(elements: Sequence, subset_size: int) -> Tuple[tuple, tuple]:

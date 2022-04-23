@@ -6,7 +6,6 @@ from selenium.common.exceptions import WebDriverException
 
 from codenames.game import (
     Board,
-    GameManager,
     Guess,
     Guesser,
     Hint,
@@ -15,6 +14,7 @@ from codenames.game import (
     PlayerRole,
     Winner,
 )
+from codenames.game.runner import GameRunner
 from codenames.online import (
     IllegalOperation,
     NamecodingLanguage,
@@ -49,7 +49,7 @@ class NamecodingGameManager:
         red_hinter = player_or_agent(red_hinter, PlayerRole.HINTER)
         blue_guesser = player_or_agent(blue_guesser, PlayerRole.GUESSER)
         red_guesser = player_or_agent(red_guesser, PlayerRole.GUESSER)
-        self.game_manager = GameManager(
+        self.game_runner = GameRunner(
             blue_hinter=blue_hinter,  # type: ignore
             red_hinter=red_hinter,  # type: ignore
             blue_guesser=blue_guesser,  # type: ignore
@@ -59,8 +59,8 @@ class NamecodingGameManager:
         self._running_game_id: Optional[str] = None
         self._auto_start_semaphore = Semaphore()
         self._language: NamecodingLanguage = NamecodingLanguage.HEBREW
-        self.game_manager.hint_given_subscribers.append(self._handle_hint_given)
-        self.game_manager.guess_given_subscribers.append(self._handle_guess_given)
+        self.game_runner.hint_given_subscribers.append(self._handle_hint_given)
+        self.game_runner.guess_given_subscribers.append(self._handle_guess_given)
 
     @property
     def adapters(self) -> Iterable[NamecodingPlayerAdapter]:
@@ -69,15 +69,15 @@ class NamecodingGameManager:
 
     @property
     def winner(self) -> Optional[Winner]:
-        return self.game_manager.winner
+        return self.game_runner.winner
 
     @property
     def board(self) -> Board:
-        return self.game_manager.board
+        return self.game_runner.state.board
 
     @property
     def players(self) -> Tuple[Player, ...]:
-        return self.game_manager.players
+        return self.game_runner.players
 
     @property
     def agents(self) -> Tuple[Agent, ...]:
@@ -119,7 +119,7 @@ class NamecodingGameManager:
         if self.host:
             raise IllegalOperation("A game is already running.")
         if host_player is None:
-            host_player = self.game_manager.blue_hinter
+            host_player = self.game_runner.blue_hinter
         if not isinstance(host_player, Hinter):
             raise IllegalOperation("Host player must be a Hinter.")
         host = NamecodingPlayerAdapter(player=host_player, headless=not self._show_host)
@@ -165,7 +165,7 @@ class NamecodingGameManager:
         self._start_game()
         board = self.host.parse_board()
         try:
-            self.game_manager.run_game(language=self._language.value, board=board)
+            self.game_runner.run_game(language=self._language.value, board=board)
         except WebDriverException:
             log.exception("Online adapter failed")
             self.close()
