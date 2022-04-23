@@ -1,4 +1,5 @@
-from codenames.game import Board, Card, CardColor, words_to_random_board
+from codenames.boards import build_board
+from codenames.game import Board, Card, CardColor
 
 HEBREW_WORDS = [
     "מטען",
@@ -28,9 +29,9 @@ HEBREW_WORDS = [
     "דרור",
 ]
 
-HEBREW_BOARD_1 = words_to_random_board(words=HEBREW_WORDS, seed=1)
-HEBREW_BOARD_2 = words_to_random_board(words=HEBREW_WORDS, seed=2)
-HEBREW_BOARD_3 = words_to_random_board(words=HEBREW_WORDS, seed=3)
+HEBREW_BOARD_1 = build_board(vocabulary=HEBREW_WORDS, seed=1)
+HEBREW_BOARD_2 = build_board(vocabulary=HEBREW_WORDS, seed=2)
+HEBREW_BOARD_3 = build_board(vocabulary=HEBREW_WORDS, seed=3)
 
 # Regex: 'Parsed card: (.*) (.*)' -> 'Card(word="$2", color=CardColor.$1),'
 

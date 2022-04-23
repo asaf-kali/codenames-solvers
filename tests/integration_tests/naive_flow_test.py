@@ -4,8 +4,8 @@ import pandas as pd
 import pytest
 from gensim.models import KeyedVectors
 
+from codenames.boards import build_board
 from codenames.game.base import Board
-from codenames.game.builder import words_to_random_board
 from codenames.game.runner import GameRunner
 from codenames.solvers.naive.naive_guesser import NaiveGuesser
 from codenames.solvers.naive.naive_hinter import NaiveHinter
@@ -76,7 +76,7 @@ ALL_WORDS = BOARD_WORDS + HINT_WORDS
 
 @pytest.fixture
 def english_board() -> Board:
-    return words_to_random_board(words=BOARD_WORDS, seed=2)
+    return build_board(vocabulary=BOARD_WORDS, seed=2)
 
 
 def mock_load_word2vec_format(*args, **kwargs):
