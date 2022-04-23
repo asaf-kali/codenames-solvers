@@ -36,7 +36,8 @@ class CliGuesser(Guesser):
 
     def guess(self, game_state: GuesserGameState) -> Guess:
         print("\n", game_state.board.printable_string, "\n", sep="")
-        while True:
+        index = None
+        while index is None:
             data = input("Please enter your guess word or card index: ")
             data = canonical_format(data)
             print()
@@ -47,6 +48,4 @@ class CliGuesser(Guesser):
                     index = game_state.board.find_card_index(data)
                 except CardNotFoundError:
                     index = None  # type: ignore
-            if index is None:
-                continue
-            return Guess(card_index=index)
+        return Guess(card_index=index)
