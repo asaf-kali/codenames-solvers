@@ -12,7 +12,7 @@ class GameRuleError(Exception):
     pass
 
 
-class InvalidMove(GameRuleError):
+class InvalidTurn(GameRuleError):
     pass
 
 

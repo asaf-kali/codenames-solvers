@@ -78,7 +78,7 @@ class GameRunner:
             self.state = build_game_state(language=language, board=board)
         self._notify_game_starts()
         winner = self._run_rounds()
-        log.info(f"{SEPARATOR}{winner.reason.value}, {wrap(winner.team_color)} team wins!")  # type: ignore
+        log.info(f"{SEPARATOR}{winner.reason.value}, {wrap(winner.team_color)} team wins!")
         return winner
 
     def _set_player_team_colors(self):

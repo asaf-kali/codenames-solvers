@@ -5,7 +5,7 @@ from codenames.game import (
     Guess,
     Hint,
     InvalidGuess,
-    InvalidMove,
+    InvalidTurn,
     PlayerRole,
     TeamColor,
     Winner,
@@ -43,7 +43,7 @@ def test_game_state_flow(board_10: Board):
     assert game_state.left_guesses == 1
     assert game_state.bonus_given is True
 
-    with pytest.raises(InvalidGuess):
+    with pytest.raises(InvalidGuess):  # Card already guessed
         game_state.process_guess(Guess(card_index=1))
 
     game_state.process_guess(Guess(card_index=7))  # Gray - Wrong
@@ -67,6 +67,9 @@ def test_game_state_flow(board_10: Board):
     assert game_state.current_team_color == TeamColor.BLUE
     assert game_state.current_player_role == PlayerRole.HINTER
 
+    with pytest.raises(InvalidTurn):  # It's not the guesser's turn
+        game_state.process_guess(Guess(card_index=8))
+
     # Round 3 - blue team
     game_state.process_hint(Hint(word="C", card_amount=2))
     assert game_state.current_team_color == TeamColor.BLUE
@@ -76,5 +79,7 @@ def test_game_state_flow(board_10: Board):
     game_state.process_guess(Guess(card_index=9))  # Black - Game over
     assert game_state.winner == Winner(team_color=TeamColor.RED, reason=WinningReason.OPPONENT_HIT_BLACK)
 
-    with pytest.raises(InvalidMove):
-        game_state.process_guess(Guess(card_index=9))
+    with pytest.raises(InvalidTurn):  # Game is over
+        game_state.process_hint(Hint(word="D", card_amount=2))
+    with pytest.raises(InvalidTurn):  # Game is over
+        game_state.process_guess(Guess(card_index=8))

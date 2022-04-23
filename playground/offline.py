@@ -3,11 +3,10 @@ import random
 
 from codenames.game import DEFAULT_MODEL_ADAPTER, Board, QuitGame  # noqa
 from codenames.game.runner import GameRunner
-from codenames.solvers import (  # type: ignore  # noqa
+from codenames.solvers import (  # type: ignore  # noqa; SnaHinter,
     CliGuesser,
     NaiveGuesser,
     NaiveHinter,
-    SnaHinter,
 )
 from codenames.solvers.naive.naive_cli_guesser import ModelAwareCliGuesser  # noqa
 from codenames.utils.loader.model_loader import (  # noqa
@@ -48,7 +47,8 @@ def run_offline(board: Board = HEBREW_BOARD_6):  # noqa: F405
         blue_hinter = NaiveHinter("Einstein", model_identifier=model_id, model_adapter=adapter)
         red_hinter = NaiveHinter("Yoda", model_identifier=model_id, model_adapter=adapter)
         blue_guesser = NaiveGuesser(name="Newton", model_identifier=model_id, model_adapter=adapter)
-        red_guesser = NaiveGuesser(name="Anakin", model_identifier=model_id, model_adapter=adapter)
+        # red_guesser = NaiveGuesser(name="Anakin", model_identifier=model_id, model_adapter=adapter)
+        red_guesser = CliGuesser(name="Anakin")
         game_runner = GameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser)
         game_runner.run_game(language=model_id.language, board=board)  # noqa
     except QuitGame:
