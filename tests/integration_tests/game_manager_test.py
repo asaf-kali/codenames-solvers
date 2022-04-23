@@ -15,9 +15,9 @@ def board_10() -> Board:
 
 def test_blue_reveals_all_and_wins(board_10: Board):
     all_turns = [
-        PredictedTurn(hint=Hint("A", 2), guesses=[0, 1, PASS_GUESS]),
-        PredictedTurn(hint=Hint("B", 2), guesses=[4, 5, PASS_GUESS]),
-        PredictedTurn(hint=Hint("C", 2), guesses=[2, 3]),
+        PredictedTurn(hint=Hint(word="A", card_amount=2), guesses=[0, 1, PASS_GUESS]),
+        PredictedTurn(hint=Hint(word="B", card_amount=2), guesses=[4, 5, PASS_GUESS]),
+        PredictedTurn(hint=Hint(word="C", card_amount=2), guesses=[2, 3]),
     ]
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
@@ -27,10 +27,10 @@ def test_blue_reveals_all_and_wins(board_10: Board):
 
 def test_red_reveals_all_and_wins(board_10: Board):
     all_turns = [
-        PredictedTurn(hint=Hint("A", 2), guesses=[0, 1, PASS_GUESS]),
-        PredictedTurn(hint=Hint("B", 2), guesses=[4, 5, PASS_GUESS]),
-        PredictedTurn(hint=Hint("C", 2), guesses=[7]),  # Hits gray
-        PredictedTurn(hint=Hint("D", 1), guesses=[6]),
+        PredictedTurn(hint=Hint(word="A", card_amount=2), guesses=[0, 1, PASS_GUESS]),
+        PredictedTurn(hint=Hint(word="B", card_amount=2), guesses=[4, 5, PASS_GUESS]),
+        PredictedTurn(hint=Hint(word="C", card_amount=2), guesses=[7]),  # Hits gray
+        PredictedTurn(hint=Hint(word="D", card_amount=1), guesses=[6]),
     ]
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
@@ -40,7 +40,7 @@ def test_red_reveals_all_and_wins(board_10: Board):
 
 def test_blue_picks_black_and_red_wins(board_10: Board):
     all_turns = [
-        PredictedTurn(hint=Hint("A", 2), guesses=[0, 9]),
+        PredictedTurn(hint=Hint(word="A", card_amount=2), guesses=[0, 9]),
     ]
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
@@ -50,9 +50,9 @@ def test_blue_picks_black_and_red_wins(board_10: Board):
 
 def test_blue_picks_red_and_red_wins(board_10: Board):
     all_turns = [
-        PredictedTurn(hint=Hint("A", 2), guesses=[0, 7]),  # Hits gray
-        PredictedTurn(hint=Hint("B", 2), guesses=[4, 5, 1]),  # Hits blue
-        PredictedTurn(hint=Hint("C", 1), guesses=[2, 6]),  # Hits last red
+        PredictedTurn(hint=Hint(word="A", card_amount=2), guesses=[0, 7]),  # Hits gray
+        PredictedTurn(hint=Hint(word="B", card_amount=2), guesses=[4, 5, 1]),  # Hits blue
+        PredictedTurn(hint=Hint(word="C", card_amount=1), guesses=[2, 6]),  # Hits last red
     ]
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
@@ -79,10 +79,10 @@ def test_blue_picks_red_and_red_wins(board_10: Board):
 def test_hint_subscribers_are_notified(board_10: Board):
     hint_given_subscriber = MagicMock()
     all_turns = [
-        PredictedTurn(hint=Hint("A", 2), guesses=[0, 1, PASS_GUESS]),
-        PredictedTurn(hint=Hint("B", 2), guesses=[4, 5, PASS_GUESS]),
-        PredictedTurn(hint=Hint("C", 2), guesses=[7]),  # Hits gray
-        PredictedTurn(hint=Hint("D", 1), guesses=[6]),
+        PredictedTurn(hint=Hint(word="A", card_amount=2), guesses=[0, 1, PASS_GUESS]),
+        PredictedTurn(hint=Hint(word="B", card_amount=2), guesses=[4, 5, PASS_GUESS]),
+        PredictedTurn(hint=Hint(word="C", card_amount=2), guesses=[7]),  # Hits gray
+        PredictedTurn(hint=Hint(word="D", card_amount=1), guesses=[6]),
     ]
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
@@ -112,9 +112,9 @@ def test_hint_subscribers_are_notified(board_10: Board):
 
 def test_turns_switch_when_guessers_use_extra_guess(board_10: Board):
     all_turns = [
-        PredictedTurn(hint=Hint("A", 2), guesses=[0, 1, 2]),
-        PredictedTurn(hint=Hint("B", 1), guesses=[4, 5]),
-        PredictedTurn(hint=Hint("C", 1), guesses=[3]),
+        PredictedTurn(hint=Hint(word="A", card_amount=2), guesses=[0, 1, 2]),
+        PredictedTurn(hint=Hint(word="B", card_amount=1), guesses=[4, 5]),
+        PredictedTurn(hint=Hint(word="C", card_amount=1), guesses=[3]),
     ]
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
@@ -140,10 +140,10 @@ def test_turns_switch_when_guessers_use_extra_guess(board_10: Board):
 def test_guess_subscribers_are_notified(board_10: Board):
     guess_given_subscriber = MagicMock()
     all_turns = [
-        PredictedTurn(hint=Hint("A", 2), guesses=[0, 1, PASS_GUESS]),
-        PredictedTurn(hint=Hint("B", 2), guesses=[4, 5, PASS_GUESS]),
-        PredictedTurn(hint=Hint("C", 2), guesses=[7]),  # Hits gray
-        PredictedTurn(hint=Hint("D", 1), guesses=[6]),
+        PredictedTurn(hint=Hint(word="A", card_amount=2), guesses=[0, 1, PASS_GUESS]),
+        PredictedTurn(hint=Hint(word="B", card_amount=2), guesses=[4, 5, PASS_GUESS]),
+        PredictedTurn(hint=Hint(word="C", card_amount=2), guesses=[7]),  # Hits gray
+        PredictedTurn(hint=Hint(word="D", card_amount=1), guesses=[6]),
     ]
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)

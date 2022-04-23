@@ -78,7 +78,7 @@ class GameManager:
         self.blue_guesser = blue_guesser
         self.red_guesser = red_guesser
         self.language = ""
-        self.board = Board([])
+        self.board = Board(cards=[])
         self.raw_hints: List[Hint] = []
         self.given_hints: List[GivenHint] = []
         self.given_guesses: List[GivenGuess] = []

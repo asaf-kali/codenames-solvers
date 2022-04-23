@@ -25,11 +25,11 @@ def words_to_random_board(words: Iterable[str], seed: int = None) -> Board:
     words_list, black_words = _extract_random_subset(words_list, BLACK_AMOUNT)
     assert len(words_list) == 0
 
-    red_cards = [Card(word, CardColor.RED) for word in red_words]
-    blue_cards = [Card(word, CardColor.BLUE) for word in blue_words]
-    gray_cards = [Card(word, CardColor.GRAY) for word in gray_words]
-    black_cards = [Card(word, CardColor.BLACK) for word in black_words]
+    red_cards = [Card(word=word, color=CardColor.RED) for word in red_words]
+    blue_cards = [Card(word=word, color=CardColor.BLUE) for word in blue_words]
+    gray_cards = [Card(word=word, color=CardColor.GRAY) for word in gray_words]
+    black_cards = [Card(word=word, color=CardColor.BLACK) for word in black_words]
 
     all_cards = red_cards + blue_cards + gray_cards + black_cards
     random.shuffle(all_cards)
-    return Board(all_cards)
+    return Board(cards=all_cards)
