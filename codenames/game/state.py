@@ -3,6 +3,9 @@ from enum import Enum
 from functools import cached_property
 from typing import Dict, List, Optional
 
+from pydantic import validator
+
+from codenames.boards import generate_standard_board
 from codenames.game import (
     BaseModel,
     Board,
@@ -31,7 +34,7 @@ PASS_GUESS = -1
 QUIT_GAME = -2
 
 
-class WinningReason(Enum):
+class WinningReason(str, Enum):
     TARGET_SCORE_REACHED = "Target score reached"
     OPPONENT_HIT_BLACK = "Opponent hit black card"
     OPPONENT_QUIT = "Opponent quit"
@@ -58,9 +61,12 @@ class GameState(BaseModel):
     winner: Optional[Winner] = None
     remaining_score: Dict[TeamColor, int] = {}
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.remaining_score = {TeamColor.BLUE: len(self.board.blue_cards), TeamColor.RED: len(self.board.red_cards)}
+    @validator("remaining_score", always=True)
+    def init_scores(cls, value: Dict[TeamColor, int], values) -> Dict[TeamColor, int]:
+        if value:
+            return value
+        board = values["board"]
+        return {TeamColor.BLUE: len(board.blue_cards), TeamColor.RED: len(board.red_cards)}
 
     @property
     def hinter_state(self) -> "HinterGameState":
@@ -215,7 +221,9 @@ class GuesserGameState(BaseModel):
         return self.given_hints[-1]
 
 
-def build_game_state(language: str, board: Board) -> GameState:
+def build_game_state(language: str, board: Board = None) -> GameState:
+    if board is None:
+        board = generate_standard_board(language=language)
     first_team_color = _determine_first_team(board)
     return GameState(
         language=language,

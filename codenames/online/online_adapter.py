@@ -28,7 +28,7 @@ WEBAPP_URL = "https://namecoding.herokuapp.com/"
 CLEAR = "\b\b\b\b\b"
 
 
-class NamecodingLanguage(Enum):
+class NamecodingLanguage(str, Enum):
     ENGLISH = "english"
     HEBREW = "hebrew"
 
