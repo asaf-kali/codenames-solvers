@@ -349,11 +349,11 @@ class NaiveHinter(Hinter):
         try:
             proposal = self.pick_best_proposal(proposals=proposals)
             word_group_board_format = tuple(self.model_adapter.to_board_format(word) for word in proposal.word_group)
-            return Hint(proposal.hint_word, proposal.card_count, for_words=word_group_board_format)
+            return Hint(word=proposal.hint_word, card_amount=proposal.card_count, for_words=word_group_board_format)
         except NoProposalsFound:
             log.debug("No legal proposals found.")
             if not thresholds_filter_active and similarities_top_n >= 20:
                 random_word = uuid4().hex[:4]
-                return Hint(random_word, 1)
+                return Hint(word=random_word, card_amount=1)
             log.info("Trying without thresholds filtering.")
             return self.pick_hint(game_state=game_state, thresholds_filter_active=False, similarities_top_n=50)

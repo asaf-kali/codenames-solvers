@@ -38,8 +38,8 @@ def test_game_manager_assigns_team_colors_to_players_on_game_manager_constructio
 
 def test_game_manager_notifies_all_players_on_hint_given():
     all_turns = [
-        PredictedTurn(hint=Hint("A", 2), guesses=[0, 1, 2]),
-        PredictedTurn(hint=Hint("B", 1), guesses=[4, 9]),
+        PredictedTurn(hint=Hint(word="A", card_amount=2), guesses=[0, 1, 2]),
+        PredictedTurn(hint=Hint(word="B", card_amount=1), guesses=[4, 9]),
     ]
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
@@ -51,8 +51,8 @@ def test_game_manager_notifies_all_players_on_hint_given():
         player.on_guess_given = on_guess_given_mock
     manager.run_game(language="english", board=board)
 
-    expected_given_hint_1 = GivenHint("a", 2, TeamColor.BLUE)
-    expected_given_hint_2 = GivenHint("b", 1, TeamColor.RED)
+    expected_given_hint_1 = GivenHint(word="a", card_amount=2, team_color=TeamColor.BLUE)
+    expected_given_hint_2 = GivenHint(word="b", card_amount=1, team_color=TeamColor.RED)
     assert on_hint_given_mock.call_count == 2 * 4
     assert on_hint_given_mock.call_args_list[0][1] == {"given_hint": expected_given_hint_1}
     assert on_hint_given_mock.call_args_list[4][1] == {"given_hint": expected_given_hint_2}
@@ -77,11 +77,11 @@ def test_game_manager_notifies_all_players_on_hint_given():
 
 def test_game_starts_with_team_with_most_cards():
     blue_team, red_team = build_teams(all_turns=[])
-    red_team.hinter.hints = [Hint("A", 2)]
-    red_team.guesser.guesses = [Guess(9)]
+    red_team.hinter.hints = [Hint(word="A", card_amount=2)]
+    red_team.guesser.guesses = [Guess(card_index=9)]
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
     board = board_10()
-    board._cards[3].color = CardColor.RED
+    board.cards[3].color = CardColor.RED
     assert len(board.red_cards) > len(board.blue_cards)
     manager.run_game(language="english", board=board)
 
@@ -91,8 +91,8 @@ def test_game_starts_with_team_with_most_cards():
 
 def test_game_manager_hinter_state():
     all_turns = [
-        PredictedTurn(hint=Hint("A", 2), guesses=[0, 1, 2]),
-        PredictedTurn(hint=Hint("B", 1), guesses=[4, 9]),
+        PredictedTurn(hint=Hint(word="A", card_amount=2), guesses=[0, 1, 2]),
+        PredictedTurn(hint=Hint(word="B", card_amount=1), guesses=[4, 9]),
     ]
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
@@ -116,7 +116,7 @@ def test_game_manager_hinter_state():
     for card in game_state_2.board:
         assert card.color is not None
     assert game_state_2.current_team_color == TeamColor.RED
-    assert game_state_2.given_hints == [GivenHint("a", 2, TeamColor.BLUE)]
+    assert game_state_2.given_hints == [GivenHint(word="a", card_amount=2, team_color=TeamColor.BLUE)]
     assert game_state_2.given_guesses == [
         GivenGuess(given_hint=game_state_2.given_hints[0], guessed_card=board[0]),
         GivenGuess(given_hint=game_state_2.given_hints[0], guessed_card=board[1]),
@@ -127,8 +127,8 @@ def test_game_manager_hinter_state():
 
 def test_game_manager_guesser_state():
     all_turns = [
-        PredictedTurn(hint=Hint("A", 2), guesses=[0, 1, 2]),
-        PredictedTurn(hint=Hint("B", 1), guesses=[4, 9]),
+        PredictedTurn(hint=Hint(word="A", card_amount=2), guesses=[0, 1, 2]),
+        PredictedTurn(hint=Hint(word="B", card_amount=1), guesses=[4, 9]),
     ]
     blue_team, red_team = build_teams(all_turns=all_turns)
     manager = GameManager.from_teams(blue_team=blue_team, red_team=red_team)
@@ -147,7 +147,7 @@ def test_game_manager_guesser_state():
     assert game_state_1.current_team_color == TeamColor.BLUE
     assert game_state_1.left_guesses == 2
     assert game_state_1.given_hints == [
-        GivenHint("a", 2, TeamColor.BLUE),
+        GivenHint(word="a", card_amount=2, team_color=TeamColor.BLUE),
     ]
     assert game_state_1.given_guesses == []
     assert game_state_1.current_hint == game_state_1.given_hints[0]
@@ -158,7 +158,7 @@ def test_game_manager_guesser_state():
     assert game_state_3.current_team_color == TeamColor.BLUE
     assert game_state_3.left_guesses == 1
     assert game_state_3.given_hints == [
-        GivenHint("a", 2, TeamColor.BLUE),
+        GivenHint(word="a", card_amount=2, team_color=TeamColor.BLUE),
     ]
     assert game_state_3.given_guesses == [
         GivenGuess(given_hint=game_state_3.given_hints[0], guessed_card=board[0]),
@@ -172,8 +172,8 @@ def test_game_manager_guesser_state():
     assert game_state_5.current_team_color == TeamColor.RED
     assert game_state_5.left_guesses == 1
     assert game_state_5.given_hints == [
-        GivenHint("a", 2, TeamColor.BLUE),
-        GivenHint("b", 1, TeamColor.RED),
+        GivenHint(word="a", card_amount=2, team_color=TeamColor.BLUE),
+        GivenHint(word="b", card_amount=1, team_color=TeamColor.RED),
     ]
     assert game_state_5.given_guesses == [
         GivenGuess(given_hint=game_state_5.given_hints[0], guessed_card=board[0]),

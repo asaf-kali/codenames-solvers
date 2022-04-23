@@ -45,7 +45,7 @@ class NaiveGuesser(Guesser):
     def guess(self, game_state: GuesserGameState) -> Guess:
         if game_state.bonus_given:
             log.debug("Naive guesser does not take bonuses.")
-            return Guess(PASS_GUESS)
+            return Guess(card_index=PASS_GUESS)
         optional_words = [self.model_format(card.word) for card in game_state.board.unrevealed_cards]
         current_hint_word = game_state.current_hint.formatted_word
         model_formatted_hint = self.model_format(current_hint_word)
