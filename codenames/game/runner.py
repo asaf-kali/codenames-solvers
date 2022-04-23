@@ -14,6 +14,7 @@ from codenames.game import (
     Team,
     TeamColor,
     Winner,
+    build_game_state,
     log,
 )
 from codenames.utils import wrap
@@ -74,7 +75,7 @@ class GameRunner:
 
     def run_game(self, language: str, board: Board) -> Winner:
         if self.state is None:
-            self.state = _build_game_state(language=language, board=board)
+            self.state = build_game_state(language=language, board=board)
         self._notify_game_starts()
         winner = self._run_rounds()
         log.info(f"{SEPARATOR}{winner.reason.value}, {wrap(winner.team_color)} team wins!")  # type: ignore
@@ -132,18 +133,3 @@ class GameRunner:
                 return given_guess
             except InvalidGuess:
                 pass
-
-
-def _build_game_state(language: str, board: Board):
-    current_team_color = _determine_first_team(board)
-    return GameState(
-        language=language,
-        board=board,
-        current_team_color=current_team_color,
-    )
-
-
-def _determine_first_team(board: Board) -> TeamColor:
-    if len(board.blue_cards) >= len(board.red_cards):
-        return TeamColor.BLUE
-    return TeamColor.RED
