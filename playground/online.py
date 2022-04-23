@@ -3,12 +3,11 @@ import os
 
 from codenames.game import DEFAULT_MODEL_ADAPTER, QuitGame  # noqa
 from codenames.online import NamecodingGameRunner, NamecodingLanguage  # noqa
-from codenames.solvers import (  # type: ignore  # noqa
+from codenames.solvers import (  # type: ignore  # noqa; SnaHinter,
     CliGuesser,
     CliHinter,
     NaiveGuesser,
     NaiveHinter,
-    SnaHinter,
 )
 from codenames.solvers.olympic.olympic_hinter import OlympicHinter  # noqa
 from codenames.utils.loader.model_loader import (  # noqa

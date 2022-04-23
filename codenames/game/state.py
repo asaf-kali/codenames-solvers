@@ -21,7 +21,7 @@ from codenames.game.exceptions import (
     CardNotFoundError,
     InvalidGuess,
     InvalidHint,
-    InvalidMove,
+    InvalidTurn,
 )
 from codenames.utils import wrap
 
@@ -96,8 +96,8 @@ class GameState(BaseModel):
         return tuple(hint.word for hint in self.given_hints)
 
     def process_hint(self, hint: Hint) -> Optional[GivenHint]:
-        if self.current_player_role != PlayerRole.HINTER:
-            raise InvalidMove("It's not your turn!")
+        if self.current_player_role != PlayerRole.HINTER or self.is_game_over:
+            raise InvalidTurn("It's not the Hinter's turn now")
         self.raw_hints.append(hint)
         if hint.card_amount == QUIT_GAME:
             log.info("Hinter quit the game")
@@ -116,8 +116,8 @@ class GameState(BaseModel):
         return given_hint
 
     def process_guess(self, guess: Guess) -> Optional[GivenGuess]:
-        if self.current_player_role != PlayerRole.GUESSER:
-            raise InvalidMove("It's not your turn!")
+        if self.current_player_role != PlayerRole.GUESSER or self.is_game_over:
+            raise InvalidTurn("It's not the Guesser's turn now")
         if guess.card_index == PASS_GUESS:
             log.info("Guesser passed the turn")
             self._end_turn()
