@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from codenames.game import GuesserGameState, HinterGameState
 
 
-class PlayerRole(Enum):
+class PlayerRole(str, Enum):
     HINTER = "Hinter"
     GUESSER = "Guesser"
 
