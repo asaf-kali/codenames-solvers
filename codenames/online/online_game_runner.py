@@ -34,7 +34,7 @@ def player_or_agent(player: T, role: PlayerRole) -> T:
     return player_class("Agent")
 
 
-class NamecodingGameManager:
+class NamecodingGameRunner:
     def __init__(
         self,
         blue_hinter: Hinter = None,
@@ -94,7 +94,7 @@ class NamecodingGameManager:
 
     def auto_start(
         self, language: NamecodingLanguage = NamecodingLanguage.ENGLISH, clock: bool = True
-    ) -> "NamecodingGameManager":
+    ) -> "NamecodingGameRunner":
         number_of_guests = 3
         self._auto_start_semaphore = Semaphore(value=number_of_guests)
         for player in self.players:
@@ -115,7 +115,7 @@ class NamecodingGameManager:
         self.run_game()
         return self
 
-    def host_game(self, host_player: Optional[Hinter] = None) -> "NamecodingGameManager":
+    def host_game(self, host_player: Optional[Hinter] = None) -> "NamecodingGameRunner":
         if self.host:
             raise IllegalOperation("A game is already running.")
         if host_player is None:
@@ -129,7 +129,7 @@ class NamecodingGameManager:
         self.host = host
         return self
 
-    def add_to_game(self, guest_player: Player, multithreaded: bool = False) -> "NamecodingGameManager":
+    def add_to_game(self, guest_player: Player, multithreaded: bool = False) -> "NamecodingGameRunner":
         if not self._running_game_id:
             raise IllegalOperation("Can't join game before hosting initiated. Call host_game() first.")
         if self.has_joined_game(guest_player):
@@ -153,7 +153,7 @@ class NamecodingGameManager:
 
     def configure_game(
         self, language: NamecodingLanguage = NamecodingLanguage.ENGLISH, clock: bool = True
-    ) -> "NamecodingGameManager":
+    ) -> "NamecodingGameRunner":
         if not self.host:
             raise IllegalOperation("Can't configure game before hosting initiated. Call host_game() first.")
         self._language = language
@@ -170,7 +170,7 @@ class NamecodingGameManager:
             log.exception("Online adapter failed")
             self.close()
 
-    def _start_game(self) -> "NamecodingGameManager":
+    def _start_game(self) -> "NamecodingGameRunner":
         if not self.host:
             raise IllegalOperation("Can't start game before hosting initiated. Call host_game() first.")
         for adapter in self.adapters:

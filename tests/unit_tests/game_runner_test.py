@@ -10,7 +10,7 @@ from tests.testing_players import PredictedTurn, TestGuesser, TestHinter, build_
 from tests.unit_tests.utils.hooks import hook_method
 
 
-def test_game_manager_assigns_team_colors_to_players_on_game_manager_construction():
+def test_game_runner_assigns_team_colors_to_players_on_game_runner_construction():
     blue_hinter = TestHinter([])
     blue_guesser = TestGuesser([])
     red_hinter = TestHinter([])
@@ -29,7 +29,7 @@ def test_game_manager_assigns_team_colors_to_players_on_game_manager_constructio
     assert red_guesser.team_color == TeamColor.RED
 
 
-def test_game_manager_notifies_all_players_on_hint_given():
+def test_game_runner_notifies_all_players_on_hint_given():
     all_turns = [
         PredictedTurn(hint=Hint(word="A", card_amount=2), guesses=[0, 1, 2]),
         PredictedTurn(hint=Hint(word="B", card_amount=1), guesses=[4, 9]),
@@ -81,7 +81,7 @@ def test_game_starts_with_team_with_most_cards():
     assert runner.winner == Winner(team_color=TeamColor.BLUE, reason=WinningReason.OPPONENT_HIT_BLACK)
 
 
-def test_game_manager_hinter_state():
+def test_game_runner_hinter_state():
     all_turns = [
         PredictedTurn(hint=Hint(word="A", card_amount=2), guesses=[0, 1, 2]),
         PredictedTurn(hint=Hint(word="B", card_amount=1), guesses=[4, 9]),
@@ -117,7 +117,7 @@ def test_game_manager_hinter_state():
     assert game_state_2.given_hint_words == ("a",)
 
 
-def test_game_manager_guesser_state():
+def test_game_runner_guesser_state():
     all_turns = [
         PredictedTurn(hint=Hint(word="A", card_amount=2), guesses=[0, 1, 2]),
         PredictedTurn(hint=Hint(word="B", card_amount=1), guesses=[4, 9]),

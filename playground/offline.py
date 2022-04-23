@@ -41,7 +41,7 @@ adapter = HEBREW_SUFFIX_ADAPTER if model_id.language == "hebrew" and model_id.is
 
 def run_offline(board: Board = HEBREW_BOARD_6):  # noqa: F405
     log.info("Running offline game...")
-    game_manager = None
+    game_runner = None
     try:
         # blue_hinter = OlympicHinter("Einstein", model_adapter=adapter)
         # red_hinter = OlympicHinter("Yoda", model_adapter=adapter)
@@ -56,7 +56,7 @@ def run_offline(board: Board = HEBREW_BOARD_6):  # noqa: F405
     except:  # noqa
         log.exception("Error occurred")
     finally:
-        print_results(game_manager)  # type: ignore
+        print_results(game_runner)  # type: ignore
 
 
 if __name__ == "__main__":
