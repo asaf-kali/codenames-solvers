@@ -2,7 +2,7 @@ import logging
 import random
 
 from codenames.game import DEFAULT_MODEL_ADAPTER, Board, QuitGame  # noqa
-from codenames.game.manager import GameManager  # noqa
+from codenames.game.runner import GameRunner
 from codenames.solvers import (  # type: ignore  # noqa
     CliGuesser,
     NaiveGuesser,
@@ -49,8 +49,8 @@ def run_offline(board: Board = HEBREW_BOARD_6):  # noqa: F405
         red_hinter = NaiveHinter("Yoda", model_identifier=model_id, model_adapter=adapter)
         blue_guesser = NaiveGuesser(name="Newton", model_identifier=model_id, model_adapter=adapter)
         red_guesser = NaiveGuesser(name="Anakin", model_identifier=model_id, model_adapter=adapter)
-        game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
-        game_manager.run_game(language=model_id.language, board=board)  # noqa
+        game_runner = GameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser)
+        game_runner.run_game(language=model_id.language, board=board)  # noqa
     except QuitGame:
         log.info("Game quit")
     except:  # noqa

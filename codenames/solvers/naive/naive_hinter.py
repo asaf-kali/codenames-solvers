@@ -2,7 +2,7 @@ import itertools
 import logging
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Callable, Iterable, List, Optional
+from typing import Callable, Iterable, List, Optional, Tuple
 from uuid import uuid4
 
 import editdistance as editdistance
@@ -10,16 +10,13 @@ import numpy as np
 import pandas as pd
 from gensim.models import KeyedVectors
 
-from codenames.game import DEFAULT_MODEL_ADAPTER, Hinter, ModelFormatAdapter
-from codenames.game.base import (
-    Board,
-    CardColor,
-    Cards,
-    Hint,
+from codenames.game import (
+    DEFAULT_MODEL_ADAPTER,
+    Hinter,
     HinterGameState,
-    Similarity,
-    WordGroup,
+    ModelFormatAdapter,
 )
+from codenames.game.base import Board, CardColor, Cards, Hint, WordGroup
 from codenames.solvers.utils.algebra import cosine_distance
 from codenames.utils import wrap
 from codenames.utils.async_task_manager import AsyncTaskManager
@@ -30,6 +27,8 @@ from codenames.utils.loader.model_loader import (
 )
 
 log = logging.getLogger(__name__)
+
+Similarity = Tuple[str, float]
 
 
 class NoProposalsFound(Exception):
