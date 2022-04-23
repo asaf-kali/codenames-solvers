@@ -1,7 +1,10 @@
+import json
+
 import pytest
 
 from codenames.game import (
     Board,
+    GameState,
     Guess,
     Hint,
     InvalidGuess,
@@ -83,3 +86,16 @@ def test_game_state_flow(board_10: Board):
         game_state.process_hint(Hint(word="D", card_amount=2))
     with pytest.raises(InvalidTurn):  # Game is over
         game_state.process_guess(Guess(card_index=8))
+
+
+def test_game_state_json_serialization_and_load(board_10: Board):
+    game_state = build_game_state(language="english", board=board_10)
+    game_state.process_hint(Hint(word="A", card_amount=2))
+    game_state.process_guess(Guess(card_index=0))
+    game_state.process_guess(Guess(card_index=1))
+
+    game_state_json = game_state.json()
+    game_state_data = json.loads(game_state_json)
+    game_state_from_json = GameState(**game_state_data)
+    assert game_state_from_json.dict() == game_state.dict()
+    assert game_state_from_json == game_state

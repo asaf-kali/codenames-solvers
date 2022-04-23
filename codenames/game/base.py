@@ -34,7 +34,7 @@ class BaseModel(PydanticBaseModel):
         return result
 
 
-class CardColor(Enum):
+class CardColor(str, Enum):
     BLUE = "Blue"
     RED = "Red"
     GRAY = "Gray"
@@ -42,9 +42,6 @@ class CardColor(Enum):
 
     def __str__(self):
         return self.value
-
-    def __lt__(self, other: "CardColor") -> bool:
-        return self.value < other.value
 
     @property
     def as_team_color(self) -> "TeamColor":
@@ -71,15 +68,12 @@ CARD_COLOR_TO_EMOJI = {
 }
 
 
-class TeamColor(Enum):
+class TeamColor(str, Enum):
     BLUE = "Blue"
     RED = "Red"
 
     def __str__(self):
         return self.value
-
-    def __lt__(self, other: "CardColor") -> bool:
-        return self.value < other.value
 
     @property
     def opponent(self) -> "TeamColor":
