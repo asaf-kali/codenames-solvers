@@ -68,7 +68,7 @@ class PredictedTurn(NamedTuple):
 
 def build_team(team_color: TeamColor, turns: Iterable[PredictedTurn]) -> Team:
     hints = [turn.hint for turn in turns]
-    guesses = [Guess(index) for turn in turns for index in turn.guesses]
+    guesses = [Guess(card_index=index) for turn in turns for index in turn.guesses]
     hinter = TestHinter(hints=hints)
     guesser = TestGuesser(guesses=guesses)
     return Team(hinter=hinter, guesser=guesser, team_color=team_color)

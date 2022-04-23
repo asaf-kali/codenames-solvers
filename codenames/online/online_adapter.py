@@ -223,7 +223,7 @@ class NamecodingPlayerAdapter:
         card_elements = [get_shadow_root(card_container, "card-element") for card_container in card_containers]
         cards = [_parse_card(card_element) for card_element in card_elements]
         log.debug("Parse board done")
-        return Board(cards)
+        return Board(cards=cards)
 
     def detect_visibility_change(self, revealed_card_indexes: Iterable[int]) -> Optional[int]:
         log.debug("Looking for visibility change...")
@@ -293,7 +293,7 @@ class NamecodingPlayerAdapter:
         poll_condition(lambda: self.has_clue_text(clue_area), timeout_sec=600)
         clue_input = clue_area.find_element(by=By.ID, value="clue-text")
         cards_input = clue_area.find_element(by=By.ID, value="cards-num-container")
-        return Hint(clue_input.text.strip(), int(cards_input.text[0]))
+        return Hint(word=clue_input.text.strip(), card_amount=int(cards_input.text[0]))
 
     def poll_guess_given(self, game_state: GuesserGameState) -> Guess:
         log.debug("Polling for guess given...")
@@ -306,9 +306,9 @@ class NamecodingPlayerAdapter:
                 should_return = True
             card_index = self.detect_visibility_change(revealed_card_indexes)
             if card_index is not None:
-                return Guess(card_index)
+                return Guess(card_index=card_index)
         log.debug("Returning pass guess.")
-        return Guess(PASS_GUESS)
+        return Guess(card_index=PASS_GUESS)
 
     def has_clue_text(self, clue_area: ShadowRootElement = None) -> bool:
         if not clue_area:

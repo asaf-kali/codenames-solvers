@@ -9,6 +9,7 @@ setup(
     url="https://github.com/asaf-kali/codenames",
     install_requires=[
         # Core
+        "pydantic~=1.9",
         "numpy~=1.21",
         "gensim~=4.1",
         "pandas~=1.3",
