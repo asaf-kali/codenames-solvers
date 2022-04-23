@@ -141,7 +141,7 @@ class GameState(BaseModel):
             log.info("Winner found, turn is over")
             self._end_turn()
             return given_guess
-        if not given_guess.was_correct:
+        if not given_guess.correct:
             log.info("Guesser wrong, turn is over")
             self._end_turn()
             return given_guess
@@ -187,7 +187,7 @@ class GameState(BaseModel):
             winner_color = given_guess.team.opponent
             self.winner = Winner(team_color=winner_color, reason=WinningReason.OPPONENT_HIT_BLACK)
             return
-        score_team_color = given_guess.team if given_guess.was_correct else given_guess.team.opponent
+        score_team_color = given_guess.team if given_guess.correct else given_guess.team.opponent
         self.remaining_score[score_team_color] -= 1
         if self.remaining_score[score_team_color] == 0:
             self.winner = Winner(team_color=score_team_color, reason=WinningReason.TARGET_SCORE_REACHED)
