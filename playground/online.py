@@ -2,7 +2,7 @@ import logging
 import os
 
 from codenames.game import DEFAULT_MODEL_ADAPTER, QuitGame  # noqa
-from codenames.online import NamecodingGameManager, NamecodingLanguage  # noqa
+from codenames.online import NamecodingGameRunner, NamecodingLanguage  # noqa
 from codenames.solvers import (  # type: ignore  # noqa
     CliGuesser,
     CliHinter,
@@ -49,15 +49,15 @@ def run_online():
         red_hinter = NaiveHinter("Yoda", model_identifier=model_id, model_adapter=adapter)  # noqa
         blue_guesser = NaiveGuesser(name="Newton", model_identifier=model_id, model_adapter=adapter)  # noqa
         red_guesser = NaiveGuesser(name="Anakin", model_identifier=model_id, model_adapter=adapter)  # noqa
-        online_manager = NamecodingGameManager(blue_hinter, red_hinter, None, None, show_host=False)
-        # online_manager = NamecodingGameManager(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
+        online_manager = NamecodingGameRunner(blue_hinter, red_hinter, None, None, show_host=False)
+        # online_manager = NamecodingGameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
         online_manager.auto_start(language=namecoding_language, clock=False)
     except QuitGame:
         log.info("Game quit")
     except:  # noqa
         log.exception("Error occurred")
     finally:
-        print_results(online_manager.game_manager)
+        print_results(online_manager.game_runner)
         online_manager.close()
 
 
