@@ -6,7 +6,7 @@ from gensim.models import KeyedVectors
 
 from codenames.game.base import Board
 from codenames.game.builder import words_to_random_board
-from codenames.game.manager import GameManager
+from codenames.game.runner import GameRunner
 from codenames.solvers.naive.naive_guesser import NaiveGuesser
 from codenames.solvers.naive.naive_hinter import NaiveHinter
 
@@ -93,7 +93,7 @@ def test_complete_naive_flow(english_board: Board):
     red_hinter = NaiveHinter("Adam")
     red_guesser = NaiveGuesser("Eve")
 
-    game_manager = GameManager(blue_hinter, red_hinter, blue_guesser, red_guesser)
-    game_manager.run_game(language="english", board=english_board)
+    runner = GameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser)
+    runner.run_game(language="english", board=english_board)
 
-    assert game_manager.winner is not None
+    assert runner.state.winner is not None

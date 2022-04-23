@@ -19,7 +19,7 @@ class CliHinter(Hinter):
         # print(f"State is: {state}")
         while True:
             try:
-                data = input("Please enter your hint in the format 'word, card_amount': ")
+                data = input("Please enter your given_hint in the format 'word, card_amount': ")
                 print()
                 word, card_amount = data.split(",")
                 word = word.strip().title()

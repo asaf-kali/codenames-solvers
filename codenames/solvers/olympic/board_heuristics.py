@@ -77,7 +77,7 @@ class HeuristicsCalculator:
         """
         Calculate updated board heuristic for each word in the vocabulary.
         :return: a Probability tensor `heuristics`, where
-        heuristics[i, j, k] = P(card[j].color = colors[k] | hint = vocabulary[i])
+        heuristics[i, j, k] = P(card[j].color = colors[k] | given_hint = vocabulary[i])
         """
         vocabulary_size = similarities.shape[0]
         my_color_index = get_card_color_index(self.team_card_color)

@@ -7,15 +7,13 @@ import editdistance
 import numpy as np
 from gensim.models import KeyedVectors
 
-from codenames.game import DEFAULT_MODEL_ADAPTER, Hinter, ModelFormatAdapter
-from codenames.game.base import (
-    Board,
-    CardColor,
-    GivenHint,
-    Hint,
+from codenames.game import (
+    DEFAULT_MODEL_ADAPTER,
+    Hinter,
     HinterGameState,
-    WordGroup,
+    ModelFormatAdapter,
 )
+from codenames.game.base import Board, CardColor, GivenHint, Hint, WordGroup
 from codenames.solvers.olympic.board_heuristics import (
     HeuristicsCalculator,
     HeuristicsTensor,
@@ -139,7 +137,7 @@ class ComplexProposalsGenerator:
         similarities, heuristics = heuristics_calculator.calculate_heuristics_for_vocabulary(vocabulary)
         similarities_relu: SimilaritiesMatrix = np.maximum(similarities, 0)
         # heuristics.shape = (vocabulary_size, board_size, colors)
-        # heuristics[i, j, k]= P(card[j].color = colors[k] | hint = vocabulary[i])
+        # heuristics[i, j, k]= P(card[j].color = colors[k] | given_hint = vocabulary[i])
         unrevealed_mask = unrevealed_cards_mask(self.game_state.board)
         my_color_mask = card_color_mask(self.game_state.board, self.team_card_color)
         my_unrevealed_cards_mask = my_color_mask & unrevealed_mask
@@ -151,7 +149,7 @@ class ComplexProposalsGenerator:
         my_cards_scores[:, ~my_unrevealed_cards_mask] = -np.inf
         # Preform arg sort on scores, slice out -inf scores, reverse (high scores = low index)
         my_cards_idx_sorted = np.argsort(my_cards_scores)[:, : -amount_of_my_cards - 1 : -1]
-        # my_cards_idx_sorted[i, j] = My j's top card similarity given hint word i
+        # my_cards_idx_sorted[i, j] = My j's top card similarity given given_hint word i
         my_nth_card_idx = my_cards_idx_sorted[:, :amount_of_my_cards]
         my_top_n_similarities = similarities_relu[vocab_indices, my_nth_card_idx]
         other_cards_similarities = similarities_relu[:, other_unrevealed_cards_mask]
@@ -197,9 +195,9 @@ class VocabularyBuilder:
         return filtered_vocabulary
 
     def should_filter_hint(self, hint: str) -> bool:
-        # l1 = len(hint)
+        # l1 = len(given_hint)
         for expression in self.filter_expressions:
-            # removals = get_removals_count(hint, expression)
+            # removals = get_removals_count(given_hint, expression)
             # longest = max(l1, l2)
             # diff = abs(l1 - l2)
             # l2 = len(expression)

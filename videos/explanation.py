@@ -887,7 +887,7 @@ class KalirmozExplanation(ThreeDScene):
         hint_dot = AnnotationDot(point=hint_vec, fill_color=HINT_COLOR, stroke_width=4, stroke_color=DARK_GRAY)
         self.add_fixed_orientation_mobjects(hint_dot)
         hint_word = self.generate_card(
-            text="hint",
+            text="given_hint",
             height=0.32,
             width=1.0,
             fill_color=LIGHT_GRAY,

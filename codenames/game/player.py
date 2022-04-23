@@ -1,15 +1,15 @@
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+from codenames.game import GuesserGameState, HinterGameState
 from codenames.game.base import (
     Board,
     CardColor,
     GivenGuess,
     GivenHint,
     Guess,
-    GuesserGameState,
     Hint,
-    HinterGameState,
     TeamColor,
 )
 
@@ -70,3 +70,13 @@ class Guesser(Player):
 
     def guess(self, game_state: GuesserGameState) -> Guess:
         raise NotImplementedError()
+
+
+@dataclass(frozen=True)
+class Team:
+    hinter: Hinter
+    guesser: Guesser
+    team_color: TeamColor
+
+    def __iter__(self):
+        return iter([self.hinter, self.guesser])

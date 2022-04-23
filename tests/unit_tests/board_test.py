@@ -41,7 +41,7 @@ def test_get_board_at_non_existing_word_raises_error(board_10: Board):
 
 
 def test_get_board_at_float_index_raises_error(board_10: Board):
-    with pytest.raises(ValueError):
+    with pytest.raises(IndexError):
         _ = board_10[1.1]  # type: ignore
 
 
