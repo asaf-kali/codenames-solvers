@@ -2,7 +2,7 @@ import json
 import math
 from enum import Enum
 from functools import cached_property
-from typing import Iterable, List, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Set, Tuple, Union
 
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic import validator
@@ -10,6 +10,8 @@ from pydantic import validator
 from codenames.game.exceptions import CardNotFoundError
 from codenames.utils import wrap
 
+if TYPE_CHECKING:
+    from beautifultable import BeautifulTable
 WordGroup = Tuple[str, ...]
 
 
@@ -195,15 +197,23 @@ class Board(BaseModel):
         return Board(cards=[card.censored for card in self.cards])
 
     @property
-    def printable_string(self) -> str:
+    def as_table(self) -> "BeautifulTable":
         from beautifultable import BeautifulTable
 
         table = BeautifulTable()
         cols, rows = two_integer_factors(self.size)
         for i in range(rows):
             start_index, end_index = i * cols, (i + 1) * cols
-            row = [LTR + str(self[i]) for i in range(start_index, end_index)]
+            row = self.cards[start_index:end_index]
             table.rows.append(row)
+        return table
+
+    @property
+    def printable_string(self) -> str:
+        table = self.as_table
+        for i, row in enumerate(table.rows):
+            for j, card in enumerate(row):
+                table[i][j] = LTR + str(card)
         return str(table)
 
     def cards_for_color(self, card_color: CardColor) -> Cards:
@@ -260,7 +270,7 @@ class GivenGuess(BaseModel):
         result = "Correct!" if self.correct else "Wrong!"
         return f"'{self.guessed_card}', {result}"
 
-    @cached_property
+    @property
     def correct(self) -> bool:
         return self.team.as_card_color == self.guessed_card.color
 
