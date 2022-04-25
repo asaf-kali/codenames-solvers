@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 # model_id = ModelIdentifier("english", "wiki-50", False)
 # model_id = ModelIdentifier("english", "google-300", False)
 # model_id = ModelIdentifier("hebrew", "twitter", False)
-model_id = ModelIdentifier("hebrew", "ft-200", False)
+model_id = ModelIdentifier(language="hebrew", model_name="ft-200", is_stemmed=False)
 # model_id = ModelIdentifier("hebrew", "skv-ft-150", True)
 # model_id = ModelIdentifier("hebrew", "skv-cbow-150", True)
 

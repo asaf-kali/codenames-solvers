@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 # model_id = ModelIdentifier("english", "google-300", False)
 # model_id = ModelIdentifier("hebrew", "twitter", False)
 # model_id = ModelIdentifier("hebrew", "ft-200", False)
-model_id = ModelIdentifier("hebrew", "skv-ft-150", True)
+model_id = ModelIdentifier(language="hebrew", model_name="skv-ft-150", is_stemmed=True)
 # model_id = ModelIdentifier("hebrew", "skv-cbow-150", True)
 
 # os.environ[MODEL_NAME_ENV_KEY] = model_id.model_name

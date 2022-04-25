@@ -1,10 +1,11 @@
 import logging
 import os
 from threading import Lock, Thread
-from typing import Dict, NamedTuple
+from typing import Dict
 
 from generic_iterative_stemmer.models import StemmedKeyedVectors
 from gensim.models import KeyedVectors
+from pydantic import BaseModel
 
 log = logging.getLogger(__name__)
 
@@ -13,10 +14,13 @@ IS_STEMMED_ENV_KEY = "IS_STEMMED"
 DEFAULT_MODEL_NAME = "wiki-50"
 
 
-class ModelIdentifier(NamedTuple):
+class ModelIdentifier(BaseModel):
     language: str
     model_name: str
     is_stemmed: bool = False
+
+    def __hash__(self):
+        return hash(f"{self.language}-{self.model_name}-{self.is_stemmed}")
 
 
 class ModelCache:
@@ -75,7 +79,7 @@ def load_language(language: str, model_name: str = None, is_stemmed: bool = None
         model_name = os.environ.get(key=MODEL_NAME_ENV_KEY, default=DEFAULT_MODEL_NAME)  # type: ignore
     if is_stemmed is None:
         is_stemmed = bool(os.environ.get(key=IS_STEMMED_ENV_KEY, default=False))  # type: ignore
-    model_identifier = ModelIdentifier(language, model_name, is_stemmed)  # type: ignore
+    model_identifier = ModelIdentifier(language=language, model_name=model_name, is_stemmed=is_stemmed)
     return load_model(model_identifier)
 
 
