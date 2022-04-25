@@ -16,6 +16,11 @@ class InvalidTurn(GameRuleError):
     pass
 
 
+class GameIsOver(InvalidTurn):
+    def __init__(self):
+        super().__init__("Game is over!")
+
+
 class InvalidHint(GameRuleError):
     pass
 
