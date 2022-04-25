@@ -51,15 +51,15 @@ class Winner(BaseModel):
 class GameState(BaseModel):
     language: str
     board: Board
+    current_team_color: TeamColor = TeamColor.BLUE
+    current_player_role: PlayerRole = PlayerRole.HINTER
+    left_guesses: int = 0
+    bonus_given: bool = False
+    winner: Optional[Winner] = None
+    remaining_score: Dict[TeamColor, int] = {}
     raw_hints: List[Hint] = []
     given_hints: List[GivenHint] = []
     given_guesses: List[GivenGuess] = []
-    current_team_color: TeamColor = TeamColor.BLUE
-    current_player_role: PlayerRole = PlayerRole.HINTER
-    bonus_given: bool = False
-    left_guesses: int = 0
-    winner: Optional[Winner] = None
-    remaining_score: Dict[TeamColor, int] = {}
 
     @validator("remaining_score", always=True)
     def init_scores(cls, value: Dict[TeamColor, int], values) -> Dict[TeamColor, int]:
