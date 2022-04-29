@@ -71,7 +71,7 @@ class CardColor(str, Enum):
 CARD_COLOR_TO_EMOJI = {
     CardColor.RED: "🟥",
     CardColor.BLUE: "🟦",
-    CardColor.GRAY: "😬",
+    CardColor.GRAY: "⬜",
     CardColor.BLACK: "💀",
 }
 
