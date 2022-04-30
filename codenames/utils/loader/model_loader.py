@@ -1,5 +1,6 @@
 import logging
 import os
+from os.path import expanduser
 from threading import Lock, Thread
 from typing import Dict
 
@@ -25,7 +26,7 @@ class ModelIdentifier(BaseModel):
 
 class ModelCache:
     def __init__(self):
-        self.language_data_folder = "language_data"
+        self.language_data_folder = "~/.cache/language_data"
         self._cache: Dict[ModelIdentifier, KeyedVectors] = {}
         self._main_lock = Lock()
         self._model_locks: Dict[ModelIdentifier, Lock] = {}
@@ -48,7 +49,7 @@ class ModelCache:
         # import gensim.downloader as api
         # model = api.load("wiki-he")
         log.debug("Loading model...", extra={"model": model_identifier})
-        language_base_folder = os.path.join(self.language_data_folder, model_identifier.language)
+        language_base_folder = expanduser(os.path.join(self.language_data_folder, model_identifier.language))
         model = load_kv_format(
             language_base_folder=language_base_folder,
             model_name=model_identifier.model_name,
