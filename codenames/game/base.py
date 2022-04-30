@@ -213,7 +213,7 @@ class Board(BaseModel):
         table = self.as_table
         for i, row in enumerate(table.rows):
             for j, card in enumerate(row):
-                table[i][j] = LTR + str(card)
+                row[j] = LTR + str(card)
         return str(table)
 
     def cards_for_color(self, card_color: CardColor) -> Cards:
