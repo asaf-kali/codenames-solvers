@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="codenames",
-    version="1.3.5",
+    version="1.3.6",
     description="Codenames game logic and solvers implementation in python.",
     author="Asaf Kali",
     author_email="asaf.kali@mail.huji.ac.il",

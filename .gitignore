@@ -4,6 +4,7 @@ nx.html
 media/
 exports/
 chromedriver
+language_data
 
 # Language data files
 language_data/*.bin
