@@ -17,3 +17,6 @@ jupyter~=1.0
 # Package
 build==0.7.0
 twine==4.0.0
+
+# Other
+editdistance
