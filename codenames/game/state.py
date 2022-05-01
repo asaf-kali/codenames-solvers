@@ -5,7 +5,6 @@ from typing import Dict, List, Optional
 
 from pydantic import validator
 
-from codenames.boards import generate_standard_board
 from codenames.game import (
     BaseModel,
     Board,
@@ -228,6 +227,8 @@ class GuesserGameState(BaseModel):
 
 def build_game_state(language: str, board: Board = None) -> GameState:
     if board is None:
+        from codenames.boards import generate_standard_board
+
         board = generate_standard_board(language=language)
     first_team_color = _determine_first_team(board)
     return GameState(
