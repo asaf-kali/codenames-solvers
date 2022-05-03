@@ -37,7 +37,6 @@ class ModelCache:
         return model_lock
 
     def load_model(self, model_identifier: ModelIdentifier) -> KeyedVectors:
-        log.info(f"Loading model {model_identifier}")
         model_lock = self._get_model_lock(model_identifier)
         with model_lock:
             if model_identifier not in self._cache:
@@ -48,14 +47,14 @@ class ModelCache:
         # TODO: in case loading fails, try gensim downloader
         # import gensim.downloader as api
         # model = api.load("wiki-he")
-        log.debug("Loading model...", extra={"model": model_identifier})
+        log.info("Loading model...", extra={"model": model_identifier.dict()})
         language_base_folder = expanduser(os.path.join(self.language_data_folder, model_identifier.language))
         model = load_kv_format(
             language_base_folder=language_base_folder,
             model_name=model_identifier.model_name,
             is_stemmed=model_identifier.is_stemmed,
         )
-        log.debug("Model loaded", extra={"model": model_identifier})
+        log.info("Model loaded", extra={"model": model_identifier.dict()})
         return model
 
 
