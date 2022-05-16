@@ -28,11 +28,19 @@ class Queue(queue.Queue):
 class AsyncTaskManager(ContextManager):
     """
     Multithreaded task manager.
-    Not that the manager itself is not thread safe - meaning it can be used only in a single thread.
+    Note that the manager itself is not thread safe - meaning it can be used only in a single thread.
     """
 
-    def __init__(self, workers_amount: int = 5, iter_timeout: Optional[float] = None):
+    def __init__(
+        self,
+        workers_amount: int = 5,
+        name: str = None,
+        collect_results: bool = True,
+        iter_timeout: Optional[float] = None,
+    ):
         super().__init__()
+        self.name = name or "Task manager"
+        self.collect_results = collect_results
         self.iter_timeout = iter_timeout
         self._task_queue: Queue = Queue()
         self._result_queue: Queue = Queue()
@@ -85,7 +93,8 @@ class AsyncTaskManager(ContextManager):
     def start_workers(self, workers_amount: int):
         log.debug(f"Starting {workers_amount} workers.")
         for i in range(workers_amount):
-            thread = Thread(target=self._work, daemon=True)
+            thread_name = f"{self.name} - worker {i + 1}"
+            thread = Thread(target=self._work, daemon=True, name=thread_name)
             thread.start()
             self._workers_count += 1
 
@@ -105,7 +114,8 @@ class AsyncTaskManager(ContextManager):
                 self._task_queue.task_done()
                 break
             result = func(*args, **kwargs)
-            self._result_queue.put(result)
+            if self.collect_results:
+                self._result_queue.put(result)
             self._task_queue.task_done()
         log.debug("Worker done.")
 
