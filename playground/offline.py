@@ -1,25 +1,22 @@
 import logging
 import random
 
-from codenames.game import DEFAULT_MODEL_ADAPTER, Board, QuitGame  # noqa
-from codenames.game.runner import GameRunner
-from codenames.solvers import (  # type: ignore  # noqa; SnaHinter,
-    CliGuesser,
-    NaiveGuesser,
-    NaiveHinter,
-)
-from codenames.solvers.naive.naive_cli_guesser import ModelAwareCliGuesser  # noqa
-from codenames.utils.loader.model_loader import (  # noqa
-    IS_STEMMED_ENV_KEY,
-    MODEL_NAME_ENV_KEY,
-    ModelIdentifier,
-    load_model,
-    load_model_async,
-)
+from codenames.game import DEFAULT_MODEL_ADAPTER, Board, GameRunner, QuitGame  # noqa
 from codenames.utils.model_adapters import HEBREW_SUFFIX_ADAPTER  # noqa
+
 from playground.boards.english import *  # noqa
 from playground.boards.hebrew import *  # noqa
 from playground.printer import print_results
+from solvers.cli_players import CliGuesser  # noqa
+from solvers.naive import NaiveGuesser, NaiveHinter  # noqa
+from solvers.naive.naive_cli_guesser import ModelAwareCliGuesser  # noqa
+from solvers.utils.loader.model_loader import (  # noqa
+    IS_STEMMED_ENV_KEY,
+    MODEL_NAME_ENV_KEY,
+    ModelIdentifier,
+    load_language_async,
+    load_model_async,
+)
 from utils import configure_logging
 
 random.seed(42)

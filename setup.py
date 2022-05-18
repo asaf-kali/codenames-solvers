@@ -1,14 +1,15 @@
 from setuptools import setup
 
 setup(
-    name="codenames",
-    version="1.3.9",
-    description="Codenames game logic and solvers implementation in python.",
+    name="codenames-solvers",
+    version="1.0.0",
+    description="Codenames board game solvers implementation in python.",
     author="Asaf Kali",
     author_email="akali93@gmail.com",
-    url="https://github.com/asaf-kali/codenames",
+    url="https://github.com/asaf-kali/codenames-solvers",
     install_requires=[
         # Core
+        "codenames~=1.0",
         "pydantic~=1.9",
         "numpy~=1.21",
         "gensim~=4.1",
@@ -19,10 +20,6 @@ setup(
         "networkx~=2.6",
         "python-louvain~=0.15",
         "editdistance~=0.6",
-        # Web
-        "selenium~=4.1.0",
-        # CLI
-        "beautifultable~=1.0",
     ],
     include_package_data=True,
 )

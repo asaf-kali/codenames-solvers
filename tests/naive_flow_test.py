@@ -2,13 +2,13 @@ from unittest import mock
 
 import pandas as pd
 import pytest
-from gensim.models import KeyedVectors
-
 from codenames.boards import build_board
 from codenames.game.base import Board
 from codenames.game.runner import GameRunner
-from codenames.solvers.naive.naive_guesser import NaiveGuesser
-from codenames.solvers.naive.naive_hinter import NaiveHinter
+from gensim.models import KeyedVectors
+
+from solvers.naive.naive_guesser import NaiveGuesser
+from solvers.naive.naive_hinter import NaiveHinter
 
 VECTORS_FILE_NAME = "tests/small_model.csv"
 BOARD_WORDS = [

@@ -1,5 +1,4 @@
 import numpy as np
-
 from codenames.old.functions import find_vector
 
 # %%

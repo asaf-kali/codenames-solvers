@@ -1,6 +1,6 @@
 import logging
 
-from codenames.game.runner import GameRunner
+from codenames.game import GameRunner
 
 log = logging.getLogger(__name__)
 

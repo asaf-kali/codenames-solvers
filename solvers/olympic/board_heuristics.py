@@ -1,9 +1,8 @@
 from typing import List, NamedTuple
 
 import numpy as np
-from gensim.models import KeyedVectors
-
 from codenames.game import CardColor
+from gensim.models import KeyedVectors
 
 SimilaritiesMatrix = np.ndarray
 HeuristicsTensor = np.ndarray
