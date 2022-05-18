@@ -6,15 +6,16 @@ from codenames.online import NamecodingGameRunner, NamecodingLanguage  # noqa
 
 from playground.printer import print_results
 from solvers.cli_players import CliGuesser, CliHinter  # noqa
-from solvers.naive import NaiveGuesser, NaiveHinter  # noqa
-from solvers.olympic.olympic_hinter import OlympicHinter  # noqa
-from solvers.utils import DEFAULT_MODEL_ADAPTER, HEBREW_SUFFIX_ADAPTER
-from solvers.utils.loader import (  # noqa
+from solvers.models import (  # noqa
+    DEFAULT_MODEL_ADAPTER,
+    HEBREW_SUFFIX_ADAPTER,
     IS_STEMMED_ENV_KEY,
     MODEL_NAME_ENV_KEY,
     ModelIdentifier,
     load_language_async,
 )
+from solvers.naive import NaiveGuesser, NaiveHinter  # noqa
+from solvers.olympic.olympic_hinter import OlympicHinter  # noqa
 from utils import configure_logging
 
 configure_logging(level="INFO", mute_solvers=False, mute_online=True)

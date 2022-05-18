@@ -12,12 +12,12 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 from codenames.game import Board, CardColor, Hint, Hinter, HinterGameState, WordGroup
-from codenames.utils import RUN_ID, get_exports_folder
 from gensim.models import KeyedVectors
 from pandas import Series
 
+from solvers.models import load_language
 from solvers.naive.naive_hinter import Proposal, default_proposal_grade_calculator
-from solvers.utils.loader import load_language
+from solvers.utils import RUN_ID, get_exports_folder
 from utils.algebra import cosine_distance, single_gram_schmidt
 
 plt.style.use("fivethirtyeight")

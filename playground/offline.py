@@ -7,16 +7,17 @@ from playground.boards.english import *  # noqa
 from playground.boards.hebrew import *  # noqa
 from playground.printer import print_results
 from solvers.cli_players import CliGuesser  # noqa
-from solvers.naive import NaiveGuesser, NaiveHinter  # noqa
-from solvers.naive.naive_cli_guesser import ModelAwareCliGuesser  # noqa
-from solvers.utils import DEFAULT_MODEL_ADAPTER, HEBREW_SUFFIX_ADAPTER
-from solvers.utils.loader import (  # noqa
+from solvers.models import (  # noqa
+    DEFAULT_MODEL_ADAPTER,
+    HEBREW_SUFFIX_ADAPTER,
     IS_STEMMED_ENV_KEY,
     MODEL_NAME_ENV_KEY,
     ModelIdentifier,
     load_language_async,
     load_model_async,
 )
+from solvers.naive import NaiveGuesser, NaiveHinter  # noqa
+from solvers.naive.naive_cli_guesser import ModelAwareCliGuesser  # noqa
 from utils import configure_logging
 
 random.seed(42)
