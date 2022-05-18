@@ -12,7 +12,7 @@ from codenames.game import (
 )
 from gensim.models import KeyedVectors
 
-from solvers.utils.loader.model_loader import ModelIdentifier, load_language, load_model
+from solvers.utils.loader import ModelIdentifier, load_language, load_model
 
 log = logging.getLogger(__name__)
 
