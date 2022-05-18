@@ -3,9 +3,9 @@ from typing import Dict
 
 import community
 import networkx as nx
-from codenames.game.builder import words_to_random_board
-from codenames.visualizer import render
+from codenames.boards import build_board
 
+from playground.visualizer import render
 from solvers.utils.loader import load_language
 
 model = load_language("english", "google-300")
@@ -36,7 +36,7 @@ words = [
     "park",
     "gymnast",
 ]
-board = words_to_random_board(words=words)
+board = build_board(words=words)
 print("kaki")
 board_size = board.size
 vis_graph = nx.Graph()

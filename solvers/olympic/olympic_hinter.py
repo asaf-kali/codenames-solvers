@@ -6,12 +6,14 @@ from uuid import uuid4
 import editdistance
 import numpy as np
 from codenames.game import (
-    DEFAULT_MODEL_ADAPTER,
+    Board,
+    CardColor,
+    GivenHint,
+    Hint,
     Hinter,
     HinterGameState,
-    ModelFormatAdapter,
+    WordGroup,
 )
-from codenames.game.base import Board, CardColor, GivenHint, Hint, WordGroup
 from gensim.models import KeyedVectors
 
 from solvers.olympic.board_heuristics import (
@@ -20,6 +22,7 @@ from solvers.olympic.board_heuristics import (
     SimilaritiesMatrix,
     get_card_color_index,
 )
+from solvers.utils import DEFAULT_MODEL_ADAPTER, ModelFormatAdapter
 from solvers.utils.loader import load_language
 
 log = logging.getLogger(__name__)
