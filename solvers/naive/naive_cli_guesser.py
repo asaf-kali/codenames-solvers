@@ -2,8 +2,6 @@ import logging
 
 import matplotlib.pyplot as plt
 import numpy as np
-from gensim.models import KeyedVectors
-
 from codenames.game import (
     DEFAULT_MODEL_ADAPTER,
     Board,
@@ -11,8 +9,10 @@ from codenames.game import (
     GuesserGameState,
     ModelFormatAdapter,
 )
-from codenames.solvers import CliGuesser
-from codenames.utils.loader.model_loader import load_language
+from gensim.models import KeyedVectors
+
+from solvers.cli_players import CliGuesser
+from solvers.utils.loader.model_loader import load_language
 
 log = logging.getLogger(__name__)
 

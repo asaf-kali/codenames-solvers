@@ -3,21 +3,18 @@ import os
 
 from codenames.game import DEFAULT_MODEL_ADAPTER, QuitGame  # noqa
 from codenames.online import NamecodingGameRunner, NamecodingLanguage  # noqa
-from codenames.solvers import (  # type: ignore  # noqa; SnaHinter,
-    CliGuesser,
-    CliHinter,
-    NaiveGuesser,
-    NaiveHinter,
-)
-from codenames.solvers.olympic.olympic_hinter import OlympicHinter  # noqa
-from codenames.utils.loader.model_loader import (  # noqa
+from codenames.utils.model_adapters import HEBREW_SUFFIX_ADAPTER  # noqa
+
+from playground.printer import print_results
+from solvers.cli_players import CliGuesser, CliHinter  # noqa
+from solvers.naive import NaiveGuesser, NaiveHinter  # noqa
+from solvers.olympic.olympic_hinter import OlympicHinter  # noqa
+from solvers.utils.loader.model_loader import (  # noqa
     IS_STEMMED_ENV_KEY,
     MODEL_NAME_ENV_KEY,
     ModelIdentifier,
     load_language_async,
 )
-from codenames.utils.model_adapters import HEBREW_SUFFIX_ADAPTER  # noqa
-from playground.printer import print_results
 from utils import configure_logging
 
 configure_logging(level="INFO", mute_solvers=False, mute_online=True)

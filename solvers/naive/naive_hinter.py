@@ -8,9 +8,6 @@ from uuid import uuid4
 import editdistance as editdistance
 import numpy as np
 import pandas as pd
-from gensim.models import KeyedVectors
-from pydantic import BaseModel
-
 from codenames.game import (
     DEFAULT_MODEL_ADAPTER,
     Hinter,
@@ -18,14 +15,13 @@ from codenames.game import (
     ModelFormatAdapter,
 )
 from codenames.game.base import Board, CardColor, Cards, Hint, WordGroup
-from codenames.solvers.utils.algebra import cosine_distance
 from codenames.utils import wrap
-from codenames.utils.async_task_manager import AsyncTaskManager
-from codenames.utils.loader.model_loader import (
-    ModelIdentifier,
-    load_language,
-    load_model,
-)
+from gensim.models import KeyedVectors
+from pydantic import BaseModel
+
+from solvers.utils.algebra import cosine_distance
+from solvers.utils.async_task_manager import AsyncTaskManager
+from solvers.utils.loader.model_loader import ModelIdentifier, load_language, load_model
 
 log = logging.getLogger(__name__)
 

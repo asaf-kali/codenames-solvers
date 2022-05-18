@@ -9,11 +9,11 @@ import pandas as pd
 from manim import *
 from scipy.interpolate import interp1d
 
-from codenames.solvers.sna_hinter import (  # , opponent_force, friendly_force
+from solvers.sna_hinter import (  # , opponent_force, friendly_force
     ForceNode,
     step_from_forces,
 )
-from codenames.solvers.utils.algebra import (
+from solvers.utils.algebra import (
     cosine_distance,
     geodesic,
     normalize_vector,

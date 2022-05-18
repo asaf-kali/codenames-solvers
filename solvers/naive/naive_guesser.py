@@ -1,7 +1,5 @@
 import logging
 
-from gensim.models import KeyedVectors
-
 from codenames.game import (
     DEFAULT_MODEL_ADAPTER,
     PASS_GUESS,
@@ -12,11 +10,9 @@ from codenames.game import (
     GuesserGameState,
     ModelFormatAdapter,
 )
-from codenames.utils.loader.model_loader import (
-    ModelIdentifier,
-    load_language,
-    load_model,
-)
+from gensim.models import KeyedVectors
+
+from solvers.utils.loader.model_loader import ModelIdentifier, load_language, load_model
 
 log = logging.getLogger(__name__)
 
