@@ -1,6 +1,6 @@
 import numpy as np
 
-from solvers.utils.loader.model_loader import load_language
+from solvers.utils.loader import load_language
 from solvers.visualizer import pretty_print_similarities
 
 # %%

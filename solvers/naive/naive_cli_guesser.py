@@ -12,7 +12,7 @@ from codenames.game import (
 from gensim.models import KeyedVectors
 
 from solvers.cli_players import CliGuesser
-from solvers.utils.loader.model_loader import load_language
+from solvers.utils.loader import load_language
 
 log = logging.getLogger(__name__)
 

@@ -9,7 +9,7 @@ from playground.printer import print_results
 from solvers.cli_players import CliGuesser, CliHinter  # noqa
 from solvers.naive import NaiveGuesser, NaiveHinter  # noqa
 from solvers.olympic.olympic_hinter import OlympicHinter  # noqa
-from solvers.utils.loader.model_loader import (  # noqa
+from solvers.utils.loader import (  # noqa
     IS_STEMMED_ENV_KEY,
     MODEL_NAME_ENV_KEY,
     ModelIdentifier,
