@@ -1,7 +1,7 @@
 import numpy as np
 
-from codenames.utils.loader.model_loader import load_language
-from codenames.visualizer import pretty_print_similarities
+from solvers.utils.loader.model_loader import load_language
+from solvers.visualizer import pretty_print_similarities
 
 # %%
 

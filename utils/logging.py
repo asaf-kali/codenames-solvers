@@ -84,7 +84,7 @@ def configure_logging(formatter: str = None, level: str = None, mute_solvers: bo
     }
 
     if mute_solvers:
-        config["loggers"]["codenames.solvers"] = {"handlers": ["file"], "propagate": False}  # type: ignore
+        config["loggers"]["solvers"] = {"handlers": ["file"], "propagate": False}  # type: ignore
     if mute_online:
         config["loggers"]["codenames.online"] = {"handlers": ["file"], "propagate": False}  # type: ignore
     dictConfig(config)
