@@ -1,8 +1,7 @@
 import logging
 import random
 
-from codenames.game import DEFAULT_MODEL_ADAPTER, Board, GameRunner, QuitGame  # noqa
-from codenames.utils.model_adapters import HEBREW_SUFFIX_ADAPTER  # noqa
+from codenames.game import GameRunner, QuitGame
 
 from playground.boards.english import *  # noqa
 from playground.boards.hebrew import *  # noqa
@@ -10,6 +9,7 @@ from playground.printer import print_results
 from solvers.cli_players import CliGuesser  # noqa
 from solvers.naive import NaiveGuesser, NaiveHinter  # noqa
 from solvers.naive.naive_cli_guesser import ModelAwareCliGuesser  # noqa
+from solvers.utils import DEFAULT_MODEL_ADAPTER, HEBREW_SUFFIX_ADAPTER
 from solvers.utils.loader import (  # noqa
     IS_STEMMED_ENV_KEY,
     MODEL_NAME_ENV_KEY,

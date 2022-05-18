@@ -1,17 +1,16 @@
 import logging
 
 from codenames.game import (
-    DEFAULT_MODEL_ADAPTER,
     PASS_GUESS,
     Board,
     CardNotFoundError,
     Guess,
     Guesser,
     GuesserGameState,
-    ModelFormatAdapter,
 )
 from gensim.models import KeyedVectors
 
+from solvers.utils import DEFAULT_MODEL_ADAPTER, ModelFormatAdapter
 from solvers.utils.loader import ModelIdentifier, load_language, load_model
 
 log = logging.getLogger(__name__)

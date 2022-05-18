@@ -9,16 +9,19 @@ import editdistance as editdistance
 import numpy as np
 import pandas as pd
 from codenames.game import (
-    DEFAULT_MODEL_ADAPTER,
+    Board,
+    CardColor,
+    Cards,
+    Hint,
     Hinter,
     HinterGameState,
-    ModelFormatAdapter,
+    WordGroup,
 )
-from codenames.game.base import Board, CardColor, Cards, Hint, WordGroup
 from codenames.utils import wrap
 from gensim.models import KeyedVectors
 from pydantic import BaseModel
 
+from solvers.utils import DEFAULT_MODEL_ADAPTER, ModelFormatAdapter
 from solvers.utils.algebra import cosine_distance
 from solvers.utils.async_task_manager import AsyncTaskManager
 from solvers.utils.loader import ModelIdentifier, load_language, load_model
