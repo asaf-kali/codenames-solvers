@@ -21,10 +21,15 @@ from codenames.utils import wrap
 from gensim.models import KeyedVectors
 from pydantic import BaseModel
 
-from solvers.utils import DEFAULT_MODEL_ADAPTER, ModelFormatAdapter
+from solvers.models import (
+    DEFAULT_MODEL_ADAPTER,
+    ModelFormatAdapter,
+    ModelIdentifier,
+    load_language,
+    load_model,
+)
 from solvers.utils.algebra import cosine_distance
 from solvers.utils.async_task_manager import AsyncTaskManager
-from solvers.utils.loader import ModelIdentifier, load_language, load_model
 
 log = logging.getLogger(__name__)
 

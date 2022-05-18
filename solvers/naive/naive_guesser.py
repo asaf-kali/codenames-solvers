@@ -10,8 +10,13 @@ from codenames.game import (
 )
 from gensim.models import KeyedVectors
 
-from solvers.utils import DEFAULT_MODEL_ADAPTER, ModelFormatAdapter
-from solvers.utils.loader import ModelIdentifier, load_language, load_model
+from solvers.models import (
+    DEFAULT_MODEL_ADAPTER,
+    ModelFormatAdapter,
+    ModelIdentifier,
+    load_language,
+    load_model,
+)
 
 log = logging.getLogger(__name__)
 

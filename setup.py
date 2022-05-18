@@ -2,14 +2,14 @@ from setuptools import setup
 
 setup(
     name="codenames-solvers",
-    version="1.0.2",
+    version="1.1.0",
     description="Codenames board game solvers implementation in python.",
     author="Asaf Kali",
     author_email="akali93@gmail.com",
     url="https://github.com/asaf-kali/codenames-solvers",
     install_requires=[
         # Core
-        "codenames~=1.0",
+        "codenames~=1.1",
         "pydantic~=1.9",
         "numpy~=1.21",
         "gensim~=4.1",
