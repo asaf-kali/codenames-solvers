@@ -20,7 +20,7 @@ from solvers.olympic.board_heuristics import (
     SimilaritiesMatrix,
     get_card_color_index,
 )
-from solvers.utils.loader.model_loader import load_language
+from solvers.utils.loader import load_language
 
 log = logging.getLogger(__name__)
 Mask = np.ndarray

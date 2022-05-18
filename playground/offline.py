@@ -10,7 +10,7 @@ from playground.printer import print_results
 from solvers.cli_players import CliGuesser  # noqa
 from solvers.naive import NaiveGuesser, NaiveHinter  # noqa
 from solvers.naive.naive_cli_guesser import ModelAwareCliGuesser  # noqa
-from solvers.utils.loader.model_loader import (  # noqa
+from solvers.utils.loader import (  # noqa
     IS_STEMMED_ENV_KEY,
     MODEL_NAME_ENV_KEY,
     ModelIdentifier,

@@ -17,7 +17,7 @@ from gensim.models import KeyedVectors
 from pandas import Series
 
 from solvers.naive.naive_hinter import Proposal, default_proposal_grade_calculator
-from solvers.utils.loader.model_loader import load_language
+from solvers.utils.loader import load_language
 from utils.algebra import cosine_distance, single_gram_schmidt
 
 plt.style.use("fivethirtyeight")
