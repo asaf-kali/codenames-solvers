@@ -16,14 +16,13 @@ from codenames.game import (
 )
 from gensim.models import KeyedVectors
 
+from solvers.models import DEFAULT_MODEL_ADAPTER, ModelFormatAdapter, load_language
 from solvers.olympic.board_heuristics import (
     HeuristicsCalculator,
     HeuristicsTensor,
     SimilaritiesMatrix,
     get_card_color_index,
 )
-from solvers.utils import DEFAULT_MODEL_ADAPTER, ModelFormatAdapter
-from solvers.utils.loader import load_language
 
 log = logging.getLogger(__name__)
 Mask = np.ndarray

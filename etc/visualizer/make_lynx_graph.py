@@ -6,7 +6,7 @@ import networkx as nx
 from codenames.boards import build_board
 
 from playground.visualizer import render
-from solvers.utils.loader import load_language
+from solvers.models import load_language
 
 model = load_language("english", "google-300")
 words = [

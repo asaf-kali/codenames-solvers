@@ -2,17 +2,11 @@ import logging
 
 import matplotlib.pyplot as plt
 import numpy as np
-from codenames.game import (
-    DEFAULT_MODEL_ADAPTER,
-    Board,
-    Guess,
-    GuesserGameState,
-    ModelFormatAdapter,
-)
+from codenames.game import Board, Guess, GuesserGameState
 from gensim.models import KeyedVectors
 
 from solvers.cli_players import CliGuesser
-from solvers.utils.loader import load_language
+from solvers.models import DEFAULT_MODEL_ADAPTER, ModelFormatAdapter, load_language
 
 log = logging.getLogger(__name__)
 
