@@ -1,13 +1,12 @@
-# Codenames
+# Codenames Solvers
+
+Code infrastructure and player algorithms for the Codenames board game.\
+This is the active fork of [mkali-personal/codenames](https://github.com/mkali-personal/codenames).
 
 [![Tests](https://github.com/asaf-kali/codenames-solvers/actions/workflows/tests.yml/badge.svg)](https://github.com/asaf-kali/codenames-solvers/actions/workflows/tests.yml)
 [![Lint](https://github.com/asaf-kali/codenames-solvers/actions/workflows/lint.yml/badge.svg)](https://github.com/asaf-kali/codenames-solvers/actions/workflows/lint.yml)
 
 [//]: # ([![Video]&#40;https://github.com/asaf-kali/codenames-solvers/actions/workflows/video.yml/badge.svg&#41;]&#40;https://github.com/asaf-kali/codenames-solvers/actions/workflows/video.yml&#41;)
-
-Code infrastructure and player algorithms for the Codenames board game.
-
-This is the active fork of [mkali-personal/codenames](https://github.com/mkali-personal/codenames).
 
 ## Intro
 
