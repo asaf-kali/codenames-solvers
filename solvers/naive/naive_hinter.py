@@ -17,9 +17,9 @@ from codenames.game import (
     HinterGameState,
     WordGroup,
 )
-from codenames.utils import wrap
 from gensim.models import KeyedVectors
 from pydantic import BaseModel
+from the_spymaster_util import AsyncTaskManager, wrap
 
 from solvers.models import (
     DEFAULT_MODEL_ADAPTER,
@@ -29,7 +29,6 @@ from solvers.models import (
     load_model,
 )
 from solvers.utils.algebra import cosine_distance
-from solvers.utils.async_task_manager import AsyncTaskManager
 
 log = logging.getLogger(__name__)
 
