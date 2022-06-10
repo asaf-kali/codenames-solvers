@@ -9,6 +9,7 @@ setup(
     url="https://github.com/asaf-kali/codenames-solvers",
     install_requires=[
         # Core
+        "the-spymaster-util~=1.1",
         "codenames~=1.1",
         "pydantic~=1.9",
         "numpy~=1.21",
