@@ -1,7 +1,8 @@
 import logging
-import sys
 from logging import Filter, Formatter, Logger, LogRecord
 from logging.config import dictConfig
+
+from the_spymaster_util import get_dict_config
 
 
 class ExtraDataLogger(Logger):
@@ -38,54 +39,30 @@ log = logging.getLogger(__name__)
 
 
 def configure_logging(formatter: str = None, level: str = None, mute_solvers: bool = False, mute_online: bool = True):
-    config = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "simple": {"class": "utils.ExtraDataFormatter"},
-            "debug": {
-                "class": "utils.ExtraDataFormatter",
-                "format": "[%(asctime)s.%(msecs)03d] [%(levelname)-.4s]: %(message)s @@@ "
-                "[%(threadName)s] [%(name)s:%(lineno)s]",
-                "datefmt": "%Y-%m-%d %H:%M:%S",
-            },
-        },
-        "filters": {
-            "std_filter": {"()": "utils.LevelRangeFilter", "high": logging.WARNING},
-            "err_filter": {"()": "utils.LevelRangeFilter", "low": logging.WARNING},
-        },
-        "handlers": {
-            "console_out": {
-                "class": "logging.StreamHandler",
-                "filters": ["std_filter"],
-                "formatter": formatter or "simple",
-                "stream": sys.stdout,
-            },
-            "console_err": {
-                "class": "logging.StreamHandler",
-                "filters": ["err_filter"],
-                "formatter": formatter or "debug",
-                "stream": sys.stdout,
-                # "stream": sys.stderr,
-            },
-            "file": {
-                "class": "logging.FileHandler",
-                "filename": "run.log",
-                "formatter": formatter or "debug",
-            },
-        },
-        "root": {"handlers": ["console_out", "console_err", "file"], "level": level or "DEBUG"},
-        "loggers": {
-            "selenium": {"level": "INFO"},
-            "urllib3": {"level": "INFO"},
-            "matplotlib.font_manager": {"propagate": False},
-            "codenames.utils.async_task_manager": {"level": "INFO"},
+    handlers = {
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "run.log",
+            "formatter": "debug",
         },
     }
+    loggers = {
+        "selenium": {"level": "INFO"},
+        "urllib3": {"level": "INFO"},
+        "matplotlib.font_manager": {"propagate": False},
+        "the_spymaster_util.async_task_manager": {"level": "INFO"},
+    }
+    dict_config = get_dict_config(
+        std_formatter=formatter,
+        root_log_level=level,
+        extra_handlers=handlers,
+        extra_loggers=loggers,
+    )
+    dict_config["root"]["handlers"].append("file")
 
     if mute_solvers:
-        config["loggers"]["solvers"] = {"handlers": ["file"], "propagate": False}  # type: ignore
+        dict_config["loggers"]["solvers"] = {"handlers": ["file"], "propagate": False}  # type: ignore
     if mute_online:
-        config["loggers"]["codenames.online"] = {"handlers": ["file"], "propagate": False}  # type: ignore
-    dictConfig(config)
+        dict_config["loggers"]["codenames.online"] = {"handlers": ["file"], "propagate": False}  # type: ignore
+    dictConfig(dict_config)
     log.debug("Logging configured")
