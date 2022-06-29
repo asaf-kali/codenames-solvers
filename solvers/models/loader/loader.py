@@ -36,10 +36,13 @@ class ModelCache:
             model_lock = self._model_locks.setdefault(model_identifier, Lock())
         return model_lock
 
+    def is_loaded(self, model_identifier: ModelIdentifier) -> bool:
+        return model_identifier in self._cache
+
     def load_model(self, model_identifier: ModelIdentifier) -> KeyedVectors:
         model_lock = self._get_model_lock(model_identifier)
         with model_lock:
-            if model_identifier not in self._cache:
+            if not self.is_loaded(model_identifier):
                 self._cache[model_identifier] = self._load_model(model_identifier)
             return self._cache[model_identifier]
 
@@ -63,6 +66,10 @@ _model_cache = ModelCache()
 
 def set_language_data_folder(language_data_folder: str):
     _model_cache.language_data_folder = language_data_folder
+
+
+def is_loaded(model_identifier: ModelIdentifier) -> bool:
+    return _model_cache.is_loaded(model_identifier)
 
 
 def load_model(model_identifier: ModelIdentifier) -> KeyedVectors:
