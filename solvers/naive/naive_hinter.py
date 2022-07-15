@@ -19,7 +19,8 @@ from codenames.game import (
 )
 from gensim.models import KeyedVectors
 from pydantic import BaseModel
-from the_spymaster_util import AsyncTaskManager, wrap
+from the_spymaster_util.async_task_manager import AsyncTaskManager
+from the_spymaster_util.logging import wrap
 
 from solvers.models import (
     DEFAULT_MODEL_ADAPTER,
