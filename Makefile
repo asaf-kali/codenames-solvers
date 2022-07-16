@@ -64,9 +64,19 @@ gource:
     --date-format "%b %d, %Y" \
     --file-idle-time 0 \
     --background-colour 000000 \
-    --output-ppm-stream - \
     --output-framerate 30 \
+    --output-ppm-stream - \
 	| ffmpeg -y -r 30 -f image2pipe -vcodec ppm -i - -b 65536K gource.mp4
+
+gource-all:
+	bash ./videos/gource-all.sh \
+	../the-spymaster-util \
+	../model-trainer \
+	../codenames \
+	./ \
+	../the-spymaster-bot \
+	../the-spymaster-backend \
+	../the-spymaster-solvers
 
 # Lint
 
