@@ -54,6 +54,20 @@ video-install:
 video-render:
 	python -m manim render videos/explanation.py --progress_bar display -p -f
 
+gource:
+	gource \
+	--seconds-per-day 0.1 \
+	-2560x1440 \
+	--stop-at-end \
+    --highlight-users \
+    --hide mouse,filenames \
+    --date-format "%b %d, %Y" \
+    --file-idle-time 0 \
+    --background-colour 000000 \
+    --output-ppm-stream - \
+    --output-framerate 30 \
+	| ffmpeg -y -r 30 -f image2pipe -vcodec ppm -i - -b 65536K gource.mp4
+
 # Lint
 
 lint-only:
