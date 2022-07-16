@@ -5,6 +5,7 @@ media/
 exports/
 chromedriver
 language_data
+gource.mp4
 
 # Language data files
 language_data/*.bin
