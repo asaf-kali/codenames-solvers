@@ -2,7 +2,7 @@ import logging
 from logging import Filter, Formatter, Logger, LogRecord
 from logging.config import dictConfig
 
-from the_spymaster_util.logging import get_dict_config
+from the_spymaster_util.logger import get_dict_config
 
 
 class ExtraDataLogger(Logger):

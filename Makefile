@@ -80,7 +80,7 @@ gource-all:
 
 # Lint
 
-lint-only:
+format:
 	black .
 	isort .
 
@@ -90,7 +90,7 @@ lint-check:
 	mypy .
 	flake8 . --max-line-length=$(LINE_LENGTH) --ignore=E203,W503
 
-lint: lint-only
+lint: format
 	pre-commit run --all-files
 
 unzip_data:
