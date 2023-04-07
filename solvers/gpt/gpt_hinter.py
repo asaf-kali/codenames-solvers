@@ -5,10 +5,11 @@ from typing import List
 from codenames.game import Hint, Hinter, HinterGameState
 from openai import ChatCompletion
 
-from solvers.gpt.gpt_player import GPTPlayer
+from solvers.gpt.gpt_player import SHORT_INSTRUCTIONS, GPTPlayer
 
 log = logging.getLogger(__name__)
-TURN_COMMAND = """Please provide a valid hint, along with the words your hint is referring to, in JSON format: `{"word": <hint_word>, "referred_cards": <list_of_cards>}`.
+TURN_COMMAND = """Please provide a valid hint, along with the words your hint is referring to, in JSON format: `{"word": <hint_word>, "referred_cards": <list_of_cards>, "extra": <free_text>}`.
+You can use the optional "extra" key to explain your choice.
 Try to refer at least 2 cards, and only refer 4 cards if you think the hint represent these words well."""
 
 
@@ -16,20 +17,31 @@ class GPTHinter(GPTPlayer, Hinter):
     def pick_hint(self, game_state: HinterGameState) -> Hint:
         score_status = self.build_score_repr(board=game_state.board)
         team = f"You are the {self.team_color} team {self.role}."
+        board_repr = self.build_board_repr(board=game_state.board)
         hinted_words = self.build_hinted_words(board=game_state.board, team_color=self.team_color)
         avoid_words = self.build_cards_to_avoid_repr(board=game_state.board, team_color=self.team_color)
         assassin = self.build_assassin_repr(board=game_state.board)
         disallowed_hints = self.build_disallowed_hints_repr(
             board=game_state.board, hints=game_state.given_hints, extra=[]
         )
-        command_prompt = (
-            f"{score_status} {team} {hinted_words} {avoid_words} {assassin} {disallowed_hints} {TURN_COMMAND}"
-        )
+        # single_command_prompt = (
+        #     f"{score_status} {team} {hinted_words} {avoid_words} {assassin} {disallowed_hints} {TURN_COMMAND}"
+        # )
+        infos = [
+            SHORT_INSTRUCTIONS,
+            board_repr,
+            score_status,
+            team,
+            hinted_words,
+            avoid_words,
+            assassin,
+            disallowed_hints,
+            TURN_COMMAND,
+        ]
         messages = [
-            # {"role": "system", "content": short_instructions},
-            # {"role": "system", "content": board_repr},
-            # TODO: Add all the hints and guesses given so far
-            {"role": "user", "content": command_prompt},
+            # {"role": "user", "content": single_command_prompt},
+            {"role": "system", "content": info}
+            for info in infos
         ]
         log.debug("Sending completion request", extra={"payload_size": len(str(messages)), "messages": messages})
         result = ChatCompletion.create(model=self.model_name, messages=messages, api_key=self.api_key)
@@ -40,10 +52,14 @@ class GPTHinter(GPTPlayer, Hinter):
     def parse_hint(cls, completion_result: dict) -> Hint:
         data_raw = completion_result["choices"][0]["message"]["content"]
         data = json.loads(data_raw)
+        extra = data.get("extra")
         word_raw: str = data["word"]
         word = cls._parse_word(word_raw).lower()
-        referred_cards_raw: List[str] = data["referred_cards"]
-        return Hint(word=word, card_amount=len(referred_cards_raw), for_words=referred_cards_raw)
+        referred_cards_raw: List[str] = data["referred_cards"] or []
+        referred_cards = [word.lower() for word in referred_cards_raw]
+        hint = Hint(word=word, card_amount=len(referred_cards), for_words=referred_cards)
+        log.info(f"Got hint: {hint}. Extra: {extra}")
+        return hint
 
     @classmethod
     def _parse_word(cls, word: str) -> str:
