@@ -115,10 +115,8 @@ def default_proposal_grade_calculator(proposal: Proposal) -> float:
 
 
 def group_is_closest(proposal: Proposal) -> bool:
-    return all(
-        proposal.distance_group < other_distance
-        for other_distance in {proposal.distance_gray, proposal.distance_opponent, proposal.distance_black}
-    )
+    distances = {proposal.distance_gray, proposal.distance_opponent, proposal.distance_black}
+    return all(proposal.distance_group < distance for distance in distances)
 
 
 @dataclass

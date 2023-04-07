@@ -17,12 +17,14 @@ def print_results(game_runner: GameRunner):
 
 
 def _print_board(state: GameState):
-    log.info(f"\n{state.board}")
+    log.info("")
+    log.info(f"{state.board}")
 
 
 def _print_moves(state: GameState):
     guesses_by_hints = _get_guesses_by_hints(state)
-    log.info("\nGame moves:")
+    log.info("")
+    log.info("Game moves:")
     for i, item in enumerate(guesses_by_hints.items()):
         given_hint, guesses = item
         hint = state.raw_hints[i]
@@ -41,5 +43,6 @@ def _get_guesses_by_hints(state: GameState):
 def _print_result(state: GameState):
     red_score = len([card for card in state.board.red_cards if card.revealed])
     blue_score = len([card for card in state.board.blue_cards if card.revealed])
-    log.info(f"\nScore: 🟦 {blue_score} - {red_score} 🟥")
+    log.info("")
+    log.info(f"Score: 🟦 {blue_score} - {red_score} 🟥")
     log.info(f"Winner: {state.winner}")
