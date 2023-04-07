@@ -1,48 +1,19 @@
 import logging
-from typing import Optional
 
 from codenames.game import (
     PASS_GUESS,
-    Board,
     CardNotFoundError,
     Guess,
     Guesser,
     GuesserGameState,
 )
-from gensim.models import KeyedVectors
 
-from solvers.models import (
-    DEFAULT_MODEL_ADAPTER,
-    ModelFormatAdapter,
-    ModelIdentifier,
-    load_language,
-    load_model,
-)
+from solvers.naive.naive_player import NaivePlayer
 
 log = logging.getLogger(__name__)
 
 
-class NaiveGuesser(Guesser):
-    def __init__(
-        self,
-        name: str,
-        model: Optional[KeyedVectors] = None,
-        model_identifier: Optional[ModelIdentifier] = None,
-        model_adapter: ModelFormatAdapter = DEFAULT_MODEL_ADAPTER,
-    ):
-        super().__init__(name=name)
-        self.model: KeyedVectors = model
-        self.model_identifier = model_identifier
-        self.model_adapter = model_adapter
-
-    def on_game_start(self, language: str, board: Board):
-        if self.model is not None:
-            return
-        if self.model_identifier and self.model_identifier.language == language:
-            self.model = load_model(model_identifier=self.model_identifier)
-        else:
-            self.model = load_language(language=language)
-
+class NaiveGuesser(NaivePlayer, Guesser):
     def guess(self, game_state: GuesserGameState) -> Guess:
         if game_state.bonus_given:
             log.debug("Naive guesser does not take bonuses.")

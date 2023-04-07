@@ -39,7 +39,7 @@ load_model_async(model_id)
 GPT_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 
-def run_offline(board: Board = ENGLISH_BOARD_1):  # noqa: F405
+def run_offline(board: Board = ENGLISH_BOARD_4):  # noqa: F405
     log.info("Running offline game...")
     game_runner = None
     try:
