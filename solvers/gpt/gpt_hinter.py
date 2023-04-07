@@ -1,7 +1,9 @@
 import json
 import logging
+import random
 from typing import List, Optional
 
+from codenames.boards import ENGLISH_WORDS
 from codenames.game import (
     Board,
     CardColor,
@@ -11,7 +13,6 @@ from codenames.game import (
     HinterGameState,
     TeamColor,
 )
-from openai import ChatCompletion
 
 from solvers.gpt.gpt_player import HINTER_TURN_COMMAND, GPTPlayer, find_json_in_string
 
@@ -48,10 +49,12 @@ class GPTHinter(GPTPlayer, Hinter):
             for info in infos
         ]
         messages += [{"role": "user", "content": HINTER_TURN_COMMAND}]
-        log.debug("Sending completion request", extra={"payload_size": len(str(messages)), "messages": messages})
-        result = ChatCompletion.create(model=self.model_name, messages=messages, api_key=self.api_key, temperature=0)
-        log.debug("Got completion result", extra={"result": result})
-        return self.parse_hint(completion_result=result)
+        try:
+            result = self.generate_completion(messages=messages)
+            return self.parse_hint(completion_result=result)
+        except Exception as e:  # pylint: disable=broad-except
+            log.error("Error while generating hint", exc_info=e)
+            return Hint(word=_random_english_word(), card_amount=1)
 
     @classmethod
     def build_board_repr(cls, board: Board) -> str:
@@ -102,7 +105,6 @@ class GPTHinter(GPTPlayer, Hinter):
 
     @classmethod
     def _parse_word(cls, word: str) -> str:
-        log.debug(f"Parsing hint word: '{word}'")
         parts = word.split()
         if len(parts) == 1:
             return word
@@ -113,3 +115,7 @@ class GPTHinter(GPTPlayer, Hinter):
             return word
         log.debug("Got a number as the second word of the hint, assuming it's a number of cards")
         return parts[0]
+
+
+def _random_english_word() -> str:
+    return random.choice(ENGLISH_WORDS)
