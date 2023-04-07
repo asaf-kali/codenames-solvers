@@ -5,7 +5,7 @@ from functools import cached_property
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 from uuid import uuid4
 
-import editdistance as editdistance
+import editdistance
 import numpy as np
 import pandas as pd
 from codenames.game import (
@@ -235,7 +235,7 @@ class NaiveProposalsGenerator:
     def proposal_from_similarity(
         self, word_group: WordGroup, group_indices: np.ndarray, similarity: Similarity
     ) -> Optional[Proposal]:
-        hint, similarity_score = similarity
+        hint, similarity_score = similarity  # pylint: disable=unused-variable
         # word = format_word(word)
         if self.should_filter_hint(hint=hint, word_group=word_group, filter_expressions=self.game_state.illegal_words):
             return None
@@ -371,9 +371,9 @@ class NaiveHinter(Hinter):
             return self.pick_hint(game_state=game_state, thresholds_filter_active=False, similarities_top_n=50)
 
 
-def _format_dict_floats(d: dict):
-    for k, v in d.items():
-        if isinstance(v, dict):
-            _format_dict_floats(v)
-        if isinstance(v, float):
-            d[k] = round(v, 3)
+def _format_dict_floats(data: dict):
+    for key, value in data.items():
+        if isinstance(value, dict):
+            _format_dict_floats(value)
+        if isinstance(value, float):
+            data[key] = round(value, 3)

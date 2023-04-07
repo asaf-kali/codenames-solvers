@@ -30,10 +30,12 @@ disable = [
     "C0116",
     "R0903",
     "W1203",
+    "fixme",
 ]
 extension-pkg-allow-list = ["pydantic"]
 ignore = [
     "sna_hinter.py",
     "algebra.py",
     "olympic_hinter.py",
+    "board_heuristics.py",
 ]

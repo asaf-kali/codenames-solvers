@@ -5,12 +5,9 @@ from typing import List
 from codenames.game import Hint, Hinter, HinterGameState
 from openai import ChatCompletion
 
-from solvers.gpt.gpt_player import SHORT_INSTRUCTIONS, GPTPlayer
+from solvers.gpt.gpt_player import SHORT_INSTRUCTIONS, TURN_COMMAND, GPTPlayer
 
 log = logging.getLogger(__name__)
-TURN_COMMAND = """Please provide a valid hint, along with the words your hint is referring to, in JSON format: `{"word": <hint_word>, "referred_cards": <list_of_cards>, "extra": <free_text>}`.
-You can use the optional "extra" key to explain your choice.
-Try to refer at least 2 cards, and only refer 4 cards if you think the hint represent these words well."""
 
 
 class GPTHinter(GPTPlayer, Hinter):

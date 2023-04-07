@@ -42,7 +42,7 @@ class ModelAwareCliGuesser(CliGuesser):
             sims.append(sim)
             annotations.append(annotation)
         # plot
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots()  # pylint disable=invalid-name
         sims_to_show = np.zeros((5, 5))
         # Loop over data dimensions and create text annotations.
         for i, (ann, sim) in enumerate(zip(annotations, sims, strict=True)):
