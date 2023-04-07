@@ -40,14 +40,14 @@ load_model_async(model_id)
 GPT_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 
-def run_offline(board: Board = ENGLISH_BOARD_1):  # noqa: F405
+def run_offline(board: Board = ENGLISH_BOARD_3):  # noqa: F405
     log.info("Running offline game...")
     game_runner = None
     try:
-        # blue_hinter = OlympicHinter("Einstein", model_adapter=adapter)
-        # red_hinter = OlympicHinter("Yoda", model_adapter=adapter)
-        blue_hinter = GPTHinter("Yoda", api_key=GPT_API_KEY)
-        red_hinter = NaiveHinter("Einstein", model_identifier=model_id, model_adapter=adapter, max_group_size=3)
+        # blue_hinter = OlympicHinter(name="Einstein", model_adapter=adapter)
+        # red_hinter = OlympicHinter(name="Yoda", model_adapter=adapter)
+        blue_hinter = GPTHinter(name="Yoda", api_key=GPT_API_KEY)
+        red_hinter = NaiveHinter(name="Einstein", model_identifier=model_id, model_adapter=adapter, max_group_size=3)
         blue_guesser = NaiveGuesser(name="Newton", model_identifier=model_id, model_adapter=adapter)
         red_guesser = NaiveGuesser(name="Anakin", model_identifier=model_id, model_adapter=adapter)
         # red_guesser = CliGuesser(name="Anakin")
