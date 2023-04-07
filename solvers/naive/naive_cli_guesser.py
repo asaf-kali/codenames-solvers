@@ -26,12 +26,12 @@ class ModelAwareCliGuesser(CliGuesser):
         self.show_sims(game_state)
         return super().guess(game_state)
 
-    def show_sims(self, game_state):
+    def show_sims(self, game_state: GuesserGameState):
         current_hint_word = game_state.current_hint.formatted_word
         model_formatted_hint = self.model_format(current_hint_word)
         sims = []
         annotations = []
-        for card in game_state.board:
+        for card in game_state.board.cards:
             word = str(card)
             if card.revealed:
                 sim = np.nan
@@ -45,7 +45,7 @@ class ModelAwareCliGuesser(CliGuesser):
         fig, ax = plt.subplots()  # pylint disable=invalid-name
         sims_to_show = np.zeros((5, 5))
         # Loop over data dimensions and create text annotations.
-        for i, (ann, sim) in enumerate(zip(annotations, sims, strict=True)):
+        for i, (ann, sim) in enumerate(zip(annotations, sims, strict=True)):  # type: ignore
             row = i // 5
             col = i % 5
             sims_to_show[row, col] = sim

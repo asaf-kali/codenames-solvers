@@ -25,8 +25,9 @@ exclude = ["build", "dist"]
 [tool.pylint.main]
 max-line-length = 120
 good-names = [
-    "e",
     "ax",
+    "e",
+    "i",
 ]
 disable = [
     "C0114",
@@ -37,6 +38,9 @@ disable = [
     "fixme",
     "too-many-instance-attributes",
     "too-many-arguments",
+    "too-many-locals",
+    "unspecified-encoding",
+    "broad-exception-caught",
 ]
 extension-pkg-allow-list = ["pydantic"]
 ignore = [

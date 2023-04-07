@@ -22,13 +22,8 @@ from pydantic import BaseModel
 from the_spymaster_util.async_task_manager import AsyncTaskManager
 from the_spymaster_util.logger import wrap
 
-from solvers.models import (
-    DEFAULT_MODEL_ADAPTER,
-    ModelFormatAdapter,
-    ModelIdentifier,
-    load_language,
-    load_model,
-)
+from solvers.models import ModelFormatAdapter, ModelIdentifier
+from solvers.naive.naive_player import NaivePlayer
 from solvers.utils.algebra import cosine_distance
 
 log = logging.getLogger(__name__)
@@ -297,7 +292,7 @@ class NaiveProposalsGenerator:
         return pass_thresholds or really_good
 
 
-class NaiveHinter(Hinter):
+class NaiveHinter(NaivePlayer, Hinter):
     def __init__(
         self,
         name: str,
@@ -309,23 +304,15 @@ class NaiveHinter(Hinter):
         gradual_distances_filter_active: bool = True,
         proposal_grade_calculator: Callable[[Proposal], float] = default_proposal_grade_calculator,
     ):
-        super().__init__(name=name)
-        self.model = model
-        self.model_identifier = model_identifier
+        super().__init__(name=name, model=model, model_identifier=model_identifier, model_adapter=model_adapter)
         self.max_group_size = max_group_size
         self.opponent_card_color = None
         self.proposals_thresholds = proposals_thresholds or DEFAULT_THRESHOLDS
-        self.model_adapter = model_adapter or DEFAULT_MODEL_ADAPTER
         self.gradual_distances_filter_active = gradual_distances_filter_active
         self.proposal_grade_calculator = proposal_grade_calculator
 
     def on_game_start(self, language: str, board: Board):
-        if self.model is not None:
-            return
-        if self.model_identifier and self.model_identifier.language == language:
-            self.model = load_model(model_identifier=self.model_identifier)
-        else:
-            self.model = load_language(language=language)
+        super().on_game_start(language=language, board=board)
         self.opponent_card_color = self.team_color.opponent.as_card_color  # type: ignore
 
     @classmethod
