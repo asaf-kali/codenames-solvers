@@ -5,9 +5,10 @@ addopts = "-s --disable-pytest-warnings"
 source = ["codenames"]
 
 [tool.ruff]
-line-length = 120
 select = ["B", "C", "E", "F", "W"]
-ignore = []
+ignore = [
+    "E501",
+]
 exclude = ["local", ".deployment"]
 
 [tool.black]
@@ -21,7 +22,7 @@ profile = "black"
 ignore_missing_imports = true
 exclude = ["build", "dist"]
 
-[tool.pylint]
+[tool.pylint.main]
 max-line-length = 120
 disable = [
     "C0114",
@@ -31,3 +32,8 @@ disable = [
     "W1203",
 ]
 extension-pkg-allow-list = ["pydantic"]
+ignore = [
+    "sna_hinter.py",
+    "algebra.py",
+    "olympic_hinter.py",
+]

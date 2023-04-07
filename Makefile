@@ -96,7 +96,7 @@ check-mypy:
 	mypy .
 
 check-pylint:
-	pylint codenames/ --fail-under=9.5
+	pylint solvers/ --fail-under=9.5
 
 lint: format
 	pre-commit run --all-files

@@ -37,7 +37,7 @@ model_id = ModelIdentifier(language="english", model_name="wiki-50", is_stemmed=
 # os.environ[IS_STEMMED_ENV_KEY] = "1" if model_id.is_stemmed else ""
 adapter = HEBREW_SUFFIX_ADAPTER if model_id.language == "hebrew" and model_id.is_stemmed else DEFAULT_MODEL_ADAPTER
 load_model_async(model_id)
-GPT_API_KEY = os.getenv("OPENAI_API_KEY")
+GPT_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 
 def run_offline(board: Board = ENGLISH_BOARD_1):  # noqa: F405

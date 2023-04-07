@@ -291,7 +291,6 @@ class KalirmozExplanation(ThreeDScene):
         self.waitings = True
 
     def construct(self):
-
         progression_dict = generate_progression_dict(TITLES_TEXTS)
 
         self.scene_intro()

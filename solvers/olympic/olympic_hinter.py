@@ -1,6 +1,6 @@
 import logging
 from functools import cached_property
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Optional, Tuple
 from uuid import uuid4
 
 import editdistance
@@ -93,7 +93,7 @@ class ComplexProposalsGenerator:
         alpha: float,
         delta: float,
         vocabulary: List[str],
-        similarities: SimilaritiesMatrix = None,
+        similarities: Optional[SimilaritiesMatrix] = None,
         ratio_epsilon: float = 0.3,
     ):
         self.model = model
@@ -217,7 +217,7 @@ class OlympicHinter(Hinter):
         self,
         name: str,
         model: KeyedVectors = None,
-        model_adapter: ModelFormatAdapter = None,
+        model_adapter: Optional[ModelFormatAdapter] = None,
         gradual_distances_filter_active: bool = True,
         alpha: float = 4,
         delta: float = 0.1,
