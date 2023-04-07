@@ -77,8 +77,8 @@ def load_model(model_identifier: ModelIdentifier) -> KeyedVectors:
 
 
 def load_model_async(model_identifier: ModelIdentifier):
-    t = Thread(target=load_model, args=(model_identifier,))
-    t.start()
+    thread = Thread(target=load_model, args=(model_identifier,))
+    thread.start()
 
 
 def load_language(language: str, model_name: Optional[str] = None, is_stemmed: Optional[bool] = None) -> KeyedVectors:
@@ -91,8 +91,8 @@ def load_language(language: str, model_name: Optional[str] = None, is_stemmed: O
 
 
 def load_language_async(language: str, model_name: Optional[str] = None, is_stemmed: Optional[bool] = None):
-    t = Thread(target=load_language, args=(language, model_name, is_stemmed), daemon=True)
-    t.start()
+    thread = Thread(target=load_language, args=(language, model_name, is_stemmed), daemon=True)
+    thread.start()
 
 
 # def load_word2vec_format(language_base_folder: str, model_name: str) -> KeyedVectors:
