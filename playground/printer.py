@@ -1,8 +1,8 @@
 import logging
 from collections import defaultdict
-from typing import List
+from typing import Dict, List
 
-from codenames.game import GameRunner, GivenHint, GivenGuess
+from codenames.game import GameRunner, GivenGuess, GivenHint
 
 log = logging.getLogger(__name__)
 
@@ -11,13 +11,11 @@ def print_results(game_runner: GameRunner):
     if game_runner is None:
         return
     log.info(f"\n{game_runner.state.board}")
-    guesses_by_hints = defaultdict(list)
+    guesses_by_hints: Dict[GivenHint, List[GivenGuess]] = defaultdict(list)
     for guess in game_runner.state.given_guesses:
         guesses_by_hints[guess.given_hint].append(guess)
     log.info("\nGame moves:")
     for hint, guesses in guesses_by_hints.items():
-        hint: GivenHint
-        guesses: List[GivenGuess]
         log.info(f"{hint.team_color} team turn, hinter said: {hint}")
         for guess in guesses:
             log.info(f"   Guesser said: {guess}")

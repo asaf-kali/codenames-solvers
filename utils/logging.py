@@ -1,6 +1,7 @@
 import logging
 from logging import Filter, Formatter, Logger, LogRecord
 from logging.config import dictConfig
+from typing import Optional
 
 from the_spymaster_util.logger import get_dict_config
 
@@ -38,7 +39,9 @@ logging.setLoggerClass(ExtraDataLogger)
 log = logging.getLogger(__name__)
 
 
-def configure_logging(formatter: str = None, level: str = None, mute_solvers: bool = False, mute_online: bool = True):
+def configure_logging(
+    formatter: Optional[str] = None, level: Optional[str] = None, mute_solvers: bool = False, mute_online: bool = True
+):
     handlers = {
         "file": {
             "class": "logging.FileHandler",

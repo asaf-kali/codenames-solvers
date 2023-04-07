@@ -399,7 +399,7 @@ class SnaHinter(Hinter):
         cluster.reset()
         if self.debug_mode is True:
             self.draw_guesser_view(cluster)
-        for i in range(100):
+        for _ in range(100):
             self.clean_cluster(cluster)
             if self.debug_mode is True:
                 self.draw_guesser_view(cluster)

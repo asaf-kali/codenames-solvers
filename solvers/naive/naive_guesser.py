@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from codenames.game import (
     PASS_GUESS,
@@ -25,8 +26,8 @@ class NaiveGuesser(Guesser):
     def __init__(
         self,
         name: str,
-        model: KeyedVectors = None,
-        model_identifier: ModelIdentifier = None,
+        model: Optional[KeyedVectors] = None,
+        model_identifier: Optional[ModelIdentifier] = None,
         model_adapter: ModelFormatAdapter = DEFAULT_MODEL_ADAPTER,
     ):
         super().__init__(name=name)

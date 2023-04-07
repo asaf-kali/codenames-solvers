@@ -45,7 +45,7 @@ class ModelAwareCliGuesser(CliGuesser):
         fig, ax = plt.subplots()
         sims_to_show = np.zeros((5, 5))
         # Loop over data dimensions and create text annotations.
-        for i, (ann, sim) in enumerate(zip(annotations, sims)):
+        for i, (ann, sim) in enumerate(zip(annotations, sims, strict=True)):
             row = i // 5
             col = i % 5
             sims_to_show[row, col] = sim

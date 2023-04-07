@@ -137,7 +137,7 @@ class NaiveProposalsGenerator:
         unrevealed_cards = self.game_state.board.unrevealed_cards
         words = tuple(self.model_format(card.word) for card in unrevealed_cards)
         colors = tuple(card.color for card in unrevealed_cards)
-        vectors_list = [v for v in self.model[words]]
+        vectors_list = list(self.model[words])
         self.board_data = pd.DataFrame(
             data={
                 "color": colors,
@@ -303,11 +303,11 @@ class NaiveHinter(Hinter):
     def __init__(
         self,
         name: str,
-        model: KeyedVectors = None,
-        model_identifier: ModelIdentifier = None,
-        proposals_thresholds: ProposalThresholds = None,
+        model: Optional[KeyedVectors] = None,
+        model_identifier: Optional[ModelIdentifier] = None,
+        proposals_thresholds: Optional[ProposalThresholds] = None,
         max_group_size: int = 4,
-        model_adapter: ModelFormatAdapter = None,
+        model_adapter: Optional[ModelFormatAdapter] = None,
         gradual_distances_filter_active: bool = True,
         proposal_grade_calculator: Callable[[Proposal], float] = default_proposal_grade_calculator,
     ):
