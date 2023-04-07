@@ -2,7 +2,7 @@ import logging
 import os
 from os.path import expanduser
 from threading import Lock, Thread
-from typing import Dict
+from typing import Dict, Optional
 
 from generic_iterative_stemmer.models import StemmedKeyedVectors
 from gensim.models import KeyedVectors
@@ -81,7 +81,7 @@ def load_model_async(model_identifier: ModelIdentifier):
     t.start()
 
 
-def load_language(language: str, model_name: str = None, is_stemmed: bool = None) -> KeyedVectors:
+def load_language(language: str, model_name: Optional[str] = None, is_stemmed: Optional[bool] = None) -> KeyedVectors:
     if model_name is None:
         model_name = os.environ.get(key=MODEL_NAME_ENV_KEY, default=DEFAULT_MODEL_NAME)  # type: ignore
     if is_stemmed is None:
@@ -90,7 +90,7 @@ def load_language(language: str, model_name: str = None, is_stemmed: bool = None
     return load_model(model_identifier)
 
 
-def load_language_async(language: str, model_name: str = None, is_stemmed: bool = None):
+def load_language_async(language: str, model_name: Optional[str] = None, is_stemmed: Optional[bool] = None):
     t = Thread(target=load_language, args=(language, model_name, is_stemmed), daemon=True)
     t.start()
 
