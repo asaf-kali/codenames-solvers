@@ -25,11 +25,11 @@ def _print_moves(state: GameState):
     guesses_by_hints = _get_guesses_by_hints(state)
     log.info("")
     log.info("Game moves:")
-    for i, item in enumerate(guesses_by_hints.items()):
-        given_hint, guesses = item
+    for i, given_hint in enumerate(state.given_hints):
+        given_guesses = guesses_by_hints[given_hint]
         hint = state.raw_hints[i]
         log.info(f"{given_hint.team_color} team turn, hinter said '{given_hint.word}' for words: {hint.for_words}")
-        for guess in guesses:
+        for guess in given_guesses:
             log.info(f"   Guesser said: {guess}")
 
 
