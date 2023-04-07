@@ -15,13 +15,15 @@ The game ends when all agents belonging to one team are identified, winning the 
 
 
 class GPTPlayer(Player, ABC):
-    def __init__(self, name: str, api_key: str, model_name: str = "gpt-3.5-turbo"):
-        super().__init__(name)
+    def __init__(
+        self, name: str, api_key: str, team_color: Optional[TeamColor] = None, model_name: str = "gpt-3.5-turbo"
+    ):
+        super().__init__(name=name, team_color=team_color)
         self.api_key = api_key
         self.model_name = model_name
 
     @classmethod
-    def build_board_prompt_repr(cls, board: Board) -> str:
+    def build_board_repr(cls, board: Board) -> str:
         words = [f"{card.word}-{card.color}" for card in board.cards]
         joined = ", ".join(words)
         return f"Board cards: {joined}."
@@ -52,9 +54,9 @@ class GPTPlayer(Player, ABC):
     @classmethod
     def build_assassin_repr(cls, board: Board) -> str:
         words = [card.word for card in board.unrevealed_cards if card.color == CardColor.BLACK]
-        return f"The assassin is: {', '.join(words)}, avoid this word at all costs."
+        return f"The assassin word is: {', '.join(words)}, avoid hints suggesting this word as much as possible."
 
     @classmethod
     def build_hinted_words(cls, board: Board, team_color: TeamColor) -> str:
         words = [card.word for card in board.unrevealed_cards_for_color(team_color.as_card_color)]
-        return f"These are the words you are looking for hints to: {', '.join(words)}."
+        return f"You are looking for a hint for this word group: {', '.join(words)}."
