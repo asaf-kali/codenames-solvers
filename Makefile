@@ -5,20 +5,18 @@ LINE_LENGTH=120
 
 # Install
 
-install-run:
+upgrade-pip:
 	pip install --upgrade pip
+
+install-run: upgrade-pip
 	pip install -r requirements.txt
 
-install-test:
-	pip install --upgrade pip
+install-dev:
 	pip install -r requirements-dev.txt
 	@make install-run --no-print-directory
-
-install-dev:
-	@make install-test --no-print-directory
 	pre-commit install
 
-install: install-dev test lint
+install: install-dev cover format lint
 
 # Test
 
@@ -81,17 +79,25 @@ gource-all:
 # Lint
 
 format:
+	ruff . --fix
 	black .
 	isort .
 
-lint-check:
-	black . --check
-	isort . --check
+check-ruff:
+	ruff .
+
+check-black:
+	black --check .
+
+check-isort:
+	isort --check .
+
+check-mypy:
 	mypy .
-	flake8 . --max-line-length=$(LINE_LENGTH) --ignore=E203,W503
+
+check-pylint:
+	pylint codenames/ --fail-under=9.5
 
 lint: format
 	pre-commit run --all-files
-
-unzip_data:
-	echo "TODO"
+	@make check-pylint --no-print-directory
