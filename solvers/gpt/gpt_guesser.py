@@ -2,17 +2,7 @@ import json
 import logging
 from typing import Optional
 
-from codenames.game import (
-    PASS_GUESS,
-    Board,
-    Card,
-    GivenHint,
-    Guess,
-    Guesser,
-    GuesserGameState,
-    TeamColor,
-)
-from openai import ChatCompletion
+from codenames.game import PASS_GUESS, Card, GivenHint, Guess, Guesser, GuesserGameState
 
 from solvers.gpt.gpt_player import GUESSER_TURN_COMMAND, GPTPlayer, find_json_in_string
 
@@ -20,15 +10,6 @@ log = logging.getLogger(__name__)
 
 
 class GPTGuesser(GPTPlayer, Guesser):
-    def __init__(
-        self,
-        name: str,
-        api_key: str,
-        team_color: Optional[TeamColor] = None,
-        model_name: str = "gpt-3.5-turbo-0301",
-    ):
-        super().__init__(name=name, api_key=api_key, team_color=team_color, model_name=model_name)
-
     def guess(self, game_state: GuesserGameState) -> Guess:
         # board_repr = self.build_board_repr(board=game_state.board)
         # score_status = self.build_score_repr(score=game_state.score)
@@ -48,21 +29,19 @@ class GPTGuesser(GPTPlayer, Guesser):
             # team,
             # legal_guesses,
             # illegal_guesses,
+            GUESSER_TURN_COMMAND,
+            options,
             hint,
             you_already_guessed,
             GUESSER_TURN_COMMAND,
             options,
         ]
         messages = [{"role": "system", "content": info} for info in infos if info is not None]
-        log.debug("Sending completion request", extra={"payload_size": len(str(messages)), "messages": messages})
         try:
-            result = ChatCompletion.create(
-                model=self.model_name, messages=messages, api_key=self.api_key, temperature=0
-            )
-            log.debug("Got completion result", extra={"result": result})
+            result = self.generate_completion(messages=messages)
             return self.parse_guess(completion_result=result, game_state=game_state)
-        except Exception as e:  # pylint disable=broad-except
-            log.exception(f"Failed to get completion result: {e}")
+        except Exception as e:
+            log.exception(f"Error while generating guess: {e}")
             return Guess(card_index=PASS_GUESS)
 
     @classmethod
@@ -82,19 +61,19 @@ class GPTGuesser(GPTPlayer, Guesser):
         }
         return json.dumps(options)
 
-    @classmethod
-    def build_legal_guesses(cls, board: Board) -> str:
-        words = [card.formatted_word for card in board.cards if not card.revealed]
-        joined = ", ".join(words)
-        return f"Guess options - the given guess word HAS TO BE EXACTLY IDENTICAL to one of the following: {joined}."
+    # @classmethod
+    # def build_legal_guesses(cls, board: Board) -> str:
+    #     words = [card.formatted_word for card in board.cards if not card.revealed]
+    #     joined = ", ".join(words)
+    #     return f"Guess options - the given guess word HAS TO BE EXACTLY IDENTICAL to one of the following: {joined}."
 
-    @classmethod
-    def build_illegal_guesses(cls, board: Board) -> Optional[str]:
-        words = [card.formatted_word for card in board.cards if card.revealed]
-        if not words:
-            return None
-        joined = ", ".join(words)
-        return f"Illegal guesses - DO NOT provide any guess word from the following list: {joined}."
+    # @classmethod
+    # def build_illegal_guesses(cls, board: Board) -> Optional[str]:
+    #     words = [card.formatted_word for card in board.cards if card.revealed]
+    #     if not words:
+    #         return None
+    #     joined = ", ".join(words)
+    #     return f"Illegal guesses - DO NOT provide any guess word from the following list: {joined}."
 
     @classmethod
     def build_you_already_guesses(cls, state: GuesserGameState) -> Optional[str]:
@@ -105,11 +84,11 @@ class GPTGuesser(GPTPlayer, Guesser):
         joined = ", ".join(words)
         return f"You already guessed: {joined}, DO NOT repeat any of these guesses!"
 
-    @classmethod
-    def build_board_repr(cls, board: Board) -> str:
-        words = [_card_repr(card) for card in board.cards]
-        joined = ", ".join(words)
-        return f"Board cards: {joined}."
+    # @classmethod
+    # def build_board_repr(cls, board: Board) -> str:
+    #     words = [_card_repr(card) for card in board.cards]
+    #     joined = ", ".join(words)
+    #     return f"Board cards: {joined}."
 
     def parse_guess(self, completion_result: dict, game_state: GuesserGameState) -> Guess:
         response_content = completion_result["choices"][0]["message"]["content"]
