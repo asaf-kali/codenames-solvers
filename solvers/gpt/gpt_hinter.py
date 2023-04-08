@@ -1,20 +1,19 @@
-import json
 import logging
 import random
 from typing import List, Optional
 
-from codenames.boards import ENGLISH_WORDS
-from codenames.game import (
-    Board,
-    CardColor,
-    GivenHint,
-    Hint,
-    Hinter,
-    HinterGameState,
-    TeamColor,
-)
+from codenames.boards.english import ENGLISH_WORDS
+from codenames.game.board import Board
+from codenames.game.color import CardColor, TeamColor
+from codenames.game.move import GivenHint, Hint
+from codenames.game.player import Hinter
+from codenames.game.state import HinterGameState
 
-from solvers.gpt.gpt_player import HINTER_TURN_COMMAND, GPTPlayer, find_json_in_string
+from solvers.gpt.gpt_player import (
+    HINTER_TURN_COMMAND,
+    GPTPlayer,
+    extract_data_from_response,
+)
 
 log = logging.getLogger(__name__)
 
@@ -22,33 +21,39 @@ log = logging.getLogger(__name__)
 class GPTHinter(GPTPlayer, Hinter):
     def pick_hint(self, game_state: HinterGameState) -> Hint:
         board_repr = self.build_board_repr(board=game_state.board)
-        score_status = self.build_score_repr(score=game_state.score)
         team = self.build_team_repr()
-        hinted_words = self.build_hinted_words(board=game_state.board, team_color=self.team_color)
-        avoid_words = self.build_cards_to_avoid_repr(board=game_state.board, team_color=self.team_color)
-        assassin = self.build_assassin_repr(board=game_state.board)
+        moves = self.build_moves_repr(state=game_state)
+        score_status = self.build_score_repr(score=game_state.score)
+        words_to_hint = self.build_hinted_words(board=game_state.board, team_color=self.team_color)
+        words_to_avoid = self.build_cards_to_avoid_repr(board=game_state.board, team_color=self.team_color)
         disallowed_hints = self.build_disallowed_hints_repr(
             board=game_state.board, hints=game_state.given_hints, extra=[]
         )
+        assassin = self.build_assassin_repr(board=game_state.board)
         # single_command_prompt = (
         #     f"{score_status} {team} {hinted_words} {avoid_words} {assassin} {disallowed_hints} {TURN_COMMAND}"
         # )
+        # pylint: disable=R0801
         infos = [
             # SHORT_INSTRUCTIONS,
             board_repr,
-            score_status,
             team,
-            hinted_words,
-            avoid_words,
-            assassin,
+            moves,
+            score_status,
+            words_to_hint,
+            words_to_avoid,
             disallowed_hints,
+            assassin,
+            HINTER_TURN_COMMAND,
+            words_to_hint,
+            assassin,
         ]
         messages = [
             # {"role": "user", "content": single_command_prompt},
             {"role": "system", "content": info}
             for info in infos
+            if info is not None
         ]
-        messages += [{"role": "user", "content": HINTER_TURN_COMMAND}]
         try:
             result = self.generate_completion(messages=messages)
             return self.parse_hint(completion_result=result)
@@ -58,7 +63,7 @@ class GPTHinter(GPTPlayer, Hinter):
 
     @classmethod
     def build_board_repr(cls, board: Board) -> str:
-        words = [f"{card.word}-{card.color}" for card in board.cards]
+        words = [f"'{card.word}' ({card.color})" for card in board.cards]
         joined = ", ".join(words)
         return f"Board cards: {joined}."
 
@@ -90,16 +95,13 @@ class GPTHinter(GPTPlayer, Hinter):
 
     @classmethod
     def parse_hint(cls, completion_result: dict) -> Hint:
-        response_content = completion_result["choices"][0]["message"]["content"]
-        data_raw = find_json_in_string(response_content)
-        log.debug(f"Parsing hint from: '{data_raw}'")
-        data = json.loads(data_raw)
+        data = extract_data_from_response(completion_result=completion_result)
         extra = data.get("extra")
         word_raw: str = data["word"]
         word = cls._parse_word(word_raw).lower()
         referred_cards_raw: List[str] = data["referred_cards"] or []
         referred_cards = [word.lower() for word in referred_cards_raw]
-        hint = Hint(word=word, card_amount=len(referred_cards), for_words=referred_cards)
+        hint = Hint(word=word, card_amount=len(referred_cards), for_words=tuple(referred_cards))
         log.info(f"Parsed hint: {hint}. Extra: {extra}")
         return hint
 

@@ -1,4 +1,4 @@
-from codenames.boards import build_board
+from codenames.boards.builder import build_board
 from codenames.boards.english import ENGLISH_WORDS
 
 ENGLISH_BOARDS = [build_board(vocabulary=ENGLISH_WORDS, seed=i) for i in range(10)]

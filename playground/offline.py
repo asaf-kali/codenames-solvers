@@ -2,7 +2,8 @@ import logging
 import os
 import random
 
-from codenames.game import GameRunner, QuitGame
+from codenames.game.exceptions import QuitGame
+from codenames.game.runner import GameRunner
 
 from playground.boards.english import *  # noqa
 from playground.boards.hebrew import *  # noqa
