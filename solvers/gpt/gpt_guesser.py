@@ -2,35 +2,44 @@ import json
 import logging
 from typing import Optional
 
-from codenames.game import PASS_GUESS, Card, GivenHint, Guess, Guesser, GuesserGameState
+from codenames.game.board import Board
+from codenames.game.card import Card
+from codenames.game.move import PASS_GUESS, GivenHint, Guess
+from codenames.game.player import Guesser
+from codenames.game.state import GuesserGameState
 
-from solvers.gpt.gpt_player import GUESSER_TURN_COMMAND, GPTPlayer, find_json_in_string
+from solvers.gpt.gpt_player import (
+    GUESSER_TURN_COMMAND,
+    GPTPlayer,
+    extract_data_from_response,
+)
 
 log = logging.getLogger(__name__)
 
 
 class GPTGuesser(GPTPlayer, Guesser):
     def guess(self, game_state: GuesserGameState) -> Guess:
-        # board_repr = self.build_board_repr(board=game_state.board)
-        # score_status = self.build_score_repr(score=game_state.score)
-        # team = self.build_team_repr()
         # legal_guesses = self.build_legal_guesses(board=game_state.board)
         # illegal_guesses = self.build_illegal_guesses(board=game_state.board)
+        board_repr = self.build_board_repr(board=game_state.board)
+        team = self.build_team_repr()
+        moves = self.build_moves_repr(state=game_state)
+        score_status = self.build_score_repr(score=game_state.score)
+        options = self.build_options(state=game_state)
         hint = self.build_hint_repr(hint=game_state.current_hint)
         you_already_guessed = self.build_you_already_guesses(state=game_state)
-        options = self.build_options(state=game_state)
-        # single_command_prompt = (
-        #     f"{score_status} {team} {hinted_words} {avoid_words} {assassin} {illegal_hints} {TURN_COMMAND}"
-        # )
+        # pylint: disable=R0801
         infos = [
             # SHORT_INSTRUCTIONS,
-            # board_repr,
             # score_status,
-            # team,
             # legal_guesses,
             # illegal_guesses,
-            GUESSER_TURN_COMMAND,
+            board_repr,
+            team,
+            moves,
+            score_status,
             options,
+            GUESSER_TURN_COMMAND,
             hint,
             you_already_guessed,
             GUESSER_TURN_COMMAND,
@@ -84,17 +93,14 @@ class GPTGuesser(GPTPlayer, Guesser):
         joined = ", ".join(words)
         return f"You already guessed: {joined}, DO NOT repeat any of these guesses!"
 
-    # @classmethod
-    # def build_board_repr(cls, board: Board) -> str:
-    #     words = [_card_repr(card) for card in board.cards]
-    #     joined = ", ".join(words)
-    #     return f"Board cards: {joined}."
+    @classmethod
+    def build_board_repr(cls, board: Board) -> str:
+        words = [_card_repr(card) for card in board.cards]
+        joined = ", ".join(words)
+        return f"Board cards: {joined}."
 
     def parse_guess(self, completion_result: dict, game_state: GuesserGameState) -> Guess:
-        response_content = completion_result["choices"][0]["message"]["content"]
-        data_raw = find_json_in_string(response_content)
-        log.debug(f"Parsing guess from: '{data_raw}'")
-        data = json.loads(data_raw)
+        data = extract_data_from_response(completion_result=completion_result)
         extra = data.get("extra")
         word = _parse_guess_word(raw=data["word"])
         log.info(f"Parsed guess: '{word}'. Extra: {extra}")
@@ -111,5 +117,5 @@ def _parse_guess_word(raw: str) -> str:
 
 def _card_repr(card: Card) -> str:
     if card.revealed:
-        return f"{card.word} ({card.color})"
+        return f"'{card.word}' ({card.color})"
     return f"{card.word} (Unknown)"

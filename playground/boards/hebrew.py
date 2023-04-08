@@ -1,5 +1,7 @@
-from codenames.boards import build_board
-from codenames.game import Board, Card, CardColor
+from codenames.boards.builder import build_board
+from codenames.game.board import Board
+from codenames.game.card import Card
+from codenames.game.color import CardColor
 
 HEBREW_WORDS = [
     "מטען",
