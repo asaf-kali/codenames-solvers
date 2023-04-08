@@ -5,15 +5,12 @@ from uuid import uuid4
 
 import editdistance
 import numpy as np
-from codenames.game import (
-    Board,
-    CardColor,
-    GivenHint,
-    Hint,
-    Hinter,
-    HinterGameState,
-    WordGroup,
-)
+from codenames.game.base import WordGroup
+from codenames.game.board import Board
+from codenames.game.color import CardColor
+from codenames.game.move import GivenHint, Hint
+from codenames.game.player import Hinter
+from codenames.game.state import HinterGameState
 from gensim.models import KeyedVectors
 
 from solvers.models import DEFAULT_MODEL_ADAPTER, ModelFormatAdapter, load_language

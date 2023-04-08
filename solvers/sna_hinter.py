@@ -11,7 +11,12 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
-from codenames.game import Board, CardColor, Hint, Hinter, HinterGameState, WordGroup
+from codenames.game.base import WordGroup
+from codenames.game.board import Board
+from codenames.game.color import CardColor
+from codenames.game.move import Hint
+from codenames.game.player import Hinter
+from codenames.game.state import HinterGameState
 from gensim.models import KeyedVectors
 from pandas import Series
 
@@ -236,7 +241,7 @@ class SnaHinter(Hinter):
     @property
     def bad_cards(self) -> pd.DataFrame:
         return self.board_data[
-            self.board_data["color"].isin([CardColor.GRAY, CardColor.BLAC, self.team_color.opponent.as_card_color])
+            self.board_data["color"].isin([CardColor.GRAY, CardColor.BLACK, self.team_color.opponent.as_card_color])
         ]
 
     def update_reveals(self, game_state):
@@ -257,7 +262,7 @@ class SnaHinter(Hinter):
         #     self.model.get_vector(best_proposal.hint_word),
         # )
         # self.draw_guesser_view(draw_cluster, best_proposal.hint_word, self.model.get_vector(best_proposal.hint_word))
-        hint = Hint(best_proposal.hint_word, best_proposal.card_count)
+        hint = Hint(word=best_proposal.hint_word, card_amount=best_proposal.card_count)
         return hint
 
     def generate_graded_proposals(self, resolution_parameter=1):

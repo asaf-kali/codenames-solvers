@@ -2,7 +2,9 @@ import logging
 
 import matplotlib.pyplot as plt
 import numpy as np
-from codenames.game import Board, Guess, GuesserGameState
+from codenames.game.board import Board
+from codenames.game.move import Guess
+from codenames.game.state import GuesserGameState
 from gensim.models import KeyedVectors
 
 from solvers.cli_players import CliGuesser

@@ -8,15 +8,13 @@ from uuid import uuid4
 import editdistance
 import numpy as np
 import pandas as pd
-from codenames.game import (
-    Board,
-    CardColor,
-    Cards,
-    Hint,
-    Hinter,
-    HinterGameState,
-    WordGroup,
-)
+from codenames.game.base import WordGroup
+from codenames.game.board import Board
+from codenames.game.card import Cards
+from codenames.game.color import CardColor
+from codenames.game.move import Hint
+from codenames.game.player import Hinter
+from codenames.game.state import HinterGameState
 from gensim.models import KeyedVectors
 from pydantic import BaseModel
 from the_spymaster_util.async_task_manager import AsyncTaskManager

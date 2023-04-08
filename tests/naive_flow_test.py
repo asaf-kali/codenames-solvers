@@ -2,8 +2,9 @@ from unittest import mock
 
 import pandas as pd
 import pytest
-from codenames.boards import build_board
-from codenames.game import Board, GameRunner
+from codenames.boards.builder import build_board
+from codenames.game.board import Board
+from codenames.game.runner import GameRunner
 from gensim.models import KeyedVectors
 
 from solvers.naive.naive_guesser import NaiveGuesser
