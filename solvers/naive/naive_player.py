@@ -1,7 +1,8 @@
 from abc import ABC
 from typing import Optional
 
-from codenames.game import Board, Player
+from codenames.game.board import Board
+from codenames.game.player import Player
 from gensim.models import KeyedVectors
 
 from solvers.models import (
