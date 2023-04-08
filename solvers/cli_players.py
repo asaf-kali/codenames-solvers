@@ -1,13 +1,8 @@
-from codenames.game import (
-    CardNotFoundError,
-    Guess,
-    Guesser,
-    GuesserGameState,
-    Hint,
-    Hinter,
-    HinterGameState,
-    canonical_format,
-)
+from codenames.game.base import canonical_format
+from codenames.game.exceptions import CardNotFoundError
+from codenames.game.move import Guess, Hint
+from codenames.game.player import Guesser, Hinter
+from codenames.game.state import GuesserGameState, HinterGameState
 
 
 class CliHinter(Hinter):

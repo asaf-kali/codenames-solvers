@@ -1,12 +1,9 @@
 import logging
 
-from codenames.game import (
-    PASS_GUESS,
-    CardNotFoundError,
-    Guess,
-    Guesser,
-    GuesserGameState,
-)
+from codenames.game.exceptions import CardNotFoundError
+from codenames.game.move import PASS_GUESS, Guess
+from codenames.game.player import Guesser
+from codenames.game.state import GuesserGameState
 
 from solvers.naive.naive_player import NaivePlayer
 

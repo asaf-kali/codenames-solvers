@@ -1,7 +1,7 @@
 from typing import List, NamedTuple
 
 import numpy as np
-from codenames.game import CardColor
+from codenames.game.color import CardColor
 from gensim.models import KeyedVectors
 
 SimilaritiesMatrix = np.ndarray
