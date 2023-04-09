@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 BASE_DEPENDENCIES = [
     # Core
@@ -20,12 +20,13 @@ ALL_DEPENDENCIES = BASE_DEPENDENCIES + GPT_DEPENDENCIES
 
 setup(
     name="codenames-solvers",
-    version="1.4.0",
+    version="1.4.2",
     description="Codenames board game solvers implementation in python.",
     author="Asaf Kali",
     author_email="akali93@gmail.com",
     url="https://github.com/asaf-kali/codenames-solvers",
     install_requires=BASE_DEPENDENCIES,
+    packages=find_packages(include=["solvers", "solvers.*"]),
     extras_require={
         "all": ALL_DEPENDENCIES,
         "gpt": GPT_DEPENDENCIES,
