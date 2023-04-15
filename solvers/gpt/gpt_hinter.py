@@ -56,10 +56,14 @@ class GPTHinter(GPTPlayer, Hinter):
         ]
         try:
             result = self.generate_completion(messages=messages)
-            return self.parse_hint(completion_result=result)
+            hint = self.parse_hint(completion_result=result)
         except Exception as e:  # pylint: disable=broad-except
             log.error("Error while generating hint", exc_info=e)
             return Hint(word=_random_english_word(), card_amount=1)
+        if hint.word in game_state.illegal_words:
+            log.warning(f"Generated a hint that is not allowed: {hint}")
+            return Hint(word=_random_english_word(), card_amount=1)
+        return hint
 
     @classmethod
     def build_board_repr(cls, board: Board) -> str:
