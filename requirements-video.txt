@@ -1,4 +1,0 @@
-# Video
-manimpango==0.3.0
-manim~=0.11.0
-moviepy
