@@ -3,9 +3,10 @@ from typing import List, NamedTuple
 import numpy as np
 from codenames.game.color import CardColor
 from gensim.models import KeyedVectors
+from typing_extensions import TypeAlias
 
-SimilaritiesMatrix = np.ndarray
-HeuristicsTensor = np.ndarray
+SimilaritiesMatrix: TypeAlias = np.ndarray
+HeuristicsTensor: TypeAlias = np.ndarray
 
 
 def get_card_color_index(card_color: CardColor) -> int:
