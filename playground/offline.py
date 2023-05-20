@@ -8,8 +8,8 @@ from codenames.game.runner import GameRunner
 from playground.boards.english import *  # noqa
 from playground.boards.hebrew import *  # noqa
 from playground.printer import print_results
-from solvers.cli_players import CliGuesser  # noqa
-from solvers.gpt.gpt_hinter import GPTHinter
+from solvers.cli import CliGuesser  # noqa
+from solvers.gpt import GPTHinter
 from solvers.models import (  # noqa
     DEFAULT_MODEL_ADAPTER,
     HEBREW_SUFFIX_ADAPTER,

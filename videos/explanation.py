@@ -9,7 +9,7 @@ import pandas as pd
 from manim import *
 from scipy.interpolate import interp1d
 
-from solvers.sna_hinter import (  # , opponent_force, friendly_force
+from solvers.sna.sna_hinter import (  # , opponent_force, friendly_force
     ForceNode,
     step_from_forces,
 )
