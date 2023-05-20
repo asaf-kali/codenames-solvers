@@ -10,13 +10,14 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
-      - name: Set up python 3.9
+      - name: Set up python 3.10
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: "3.10"
       - name: Install video dependencies
         run: |
-          make video-install
+          make install-ci
+          make install-video
       - name: Render video
         run: |
           make video-render
