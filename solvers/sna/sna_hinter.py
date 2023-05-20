@@ -23,7 +23,7 @@ from pandas import Series
 from solvers.models import load_language
 from solvers.naive.naive_hinter import Proposal, default_proposal_grade_calculator
 from solvers.utils import RUN_ID, get_exports_folder
-from utils.algebra import cosine_distance, single_gram_schmidt
+from solvers.utils.algebra import cosine_distance, single_gram_schmidt
 
 plt.style.use("fivethirtyeight")
 
@@ -181,7 +181,7 @@ class Cluster:
         return self.grade < cluster_2.grade
 
 
-class SnaHinter(Hinter):
+class SNAHinter(Hinter):
     def __init__(self, name: str, debug_mode=False, physics_optimization=True):
         super().__init__(name=name)
         self.model: Optional[KeyedVectors] = None
