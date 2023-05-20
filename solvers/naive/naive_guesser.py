@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 class NaiveGuesser(NaivePlayer, Guesser):
     def guess(self, game_state: GuesserGameState) -> Guess:
-        if game_state.bonus_given:
+        if game_state.left_guesses == 1:
             log.debug("Naive guesser does not take bonuses.")
             return Guess(card_index=PASS_GUESS)
         optional_words = [self.model_format(card.word) for card in game_state.board.unrevealed_cards]
