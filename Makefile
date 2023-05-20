@@ -8,20 +8,34 @@ LINE_LENGTH=120
 upgrade-pip:
 	pip install --upgrade pip
 
-install-run: upgrade-pip
-	pip install -r requirements.txt
+install-ci: upgrade-pip
+	pip install poetry==1.4.2
+	poetry config virtualenvs.create false
 
 install-test:
-	pip install -r requirements-dev.txt
-	@make install-run --no-print-directory
+	poetry install --all-extras --only main --only test
 
 install-lint:
-	pip install -r requirements-lint.txt
+	poetry install --only lint
 
-install-dev: install-lint install-test
+install-dev: upgrade-pip
+	poetry install --all-extras --without video
 	pre-commit install
 
-install: install-dev lint cover
+install-video:
+	sudo apt-get update
+	sudo apt-get install ffmpeg pkg-config libcairo2-dev libpango1.0-dev --fix-missing
+	poetry install --only video
+
+install: lock-check install-dev lint cover
+
+# Poetry
+
+lock:
+	poetry lock --no-update
+
+lock-check:
+	poetry lock --check
 
 # Test
 
@@ -38,7 +52,7 @@ cover:
 
 build:
 	$(DEL_COMMAND) -f dist/*
-	python -m build
+	poetry build
 
 #upload:
 #	twine upload dist/*
@@ -47,12 +61,6 @@ build:
 #	twine upload --repository testpypi dist/*
 
 # Video
-
-video-install:
-	make install
-	sudo apt-get update
-	sudo apt-get install ffmpeg pkg-config libcairo2-dev libpango1.0-dev --fix-missing
-	pip install -r requirements-video.txt
 
 video-render:
 	python -m manim render videos/explanation.py --progress_bar display -p -f

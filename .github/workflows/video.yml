@@ -16,7 +16,8 @@ jobs:
           python-version: 3.9
       - name: Install video dependencies
         run: |
-          make video-install
+          make install-ci
+          make install-video
       - name: Render video
         run: |
           make video-render

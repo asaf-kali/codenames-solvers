@@ -12,6 +12,7 @@ from codenames.game.move import GivenHint, Hint
 from codenames.game.player import Hinter
 from codenames.game.state import HinterGameState
 from gensim.models import KeyedVectors
+from typing_extensions import TypeAlias
 
 from solvers.models import DEFAULT_MODEL_ADAPTER, ModelFormatAdapter, load_language
 from solvers.olympic.board_heuristics import (
@@ -22,7 +23,7 @@ from solvers.olympic.board_heuristics import (
 )
 
 log = logging.getLogger(__name__)
-Mask = np.ndarray
+Mask: TypeAlias = np.ndarray
 
 
 class NoProposalsFound(Exception):
