@@ -81,13 +81,15 @@ gource:
 
 gource-all:
 	bash ./videos/gource-all.sh \
-	../the-spymaster-util \
-	../model-trainer \
+	../the-spymaster-backend \
 	../codenames \
 	./ \
+	../model-trainer \
+	../resources \
 	../the-spymaster-bot \
-	../the-spymaster-backend \
-	../the-spymaster-solvers
+	../the-spymaster-infra \
+	../the-spymaster-solvers \
+	../the-spymaster-util
 
 # Lint
 
