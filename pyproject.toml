@@ -52,8 +52,6 @@ manim = "0.11.0"
 #moviepy = "1.0.3"
 
 [tool.poetry.group.dev.dependencies]
-# Package
-twine = "^4.0.2"
 # Visuals
 pyvis = "^0.1.9"
 jupyter = "^1.0"
