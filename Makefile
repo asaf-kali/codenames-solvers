@@ -15,7 +15,7 @@ upgrade-pip:
 	pip install --upgrade pip
 
 install-ci: upgrade-pip
-	pip install poetry==1.4.2
+	pip install poetry==1.5.1
 	poetry config virtualenvs.create false
 
 install-test:

@@ -52,7 +52,7 @@ jobs:
       - uses: ./.github/actions/lint-install
       - name: Install dependencies
         run: |
-          make install-dev
+          make install-dev SYNC=""
       - name: Run pylint
         run: |
           make check-pylint
