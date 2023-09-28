@@ -63,7 +63,22 @@ class GPTHinter(GPTPlayer, Hinter):
         if hint.word in game_state.illegal_words:
             log.warning(f"Generated a hint that is not allowed: {hint}")
             return Hint(word=_random_english_word(), card_amount=1)
+        self._verify_hint(hint=hint, game_state=game_state)
         return hint
+
+    def _verify_hint(self, hint: Hint, game_state: HinterGameState):
+        for word in hint.for_words:
+            try:
+                card = game_state.board[word]
+            except KeyError:
+                log.warning(f"Hint {hint} is referring to a word that is not on the board: {word}")
+                continue
+            if card.revealed:
+                log.warning(f"Hint {hint} is referring to a word that is already revealed: {word}")
+                continue
+            if card.color == CardColor.BLACK:
+                log.warning(f"Hint {hint} is referring to the assassin word: {word}")
+                continue
 
     @classmethod
     def build_board_repr(cls, board: Board) -> str:
