@@ -67,18 +67,26 @@ class GPTHinter(GPTPlayer, Hinter):
         return hint
 
     def _verify_hint(self, hint: Hint, game_state: HinterGameState):
+        good_hint = True
         for word in hint.for_words:
-            try:
-                card = game_state.board[word]
-            except KeyError:
-                log.warning(f"Hint {hint} is referring to a word that is not on the board: {word}")
-                continue
-            if card.revealed:
-                log.warning(f"Hint {hint} is referring to a word that is already revealed: {word}")
-                continue
-            if card.color != self.team_color.as_card_color:
-                log.warning(f"Hint {hint} is referring to a word that is not of the team's color: {word}")
-                continue
+            if not self._card_valid_for_hinting(hint=hint, game_state=game_state, word=word):
+                good_hint = False
+        if good_hint:
+            log.info(f"Hint {hint} is valid")
+
+    def _card_valid_for_hinting(self, hint: Hint, game_state: HinterGameState, word: str) -> bool:
+        try:
+            card = game_state.board[word]
+        except KeyError:
+            log.warning(f"Hint {hint} is referring to a word that is not on the board: {word}")
+            return False
+        if card.revealed:
+            log.warning(f"Hint {hint} is referring to a word that is already revealed: {word}")
+            return False
+        if card.color != self.team_color.as_card_color:
+            log.warning(f"Hint {hint} is referring to a word that is not of the team's color: {word}")
+            return False
+        return True
 
     @classmethod
     def build_board_repr(cls, board: Board) -> str:
