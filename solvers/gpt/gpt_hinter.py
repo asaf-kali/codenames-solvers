@@ -76,8 +76,8 @@ class GPTHinter(GPTPlayer, Hinter):
             if card.revealed:
                 log.warning(f"Hint {hint} is referring to a word that is already revealed: {word}")
                 continue
-            if card.color == CardColor.BLACK:
-                log.warning(f"Hint {hint} is referring to the assassin word: {word}")
+            if card.color != self.team_color.as_card_color:
+                log.warning(f"Hint {hint} is referring to a word that is not of the team's color: {word}")
                 continue
 
     @classmethod
