@@ -241,7 +241,7 @@ class NaiveProposalsGenerator:
             hint_word=self.board_format(hint),
             hint_word_frequency=self.get_word_frequency(hint),
             distance_group=np.max(hint_to_group),
-            distance_gray=np.min(hint_to_gray),
+            distance_gray=np.min(hint_to_gray) if hint_to_gray.size > 0 else 1,
             distance_opponent=np.min(hint_to_opponent),
             distance_black=np.min(hint_to_black),
             board_distances=self._get_board_distances_dict(board_distances),
