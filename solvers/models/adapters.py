@@ -28,7 +28,7 @@ class ModelFormatAdapter:
 
 class DefaultFormatAdapter(ModelFormatAdapter):
     def to_model_format(self, word: str) -> str:
-        return word
+        return word.replace(". ", ".").replace(" ", "-")
 
     def to_board_format(self, word: str) -> str:
         return word
