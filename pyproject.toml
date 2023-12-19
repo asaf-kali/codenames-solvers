@@ -20,7 +20,7 @@ all = ["openai"]
 python = "^3.8"
 # Algo
 the-spymaster-util = ">=2.0,<4.0"
-codenames = "^2.2.0"
+codenames = ">=2.2,<4.0"
 pydantic = "^1.9"
 # Numbers
 numpy = "^1.21"
