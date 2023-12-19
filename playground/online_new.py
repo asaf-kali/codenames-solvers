@@ -46,7 +46,7 @@ def run_online():
         red_guesser = NaiveGuesser(name="Anakin", model_identifier=model_id, model_adapter=adapter)  # noqa
         online_manager = CodenamesGameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=True)
         # online_manager = CodenamesGameGameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
-        online_manager.auto_start(language=namecoding_language, clock=False)
+        online_manager.auto_start()
     except QuitGame:
         log.info("Game quit")
     except:  # noqa
