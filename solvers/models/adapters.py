@@ -31,7 +31,7 @@ class DefaultFormatAdapter(ModelFormatAdapter):
         return word.replace(". ", ".").replace(" ", "-")
 
     def to_board_format(self, word: str) -> str:
-        return word
+        return word.replace("-", " ")
 
 
 def replace_to_non_suffix_letter(word: str) -> str:
