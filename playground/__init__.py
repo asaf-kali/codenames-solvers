@@ -1,3 +1,3 @@
 from utils import configure_logging
 
-configure_logging(formatter=None, level="DEBUG", mute_solvers=False)
+configure_logging(formatter="simple", level="DEBUG", mute_solvers=False, mute_online=False)
