@@ -35,6 +35,3 @@ def configure_logging(
         dict_config["loggers"]["codenames.online"] = {"handlers": ["file"], "propagate": False}  # type: ignore
     dictConfig(dict_config)
     print("Logging configured.")
-
-
-configure_logging()

@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 
 
 def print_results(game_runner: GameRunner):
-    if game_runner is None:
+    if game_runner is None or game_runner.state is None:
         return
     state = game_runner.state
     _print_board(state)
