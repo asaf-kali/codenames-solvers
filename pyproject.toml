@@ -4,12 +4,17 @@
 name = "codenames-solvers"
 version = "1.4.10"
 description = "Solvers implementation for Codenames board game in python."
-authors = ["Asaf Kali <asaf.kali@mail.huji.ac.il>"]
+authors = ["Michael Kali", "Asaf Kali <asaf.kali@mail.huji.ac.il>"]
 readme = "README.md"
 packages = [
     { include = "solvers" },
 ]
 include = ["*.json"]
+
+[tool.poetry.urls]
+Homepage = "https://github.com/asaf-kali/codenames-solvers"
+Repository = "https://github.com/asaf-kali/codenames-solvers"
+Issues = "https://github.com/asaf-kali/codenames-solvers/issues"
 
 [tool.poetry.extras]
 gpt = ["openai"]
