@@ -17,19 +17,20 @@ The `solvers` module contains a multiple agent implementations, based on differe
 Based on [Google's word2vec](https://code.google.com/archive/p/word2vec/) embedding.
 
 *Hint generation*:
-1. For each card group size `{4, 3, 2, 1}` from my unrevealed cards, collect hint proposal:
-   1. Find the mean of the group's word embeddings.
-   2. Find the closest word to this mean (this will be the hint word).
-   3. Calculate the distance from this word to all other unrevealed cards on the board.
-   4. Ensure the inspected word group is the closest to the proposed word.
-   5. Ensure opponent cards, gray cards, and black card distance are greater than a specified threshold.
-   6. Grade the hint proposal (based on number of cards in the group and distances to the word groups).
-2. After collecting all hint proposal, pick the one with the highest grade.
+1. For each card subset `group` of size `{4, 3, 2, 1}` from my unrevealed cards, collect hint proposal:
+   1. Find the mean of `group`'s word embeddings.
+   2. Find the closest word to this mean (this will be the `hint`).
+   3. Calculate the distance from `hint` to all other unrevealed cards on the board.
+   4. Ensure the inspected `group` is the closest to the proposed `hint`.
+   5. Ensure opponent cards, gray cards, and black card distance to `hint` are **greater** than a specified threshold.
+   6. Grade the `hint` proposal (based on the number of cards in `group` and the distances from `hint` to the different word groups).
+2. After collecting all hint proposals, pick the one with the highest grade.
 
 *Guess generation*:
-1. Given a hint and number of cards, calculate the distance between the hint and all unrevealed cards on the board.
+1. Given a `hint` and number of cards, calculate the distance between `hint` and all unrevealed cards on the board.
 2. Iterate on number of cards:
-   1. Pick the closest card to the hint word.
+   1. Pick the closest card to `hint`.
+3. Skip the extra guess.
 
 ### GPT solver
 
