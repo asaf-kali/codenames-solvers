@@ -21,8 +21,8 @@ class ModelAwareCliGuesser(CliGuesser):
         self.model: KeyedVectors = model
         self.model_adapter = model_adapter
 
-    def on_game_start(self, language: str, board: Board):
-        self.model = load_language(language=language)  # type: ignore
+    def on_game_start(self, board: Board):
+        self.model = load_language(language=board.language)
 
     def guess(self, game_state: GuesserGameState) -> Guess:
         self.show_sims(game_state)

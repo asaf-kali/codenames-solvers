@@ -59,8 +59,8 @@ class NaiveHinter(NaivePlayer, Hinter):
         self.gradual_distances_filter_active = gradual_distances_filter_active
         self.proposal_grade_calculator = proposal_grade_calculator
 
-    def on_game_start(self, language: str, board: Board):
-        super().on_game_start(language=language, board=board)
+    def on_game_start(self, board: Board):
+        super().on_game_start(board=board)
         self.opponent_card_color = self.team_color.opponent.as_card_color  # type: ignore
 
     @classmethod

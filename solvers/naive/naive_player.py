@@ -27,8 +27,8 @@ class NaivePlayer(Player, ABC):
         self.model_identifier = model_identifier
         self.model_adapter = model_adapter or DEFAULT_MODEL_ADAPTER
 
-    def on_game_start(self, language: str, board: Board):
-        if self.model_identifier and self.model_identifier.language == language:
+    def on_game_start(self, board: Board):
+        if self.model_identifier and self.model_identifier.language == board.language:
             self.model = load_model(model_identifier=self.model_identifier)
         else:
-            self.model = load_language(language=language)
+            self.model = load_language(language=board.language)
