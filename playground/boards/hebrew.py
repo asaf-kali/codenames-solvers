@@ -1,4 +1,3 @@
-from codenames.boards.builder import build_board
 from codenames.game.board import Board
 from codenames.game.card import Card
 from codenames.game.color import CardColor
@@ -31,13 +30,14 @@ HEBREW_WORDS = [
     "דרור",
 ]
 
-HEBREW_BOARD_1 = build_board(vocabulary=HEBREW_WORDS, seed=1)
-HEBREW_BOARD_2 = build_board(vocabulary=HEBREW_WORDS, seed=2)
-HEBREW_BOARD_3 = build_board(vocabulary=HEBREW_WORDS, seed=3)
+HEBREW_BOARD_1 = Board.from_vocabulary(language="hebrew", vocabulary=HEBREW_WORDS, seed=1)
+HEBREW_BOARD_2 = Board.from_vocabulary(language="hebrew", vocabulary=HEBREW_WORDS, seed=2)
+HEBREW_BOARD_3 = Board.from_vocabulary(language="hebrew", vocabulary=HEBREW_WORDS, seed=3)
 
 # Regex: 'Parsed card: (.*) (.*)' -> 'Card(word="$2", color=CardColor.$1),'
 
 HEBREW_BOARD_DIFFICULT = Board(
+    language="hebrew",
     cards=[
         Card(word="בריטניה", color=CardColor.GRAY),
         Card(word="מרכז", color=CardColor.BLUE),
@@ -64,9 +64,10 @@ HEBREW_BOARD_DIFFICULT = Board(
         Card(word="קור", color=CardColor.RED),
         Card(word="אויר", color=CardColor.BLUE),
         Card(word="טבליה", color=CardColor.GRAY),
-    ]
+    ],
 )
 HEBREW_BOARD_4 = Board(
+    language="hebrew",
     cards=[
         Card(word="שיר", color=CardColor.BLUE),
         Card(word="הקליד", color=CardColor.BLUE),
@@ -93,9 +94,10 @@ HEBREW_BOARD_4 = Board(
         Card(word="מקום", color=CardColor.RED),
         Card(word="תמונה", color=CardColor.GRAY),
         Card(word="מבט", color=CardColor.RED),
-    ]
+    ],
 )
 HEBREW_BOARD_5 = Board(
+    language="hebrew",
     cards=[
         Card(word="שעה", color=CardColor.BLACK),
         Card(word="נסיון", color=CardColor.BLUE),
@@ -122,9 +124,10 @@ HEBREW_BOARD_5 = Board(
         Card(word="עצם", color=CardColor.RED),
         Card(word="לוחם", color=CardColor.RED),
         Card(word="קהל", color=CardColor.BLUE),
-    ]
+    ],
 )
 HEBREW_BOARD_6 = Board(
+    language="hebrew",
     cards=[
         Card(word="חיים", color=CardColor.GRAY),
         Card(word="ערך", color=CardColor.BLACK),
@@ -151,9 +154,10 @@ HEBREW_BOARD_6 = Board(
         Card(word="שק", color=CardColor.GRAY),
         Card(word="אקורדיון", color=CardColor.RED),
         Card(word="ילד", color=CardColor.BLUE),
-    ]
+    ],
 )
 HEBREW_BOARD_7 = Board(
+    language="hebrew",
     cards=[
         Card(word="משוב", color=CardColor.RED),
         Card(word="תמנון", color=CardColor.RED),
@@ -180,10 +184,11 @@ HEBREW_BOARD_7 = Board(
         Card(word="מפגש", color=CardColor.RED),
         Card(word="כלי", color=CardColor.GRAY),
         Card(word="חיל", color=CardColor.RED),
-    ]
+    ],
 )
 
 HEBREW_BOARD_8 = Board(
+    language="hebrew",
     cards=[
         Card(word="לילה", color=CardColor.GRAY),
         Card(word="דרך", color=CardColor.BLUE),
@@ -210,5 +215,5 @@ HEBREW_BOARD_8 = Board(
         Card(word="מצקת", color=CardColor.RED),
         Card(word="עם", color=CardColor.GRAY),
         Card(word="אפריקה", color=CardColor.RED),
-    ]
+    ],
 )

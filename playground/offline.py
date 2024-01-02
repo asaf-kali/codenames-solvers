@@ -9,7 +9,6 @@ from playground.boards.english import *  # noqa
 from playground.boards.hebrew import *  # noqa
 from playground.printer import print_results
 from solvers.cli import CliGuesser  # noqa
-from solvers.gpt import GPTHinter
 from solvers.models import (  # noqa
     DEFAULT_MODEL_ADAPTER,
     HEBREW_SUFFIX_ADAPTER,
@@ -39,13 +38,13 @@ load_model_async(model_id)
 GPT_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 
-def run_offline(board: Board = ENGLISH_BOARDS[6]):  # noqa: F405
+def run_offline(board: Board = ENGLISH_BOARDS[2]):  # noqa: F405
     log.info("Running offline game...")
     log.setLevel(logging.INFO)
     game_runner = None
     try:
-        blue_hinter = GPTHinter(name="Yoda", api_key=GPT_API_KEY)
-        # blue_hinter = NaiveHinter(name="Yoda", model_adapter=adapter, max_group_size=2)
+        # blue_hinter = GPTHinter(name="Yoda", api_key=GPT_API_KEY)
+        blue_hinter = NaiveHinter(name="Yoda", model_adapter=adapter, max_group_size=4)
         red_hinter = NaiveHinter(name="Einstein", model_identifier=model_id, model_adapter=adapter, max_group_size=3)
         # red_hinter = GPTHinter(name="Einstein", api_key=GPT_API_KEY)
         # red_hinter = OlympicHinter(name="Yoda", model_adapter=adapter)
@@ -56,7 +55,7 @@ def run_offline(board: Board = ENGLISH_BOARDS[6]):  # noqa: F405
         # red_guesser = GPTGuesser(name="Newton", api_key=GPT_API_KEY)
         # red_guesser = NaiveGuesser(name="Newton", model_identifier=model_id, model_adapter=adapter)
         game_runner = GameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser)
-        game_runner.run_game(language=model_id.language, board=board)  # noqa
+        game_runner.run_game(board=board)
     except QuitGame:
         log.info("Game quit")
     except:  # noqa
