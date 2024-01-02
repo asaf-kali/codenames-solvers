@@ -233,8 +233,8 @@ class OlympicHinter(Hinter):
         self.board_heuristic: HeuristicsTensor = np.array([])
         self.vocabulary: List[str] = []
 
-    def on_game_start(self, language: str, board: Board):
-        self.model = load_language(language=language)  # type: ignore
+    def on_game_start(self, board: Board):
+        self.model = load_language(language=board.language)  # type: ignore
         self.opponent_card_color = self.team_color.opponent.as_card_color  # type: ignore
         self.board_words = [self.model_format(card.word) for card in board]
         self.board_heuristic = np.array([[0.25] * 4] * board.size)

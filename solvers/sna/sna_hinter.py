@@ -192,8 +192,8 @@ class SNAHinter(Hinter):
         self.physics_optimization = physics_optimization
         self.game_state: Optional[HinterGameState] = None
 
-    def on_game_start(self, language: str, board: Board):
-        self.model = load_language(language=language)  # type: ignore
+    def on_game_start(self, board: Board):
+        self.model = load_language(language=board.language)  # type: ignore
         self.language_length = len(self.model.index_to_key)
         all_words = [_format_word(word) for word in board.all_words]
         vectors = self.model[all_words]
