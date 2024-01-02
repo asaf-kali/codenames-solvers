@@ -2,8 +2,8 @@ from unittest import mock
 
 import pandas as pd
 import pytest
-from codenames.boards.builder import build_board
 from codenames.game.board import Board
+from codenames.game.color import TeamColor
 from codenames.game.runner import GameRunner
 from gensim.models import KeyedVectors
 
@@ -76,7 +76,7 @@ ALL_WORDS = BOARD_WORDS + HINT_WORDS
 
 @pytest.fixture
 def english_board() -> Board:
-    return build_board(vocabulary=BOARD_WORDS, seed=2)
+    return Board.from_vocabulary(language="english", first_team=TeamColor.BLUE, vocabulary=BOARD_WORDS, seed=2)
 
 
 def mock_load_word2vec_format(*args, **kwargs):
@@ -94,6 +94,6 @@ def test_complete_naive_flow(english_board: Board):
     red_guesser = NaiveGuesser("Eve")
 
     runner = GameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser)
-    runner.run_game(language="english", board=english_board)
+    runner.run_game(board=english_board)
 
     assert runner.state.winner is not None
