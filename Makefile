@@ -92,6 +92,7 @@ gource-all:
 	./ \
 	../model-trainer \
 	../resources \
+	../the-spymaster-automation \
 	../the-spymaster-bot \
 	../the-spymaster-infra \
 	../the-spymaster-solvers \
