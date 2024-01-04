@@ -7,13 +7,13 @@ from codenames.game.move import Guess
 from codenames.game.state import GuesserGameState
 from gensim.models import KeyedVectors
 
-from solvers.cli import CliGuesser
+from solvers.cli import CLIGuesser
 from solvers.models import DEFAULT_MODEL_ADAPTER, ModelFormatAdapter, load_language
 
 log = logging.getLogger(__name__)
 
 
-class ModelAwareCliGuesser(CliGuesser):
+class ModelAwareCliGuesser(CLIGuesser):
     def __init__(
         self, name: str, model: KeyedVectors = None, model_adapter: ModelFormatAdapter = DEFAULT_MODEL_ADAPTER
     ):
