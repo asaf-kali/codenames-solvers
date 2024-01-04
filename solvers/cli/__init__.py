@@ -1,1 +1,1 @@
-from .cli_players import CliHinter, CliGuesser  # noqa
+from .cli_players import CLIHinter, CLIGuesser  # noqa

@@ -1,17 +1,18 @@
 from codenames.game.base import canonical_format
+from codenames.game.board import Board
 from codenames.game.exceptions import CardNotFoundError
 from codenames.game.move import Guess, Hint
 from codenames.game.player import Guesser, Hinter
 from codenames.game.state import GuesserGameState, HinterGameState
 
 
-class CliHinter(Hinter):
+class CLIHinter(Hinter):
     @property
     def is_human(self) -> bool:
         return True
 
     def pick_hint(self, game_state: HinterGameState) -> Hint:
-        # print(f"State is: {state}")
+        print_board(game_state.board)
         while True:
             try:
                 data = input("Please enter your given_hint in the format 'word, card_amount': ")
@@ -24,13 +25,13 @@ class CliHinter(Hinter):
                 pass
 
 
-class CliGuesser(Guesser):
+class CLIGuesser(Guesser):
     @property
     def is_human(self) -> bool:
         return True
 
     def guess(self, game_state: GuesserGameState) -> Guess:
-        print("\n", game_state.board.printable_string, "\n", sep="")
+        print_board(game_state.board)
         index = None
         while index is None:
             data = input("Please enter your guess word or card index: ")
@@ -44,3 +45,7 @@ class CliGuesser(Guesser):
                 except CardNotFoundError:
                     index = None  # type: ignore
         return Guess(card_index=index)
+
+
+def print_board(board: Board):
+    print("\n", board.printable_string, "\n", sep="")
