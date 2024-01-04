@@ -74,7 +74,7 @@ build-backend = "poetry.core.masonry.api"
 addopts = "-s --disable-pytest-warnings"
 
 [tool.coverage.run]
-source = ["solvers"]
+source = ["solvers/cli", "solvers/cli", "solvers/models", "solvers/utils", "solvers/naive"]
 
 # Lint
 
