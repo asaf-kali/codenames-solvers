@@ -19,7 +19,7 @@ from solvers.models import (  # noqa
     load_model_async,
 )
 from solvers.naive import NaiveGuesser, NaiveHinter  # noqa
-from solvers.naive.naive_cli_guesser import ModelAwareCliGuesser  # noqa
+from solvers.other.naive_cli_guesser import ModelAwareCliGuesser  # noqa
 
 random.seed(42)
 log = logging.getLogger(__name__)
