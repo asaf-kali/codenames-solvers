@@ -665,13 +665,13 @@ click = ">=7.0,<9.0"
 
 [[package]]
 name = "codenames"
-version = "4.1.2"
+version = "4.1.5"
 description = "Codenames board game logic implementation in python."
 optional = false
 python-versions = ">=3.9,<4.0"
 files = [
-    {file = "codenames-4.1.2-py3-none-any.whl", hash = "sha256:2a157e95edc0ed02f0571cf412ca9268b7d7e0e7f1b37e920d0e7ada467d6e94"},
-    {file = "codenames-4.1.2.tar.gz", hash = "sha256:3aa28e25162e2a24c5c94d1be5bf1578e291cc3929fc88944a40edc7ce1eada1"},
+    {file = "codenames-4.1.5-py3-none-any.whl", hash = "sha256:0f7fe706fcfb016702da491f7102274c8e5109d4d4ec855866d601f259c7c5b6"},
+    {file = "codenames-4.1.5.tar.gz", hash = "sha256:3f82bd73e943dc1a6175a95f771281a1a3499fa57ed6aeb88d35ee251692cee8"},
 ]
 
 [package.dependencies]
@@ -1283,18 +1283,22 @@ files = [
 
 [[package]]
 name = "generic-iterative-stemmer"
-version = "0.2.0"
+version = "1.0.7"
 description = "A generic language stemming utility, dedicated for gensim word-embedding."
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "generic-iterative-stemmer-0.2.0.tar.gz", hash = "sha256:ba06955cb8f67fd73ade49a46fc05aeec756fb9f5f32cec8d65220a7fbac0404"},
+    {file = "generic-iterative-stemmer-1.0.7.tar.gz", hash = "sha256:5c3631ae4c6dd5c88d1e64e1ae822a79e14caa65159d6ece16b67d428c16d61a"},
+    {file = "generic_iterative_stemmer-1.0.7-py3-none-any.whl", hash = "sha256:bcfef4184e220c04433c38d33caee7a522500fbd5545c14c238c6d8511f17cf9"},
 ]
 
 [package.dependencies]
 gensim = ">=4.1,<5.0"
+pydantic = ">=1.9,<2.0"
+the-spymaster-util = ">=3.0,<4.0"
 
 [package.extras]
+all = ["editdistance (>=0.6,<1.0)", "fasttext (>=0.9,<1.0)", "gensim (>=4.1,<5.0)", "matplotlib (>=3.5,<4.0)", "numpy (>=1.21,<2.0)", "pandas (>=1.3,<2.0)", "pydantic (>=1.9,<2.0)", "the-spymaster-util (>=3.0,<4.0)", "tqdm (>=4.62,<5.0)"]
 training = ["editdistance (>=0.6,<1.0)", "fasttext (>=0.9,<1.0)", "matplotlib (>=3.5,<4.0)", "numpy (>=1.21,<2.0)", "pandas (>=1.3,<2.0)", "tqdm (>=4.62,<5.0)"]
 
 [[package]]
@@ -4694,4 +4698,4 @@ gpt = ["openai"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "06eb61d546806c7558c2474acc48f990531e0f5c6b9772a783d598442a4b5bef"
+content-hash = "898036ebc6468f6258e3775094eea6769fcfd652349a570b379505f32325020e"

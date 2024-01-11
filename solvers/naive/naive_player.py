@@ -52,4 +52,4 @@ class NaivePlayer(Player, ABC):
         else:
             raise ValueError("No language provided")
         self._model_adapter.clear_cache()
-        self._model_adapter.checker = self.model.key_to_index.__contains__
+        self._model_adapter.checker = self.model.__contains__
