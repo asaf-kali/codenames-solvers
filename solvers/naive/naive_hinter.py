@@ -47,8 +47,8 @@ class NaiveHinter(NaivePlayer, Hinter):
         model: Optional[KeyedVectors] = None,
         model_identifier: Optional[ModelIdentifier] = None,
         proposals_thresholds: Optional[ProposalThresholds] = None,
-        max_group_size: int = 4,
         model_adapter: Optional[ModelFormatAdapter] = None,
+        max_group_size: int = 4,
         gradual_distances_filter_active: bool = True,
         proposal_grade_calculator: Callable[[Proposal], float] = default_proposal_grade_calculator,
     ):
@@ -81,7 +81,7 @@ class NaiveHinter(NaivePlayer, Hinter):
     ) -> Hint:
         proposal_generator = NaiveProposalsGenerator(
             model=self.model,
-            model_adapter=self.model_adapter,
+            model_adapter=self._model_adapter,
             game_state=game_state,
             team_card_color=self.team_color.as_card_color,  # type: ignore
             proposals_thresholds=self.proposals_thresholds,
@@ -93,7 +93,7 @@ class NaiveHinter(NaivePlayer, Hinter):
         proposals = proposal_generator.generate_proposals(self.max_group_size)
         try:
             proposal = self.pick_best_proposal(proposals=proposals)
-            word_group_board_format = tuple(self.model_adapter.to_board_format(word) for word in proposal.word_group)
+            word_group_board_format = tuple(self.board_format(word) for word in proposal.word_group)
             return Hint(word=proposal.hint_word, card_amount=proposal.card_count, for_words=word_group_board_format)
         except NoProposalsFound:
             log.debug("No legal proposals found.")

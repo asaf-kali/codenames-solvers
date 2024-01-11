@@ -27,9 +27,3 @@ class NaiveGuesser(NaivePlayer, Guesser):
             guess_idx = game_state.board.find_card_index(model_guess_word)
         guess = Guess(card_index=guess_idx)
         return guess
-
-    def model_format(self, word: str) -> str:
-        return self.model_adapter.to_model_format(word)
-
-    def board_format(self, word: str) -> str:
-        return self.model_adapter.to_board_format(word)
