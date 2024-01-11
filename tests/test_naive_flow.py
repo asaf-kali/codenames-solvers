@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 from codenames.game.board import Board
 from codenames.game.color import TeamColor
+from codenames.game.player import GamePlayers
 from codenames.game.runner import GameRunner
 from gensim.models import KeyedVectors
 
@@ -89,12 +90,13 @@ def mock_load_word2vec_format(*args, **kwargs):
 @pytest.mark.slow
 @mock.patch("gensim.models.KeyedVectors.load", new=mock_load_word2vec_format)
 def test_complete_naive_flow(english_board: Board):
-    blue_hinter = NaiveHinter("Leonardo")
-    blue_guesser = NaiveGuesser("Bard")
-    red_hinter = NaiveHinter("Adam")
-    red_guesser = NaiveGuesser("Eve")
+    blue_hinter = NaiveHinter("Leonardo", team_color=TeamColor.BLUE)
+    blue_guesser = NaiveGuesser("Bard", team_color=TeamColor.BLUE)
+    red_hinter = NaiveHinter("Adam", team_color=TeamColor.RED)
+    red_guesser = NaiveGuesser("Eve", team_color=TeamColor.RED)
 
-    runner = GameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser)
-    runner.run_game(board=english_board)
+    players = GamePlayers.from_collection([blue_hinter, blue_guesser, red_hinter, red_guesser])
+    runner = GameRunner(players, board=english_board)
+    runner.run_game()
 
     assert runner.state.winner is not None

@@ -3,6 +3,7 @@ import logging
 import matplotlib.pyplot as plt
 import numpy as np
 from codenames.game.board import Board
+from codenames.game.color import TeamColor
 from codenames.game.move import Guess
 from codenames.game.state import GuesserGameState
 from gensim.models import KeyedVectors
@@ -15,9 +16,13 @@ log = logging.getLogger(__name__)
 
 class ModelAwareCliGuesser(CLIGuesser):
     def __init__(
-        self, name: str, model: KeyedVectors = None, model_adapter: ModelFormatAdapter = DEFAULT_MODEL_ADAPTER
+        self,
+        name: str,
+        team_color: TeamColor,
+        model: KeyedVectors = None,
+        model_adapter: ModelFormatAdapter = DEFAULT_MODEL_ADAPTER,
     ):
-        super().__init__(name=name)
+        super().__init__(name=name, team_color=team_color)
         self.model: KeyedVectors = model
         self.model_adapter = model_adapter
 
