@@ -2,7 +2,9 @@ import logging
 import os
 import random
 
+from codenames.game.color import TeamColor
 from codenames.game.exceptions import QuitGame
+from codenames.game.player import GamePlayers
 from codenames.game.runner import GameRunner
 
 from playground.boards.english import *  # noqa
@@ -44,18 +46,25 @@ def run_offline(board: Board = ENGLISH_BOARDS[2]):  # noqa: F405
     game_runner = None
     try:
         # blue_hinter = GPTHinter(name="Yoda", api_key=GPT_API_KEY)
-        blue_hinter = NaiveHinter(name="Yoda", model_adapter=adapter, max_group_size=4)
-        red_hinter = NaiveHinter(name="Einstein", model_identifier=model_id, model_adapter=adapter, max_group_size=3)
+        blue_hinter = NaiveHinter(name="Yoda", team_color=TeamColor.BLUE, model_adapter=adapter, max_group_size=4)
+        red_hinter = NaiveHinter(
+            name="Einstein",
+            team_color=TeamColor.RED,
+            model_identifier=model_id,
+            model_adapter=adapter,
+            max_group_size=3,
+        )
         # red_hinter = GPTHinter(name="Einstein", api_key=GPT_API_KEY)
         # red_hinter = OlympicHinter(name="Yoda", model_adapter=adapter)
-        blue_guesser = CLIGuesser(name="Anakin")
+        blue_guesser = CLIGuesser(name="Anakin", team_color=TeamColor.BLUE)
         # blue_guesser = GPTGuesser(name="Anakin", api_key=GPT_API_KEY)
         # blue_guesser = NaiveGuesser(name="Anakin", model_identifier=model_id, model_adapter=adapter)
-        red_guesser = CLIGuesser(name="Newton")
+        red_guesser = CLIGuesser(name="Newton", team_color=TeamColor.RED)
         # red_guesser = GPTGuesser(name="Newton", api_key=GPT_API_KEY)
         # red_guesser = NaiveGuesser(name="Newton", model_identifier=model_id, model_adapter=adapter)
-        game_runner = GameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser)
-        game_runner.run_game(board=board)
+        players = GamePlayers.from_collection([blue_hinter, blue_guesser, red_hinter, red_guesser])
+        game_runner = GameRunner(players=players, board=board)
+        game_runner.run_game()
     except QuitGame:
         log.info("Game quit")
     except:  # noqa

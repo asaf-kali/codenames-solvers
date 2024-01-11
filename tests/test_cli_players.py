@@ -5,6 +5,7 @@ from codenames.boards.builder import generate_board
 from codenames.game.board import Board
 from codenames.game.color import TeamColor
 from codenames.game.move import PASS_GUESS, QUIT_GAME
+from codenames.game.player import GamePlayers
 from codenames.game.runner import GameRunner
 from codenames.game.winner import WinningReason
 
@@ -18,11 +19,12 @@ def english_board() -> Board:
 
 @patch("builtins.input")
 def test_cli_players_game(mock_input, english_board: Board):
-    blue_hinter = CLIHinter("Leonardo")
-    blue_guesser = CLIGuesser("Bard")
-    red_hinter = CLIHinter("Adam")
-    red_guesser = CLIGuesser("Eve")
-    runner = GameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser)
+    blue_hinter = CLIHinter("Leonardo", team_color=TeamColor.BLUE)
+    blue_guesser = CLIGuesser("Bard", team_color=TeamColor.BLUE)
+    red_hinter = CLIHinter("Adam", team_color=TeamColor.RED)
+    red_guesser = CLIGuesser("Eve", team_color=TeamColor.RED)
+
+    players = GamePlayers.from_collection([blue_hinter, blue_guesser, red_hinter, red_guesser])
     mock_input.side_effect = [
         "YOU_CANNOT_PARSE_THIS",  # Invalid hint, ignore
         "Ice, 4",
@@ -37,6 +39,7 @@ def test_cli_players_game(mock_input, english_board: Board):
         "god",  # Black
         f"{QUIT_GAME}",
     ]
-    winner = runner.run_game(board=english_board)
+    runner = GameRunner(players=players, board=english_board)
+    winner = runner.run_game()
     assert winner.team_color == TeamColor.RED
     assert winner.reason == WinningReason.OPPONENT_HIT_BLACK

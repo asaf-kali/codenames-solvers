@@ -1,6 +1,7 @@
 import logging
 import os
 
+from codenames.game.color import TeamColor
 from codenames.game.exceptions import QuitGame
 from codenames.online.codenames_game.adapter import CodenamesGameLanguage
 from codenames.online.codenames_game.runner import CodenamesGameRunner
@@ -36,23 +37,31 @@ adapter = HEBREW_SUFFIX_ADAPTER if model_id.language == "hebrew" and model_id.is
 
 def run_online():
     log.info("Running online game...")
-    online_manager = None
+    online_manager = runner = None
     try:
         # blue_hinter = GPTHinter(name="Einstein", api_key=GPT_API_KEY)
-        blue_hinter = NaiveHinter("Einstein", model_identifier=model_id, model_adapter=adapter)  # noqa
-        red_hinter = NaiveHinter(name="Yoda", model_identifier=model_id, model_adapter=adapter)  # noqa
-        blue_guesser = NaiveGuesser(name="Newton", model_identifier=model_id, model_adapter=adapter)  # noqa
+        blue_hinter = NaiveHinter(
+            "Einstein", team_color=TeamColor.BLUE, model_identifier=model_id, model_adapter=adapter
+        )
+        red_hinter = NaiveHinter(
+            name="Yoda", team_color=TeamColor.RED, model_identifier=model_id, model_adapter=adapter
+        )
+        blue_guesser = NaiveGuesser(
+            name="Newton", team_color=TeamColor.BLUE, model_identifier=model_id, model_adapter=adapter
+        )
         # red_guesser = GPTGuesser(name="Anakin", api_key=GPT_API_KEY)
-        red_guesser = NaiveGuesser(name="Anakin", model_identifier=model_id, model_adapter=adapter)  # noqa
+        red_guesser = NaiveGuesser(
+            name="Anakin", team_color=TeamColor.RED, model_identifier=model_id, model_adapter=adapter
+        )
         online_manager = CodenamesGameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=True)
         # online_manager = CodenamesGameGameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
-        online_manager.auto_start()
+        runner = online_manager.auto_start()
     except QuitGame:
         log.info("Game quit")
     except:  # noqa
         log.exception("Error occurred")
     finally:
-        print_results(online_manager.game_runner)
+        print_results(runner)
         online_manager.close()
 
 

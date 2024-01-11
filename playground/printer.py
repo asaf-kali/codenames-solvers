@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from codenames.game.move import GuessMove, HintMove, Move, PassMove
 from codenames.game.player import Player, PlayerRole
@@ -8,7 +9,7 @@ from codenames.game.state import GameState
 log = logging.getLogger(__name__)
 
 
-def print_results(game_runner: GameRunner):
+def print_results(game_runner: Optional[GameRunner]):
     if game_runner is None or game_runner.state is None:
         return
     state = game_runner.state
@@ -42,7 +43,7 @@ def _print_moves(game_runner: GameRunner):
 
 def _get_player(game_runner: GameRunner, move: Move) -> Player:
     role = PlayerRole.HINTER if isinstance(move, HintMove) else PlayerRole.GUESSER
-    return game_runner.get_player(team_color=move.team_color, role=role)
+    return game_runner.players.get_player(team_color=move.team_color, role=role)
 
 
 def _print_result(state: GameState):

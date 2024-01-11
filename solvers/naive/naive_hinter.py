@@ -4,6 +4,7 @@ from uuid import uuid4
 
 import numpy as np
 from codenames.game.board import Board
+from codenames.game.color import TeamColor
 from codenames.game.move import Hint
 from codenames.game.player import Hinter
 from codenames.game.state import HinterGameState
@@ -44,6 +45,7 @@ class NaiveHinter(NaivePlayer, Hinter):
     def __init__(
         self,
         name: str,
+        team_color: TeamColor,
         model: Optional[KeyedVectors] = None,
         model_identifier: Optional[ModelIdentifier] = None,
         proposals_thresholds: Optional[ProposalThresholds] = None,
@@ -52,7 +54,13 @@ class NaiveHinter(NaivePlayer, Hinter):
         gradual_distances_filter_active: bool = True,
         proposal_grade_calculator: Callable[[Proposal], float] = default_proposal_grade_calculator,
     ):
-        super().__init__(name=name, model=model, model_identifier=model_identifier, model_adapter=model_adapter)
+        super().__init__(
+            name=name,
+            team_color=team_color,
+            model=model,
+            model_identifier=model_identifier,
+            model_adapter=model_adapter,
+        )
         self.max_group_size = max_group_size
         self.opponent_card_color = None
         self.proposals_thresholds = proposals_thresholds or DEFAULT_THRESHOLDS
