@@ -3,7 +3,7 @@ import os
 
 from codenames.game.color import TeamColor
 from codenames.game.exceptions import QuitGame
-from codenames.online.codenames_game.adapter import CodenamesGameLanguage
+from codenames.online.codenames_game.adapter import CodenamesGameLanguage, GameConfigs
 from codenames.online.codenames_game.runner import CodenamesGameRunner
 
 from playground.printer import print_results
@@ -20,11 +20,11 @@ from solvers.naive import NaiveGuesser, NaiveHinter
 # configure_logging(level="DEBUG", mute_solvers=False, mute_online=False)
 log = logging.getLogger(__name__)
 
-model_id = ModelIdentifier(language="english", model_name="wiki-50", is_stemmed=False)
+# model_id = ModelIdentifier(language="english", model_name="wiki-50", is_stemmed=False)
 # model_id = ModelIdentifier("english", "google-300", False)
 # model_id = ModelIdentifier("hebrew", "twitter", False)
 # model_id = ModelIdentifier(language="hebrew", model_name="ft-200", is_stemmed=False)
-# model_id = ModelIdentifier("hebrew", "skv-ft-150", True)
+model_id = ModelIdentifier(language="hebrew", model_name="skv-ft-150", is_stemmed=True)
 # model_id = ModelIdentifier("hebrew", "skv-cbow-150", True)
 
 os.environ[MODEL_NAME_ENV_KEY] = model_id.model_name
@@ -39,6 +39,7 @@ def run_online():
     log.info("Running online game...")
     online_manager = runner = None
     try:
+        configs = GameConfigs(language=CodenamesGameLanguage.HEBREW)
         # blue_hinter = GPTHinter(name="Einstein", api_key=GPT_API_KEY)
         blue_hinter = NaiveHinter(
             "Einstein", team_color=TeamColor.BLUE, model_identifier=model_id, model_adapter=adapter
@@ -53,7 +54,14 @@ def run_online():
         red_guesser = NaiveGuesser(
             name="Anakin", team_color=TeamColor.RED, model_identifier=model_id, model_adapter=adapter
         )
-        online_manager = CodenamesGameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=True)
+        online_manager = CodenamesGameRunner(
+            blue_hinter=blue_hinter,
+            red_hinter=red_hinter,
+            blue_guesser=blue_guesser,
+            red_guesser=red_guesser,
+            show_host=True,
+            game_configs=configs,
+        )
         # online_manager = CodenamesGameGameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
         runner = online_manager.auto_start()
     except QuitGame:
