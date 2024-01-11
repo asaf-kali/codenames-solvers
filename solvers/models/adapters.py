@@ -1,6 +1,8 @@
+import logging
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, List, Optional, Set
 
+log = logging.getLogger(__name__)
 ExistenceChecker = Callable[[str], bool]
 FormatMapping = Dict[str, str]
 
@@ -69,14 +71,13 @@ class ModelFormatAdapter(ABC):
             if splitter not in expression:
                 continue
             tokens = expression.split(splitter)
-            without_splitters = "".join(tokens)
-            if self.checker(without_splitters):
-                return without_splitters
-            other_splitters = self._splitters - {splitter}
+            other_splitters = {""} | self._splitters - {splitter}
             for other_splitter in other_splitters:
                 joined = other_splitter.join(tokens)
                 if self.checker(joined):
+                    log.info(f"Found existing variation for [{expression}]: [{joined}]")
                     return joined
+        log.warning(f"Could not find existing variation for [{expression}]")
         return expression
 
     @abstractmethod
