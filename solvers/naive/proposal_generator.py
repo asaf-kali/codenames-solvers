@@ -199,7 +199,8 @@ class NaiveProposalsGenerator:
     ) -> Optional[Proposal]:
         hint, similarity_score = similarity  # pylint: disable=unused-variable
         # word = format_word(word)
-        if self.should_filter_hint(hint=hint, word_group=word_group, filter_expressions=self.game_state.illegal_words):
+        filter_expressions = self.game_state.illegal_hint_words
+        if self.should_filter_hint(hint=hint, word_group=word_group, filter_expressions=filter_expressions):
             return None
         hint_vector = self.model[hint]
         board_distances: np.ndarray = cosine_distance(hint_vector, self.board_vectors)  # type: ignore

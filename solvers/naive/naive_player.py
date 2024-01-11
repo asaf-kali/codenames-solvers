@@ -2,6 +2,7 @@ from abc import ABC
 from typing import Optional
 
 from codenames.game.board import Board
+from codenames.game.color import TeamColor
 from codenames.game.player import Player
 from gensim.models import KeyedVectors
 
@@ -18,11 +19,12 @@ class NaivePlayer(Player, ABC):
     def __init__(
         self,
         name: str,
+        team_color: TeamColor,
         model: Optional[KeyedVectors] = None,
         model_identifier: Optional[ModelIdentifier] = None,
         model_adapter: Optional[ModelFormatAdapter] = None,
     ):
-        super().__init__(name=name)
+        super().__init__(name=name, team_color=team_color)
         self._model = model
         self._model_identifier = model_identifier
         self._model_adapter = model_adapter or DefaultFormatAdapter()
