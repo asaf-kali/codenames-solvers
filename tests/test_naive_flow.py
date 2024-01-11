@@ -86,6 +86,7 @@ def mock_load_word2vec_format(*args, **kwargs):
     return model
 
 
+@pytest.mark.slow
 @mock.patch("gensim.models.KeyedVectors.load", new=mock_load_word2vec_format)
 def test_complete_naive_flow(english_board: Board):
     blue_hinter = NaiveHinter("Leonardo")

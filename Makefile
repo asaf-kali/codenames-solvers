@@ -48,6 +48,9 @@ lock-check:
 test:
 	python -m $(PYTHON_TEST_COMMAND)
 
+test-fast:
+	python -m $(PYTHON_TEST_COMMAND) -m "not slow"
+
 cover-base:
 	coverage run -m $(PYTHON_TEST_COMMAND)
 

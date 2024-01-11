@@ -6,7 +6,7 @@ from codenames.game.player import Player
 from gensim.models import KeyedVectors
 
 from solvers.models import (
-    DEFAULT_MODEL_ADAPTER,
+    DefaultFormatAdapter,
     ModelFormatAdapter,
     ModelIdentifier,
     load_language,
@@ -23,12 +23,31 @@ class NaivePlayer(Player, ABC):
         model_adapter: Optional[ModelFormatAdapter] = None,
     ):
         super().__init__(name=name)
-        self.model: KeyedVectors = model
-        self.model_identifier = model_identifier
-        self.model_adapter = model_adapter or DEFAULT_MODEL_ADAPTER
+        self._model = model
+        self._model_identifier = model_identifier
+        self._model_adapter = model_adapter or DefaultFormatAdapter()
+
+    @property
+    def model(self) -> KeyedVectors:
+        if not self._model:
+            self._prepare_model()
+        return self._model
 
     def on_game_start(self, board: Board):
-        if self.model_identifier and self.model_identifier.language == board.language:
-            self.model = load_model(model_identifier=self.model_identifier)
+        self._prepare_model(language=board.language)
+
+    def model_format(self, word: str) -> str:
+        return self._model_adapter.to_model_format(word)
+
+    def board_format(self, word: str) -> str:
+        return self._model_adapter.to_board_format(word)
+
+    def _prepare_model(self, language: Optional[str] = None):
+        if self._model_identifier and self._model_identifier.language == language:
+            self._model = load_model(model_identifier=self._model_identifier)
+        elif language:
+            self._model = load_language(language=language)
         else:
-            self.model = load_language(language=board.language)
+            raise ValueError("No language provided")
+        self._model_adapter.clear_cache()
+        self._model_adapter.checker = self.model.key_to_index.__contains__
