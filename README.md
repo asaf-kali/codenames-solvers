@@ -1,8 +1,12 @@
 # Codenames Solvers
 
-[![Tests](https://github.com/asaf-kali/codenames-solvers/actions/workflows/tests.yml/badge.svg)](https://github.com/asaf-kali/codenames-solvers/actions/workflows/tests.yml)
+[![Pipeline](https://github.com/asaf-kali/codenames-solvers/actions/workflows/pipeline.yml/badge.svg)](https://github.com/asaf-kali/codenames-solvers/actions/workflows/pipeline.yml)
 [![codecov](https://codecov.io/gh/asaf-kali/codenames-solvers/graph/badge.svg?token=IC3M4G19B6)](https://codecov.io/gh/asaf-kali/codenames-solvers)
-[![Lint](https://github.com/asaf-kali/codenames-solvers/actions/workflows/lint.yml/badge.svg)](https://github.com/asaf-kali/codenames-solvers/actions/workflows/lint.yml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-111111.svg)](https://github.com/psf/black)
+[![Imports: isort](https://img.shields.io/badge/imports-isort-%231674b1)](https://pycqa.github.io/isort/)
+[![Type checked: mypy](https://img.shields.io/badge/type%20check-mypy-22aa11)](http://mypy-lang.org/)
+[![Linting: pylint](https://img.shields.io/badge/linting-pylint-22aa11)](https://github.com/pylint-dev/pylint)
 
 Code infrastructure and player algorithms (solvers) for the Codenames board game. \
 This is the active fork of [mkali-personal/codenames](https://github.com/mkali-personal/codenames).
