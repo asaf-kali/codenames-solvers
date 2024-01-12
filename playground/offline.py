@@ -27,11 +27,11 @@ random.seed(42)
 log = logging.getLogger(__name__)
 
 model_id = ModelIdentifier(language="english", model_name="wiki-50", is_stemmed=False)
-# model_id = ModelIdentifier("english", "google-300", False)
-# model_id = ModelIdentifier("hebrew", "twitter", False)
-# model_id = ModelIdentifier("hebrew", "ft-200", False)
+# model_id = ModelIdentifier(language="english", model_name="google-300", is_stemmed=False)
+# model_id = ModelIdentifier(language="hebrew", model_name="twitter", is_stemmed=False)
+# model_id = ModelIdentifier(language="hebrew", model_name="ft-200", is_stemmed=False)
 # model_id = ModelIdentifier(language="hebrew", model_name="skv-ft-150", is_stemmed=True)
-# model_id = ModelIdentifier("hebrew", "skv-cbow-150", True)
+# model_id = ModelIdentifier(language="hebrew", model_name="skv-cbow-150", is_stemmed=True)
 
 # os.environ[MODEL_NAME_ENV_KEY] = model_id.model_name
 # os.environ[IS_STEMMED_ENV_KEY] = "1" if model_id.is_stemmed else ""
@@ -59,7 +59,7 @@ def run_offline(board: Board = ENGLISH_BOARDS[2]):  # noqa: F405
         blue_guesser = CLIGuesser(name="Anakin", team_color=TeamColor.BLUE)
         # blue_guesser = GPTGuesser(name="Anakin", api_key=GPT_API_KEY)
         # blue_guesser = NaiveGuesser(name="Anakin", model_identifier=model_id, model_adapter=adapter)
-        red_guesser = CLIGuesser(name="Newton", team_color=TeamColor.RED)
+        red_guesser = NaiveGuesser(name="Newton", team_color=TeamColor.RED)
         # red_guesser = GPTGuesser(name="Newton", api_key=GPT_API_KEY)
         # red_guesser = NaiveGuesser(name="Newton", model_identifier=model_id, model_adapter=adapter)
         players = GamePlayers.from_collection([blue_hinter, blue_guesser, red_hinter, red_guesser])
