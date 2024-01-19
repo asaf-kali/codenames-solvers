@@ -1283,13 +1283,13 @@ files = [
 
 [[package]]
 name = "generic-iterative-stemmer"
-version = "1.0.7"
+version = "1.1.0"
 description = "A generic language stemming utility, dedicated for gensim word-embedding."
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "generic-iterative-stemmer-1.0.7.tar.gz", hash = "sha256:5c3631ae4c6dd5c88d1e64e1ae822a79e14caa65159d6ece16b67d428c16d61a"},
-    {file = "generic_iterative_stemmer-1.0.7-py3-none-any.whl", hash = "sha256:bcfef4184e220c04433c38d33caee7a522500fbd5545c14c238c6d8511f17cf9"},
+    {file = "generic-iterative-stemmer-1.1.0.tar.gz", hash = "sha256:30d7a3d6f0806a3f4cd5086125c5cb97ded671361469f55636d2e16a08efc6f0"},
+    {file = "generic_iterative_stemmer-1.1.0-py3-none-any.whl", hash = "sha256:7492122fd52ece2582fa44f0fef7d4ab68975a990cbbd28fa8547be44e927be8"},
 ]
 
 [package.dependencies]
@@ -4141,13 +4141,13 @@ test = ["pre-commit", "pytest (>=7.0)", "pytest-timeout"]
 
 [[package]]
 name = "the-spymaster-util"
-version = "3.0.9"
+version = "3.1.0"
 description = "Common utilities and infra for The Spymaster game."
 optional = false
 python-versions = ">=3.8,<4.0"
 files = [
-    {file = "the_spymaster_util-3.0.9-py3-none-any.whl", hash = "sha256:29da91a6adb6c94a34e7efc0d4e08f6af37a74a1ac079258bce0e7639977fd7a"},
-    {file = "the_spymaster_util-3.0.9.tar.gz", hash = "sha256:e604f2d719d29bd5c9ee5a2b441915b172768355e0d26e76b9f84d6d43583594"},
+    {file = "the_spymaster_util-3.1.0-py3-none-any.whl", hash = "sha256:12cae2c0e4a45743da8d03350ba39532bb04d1047ea9258ae688bafe2b6ea3bb"},
+    {file = "the_spymaster_util-3.1.0.tar.gz", hash = "sha256:0326329b8fbb4d1ba6dec1eb5856c8a7d7ac39930888f6d88411f701c800fab4"},
 ]
 
 [package.dependencies]
@@ -4698,4 +4698,4 @@ gpt = ["openai"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "898036ebc6468f6258e3775094eea6769fcfd652349a570b379505f32325020e"
+content-hash = "4fbe4eacfbf54b76b9489c707b8e584f373b2772ecef6270ceeacc186b24517c"
