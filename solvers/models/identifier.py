@@ -8,3 +8,6 @@ class ModelIdentifier(BaseModel):
 
     def __hash__(self):
         return hash(f"{self.language}-{self.model_name}-{self.is_stemmed}")
+
+    def __str__(self) -> str:
+        return f"{self.language}-{self.model_name}"
