@@ -20,7 +20,7 @@ def print_results(game_runner: Optional[GameRunner]):
 
 def _print_board(state: GameState):
     log.info("")
-    log.info(f"{state.board}")
+    log.info(f"\n{state.board}")
 
 
 def _print_moves(game_runner: GameRunner):

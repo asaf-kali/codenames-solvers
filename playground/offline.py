@@ -27,6 +27,7 @@ random.seed(42)
 log = logging.getLogger(__name__)
 
 model_id = ModelIdentifier(language="english", model_name="wiki-50", is_stemmed=False)
+# model_id = ModelIdentifier(language="english", model_name="glove-twitter-25", is_stemmed=False)
 # model_id = ModelIdentifier(language="english", model_name="google-300", is_stemmed=False)
 # model_id = ModelIdentifier(language="hebrew", model_name="twitter", is_stemmed=False)
 # model_id = ModelIdentifier(language="hebrew", model_name="ft-200", is_stemmed=False)
@@ -46,7 +47,13 @@ def run_offline(board: Board = ENGLISH_BOARDS[2]):  # noqa: F405
     game_runner = None
     try:
         # blue_hinter = GPTHinter(name="Yoda", api_key=GPT_API_KEY)
-        blue_hinter = NaiveHinter(name="Yoda", team_color=TeamColor.BLUE, model_adapter=adapter, max_group_size=4)
+        blue_hinter = NaiveHinter(
+            name="Yoda",
+            team_color=TeamColor.BLUE,
+            model_identifier=model_id,
+            model_adapter=adapter,
+            max_group_size=4,
+        )
         red_hinter = NaiveHinter(
             name="Einstein",
             team_color=TeamColor.RED,
