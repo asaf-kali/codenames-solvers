@@ -2,7 +2,7 @@ import logging
 import os
 from os.path import expanduser
 from threading import Lock
-from typing import Dict
+from typing import Dict, Set
 
 import gensim.downloader as gensim_api
 from generic_iterative_stemmer.models import StemmedKeyedVectors
@@ -24,6 +24,11 @@ class ModelCache:
         with self._main_lock:
             model_lock = self._model_locks.setdefault(model_identifier, Lock())
         return model_lock
+
+    def get_loaded_model_ids(self) -> Set[ModelIdentifier]:
+        with self._main_lock:
+            keys = set(self._cache.keys())
+        return keys
 
     def is_loaded(self, model_identifier: ModelIdentifier) -> bool:
         return model_identifier in self._cache
