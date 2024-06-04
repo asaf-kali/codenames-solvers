@@ -13,6 +13,17 @@ from solvers.models.identifier import ModelIdentifier
 log = logging.getLogger(__name__)
 
 
+class ModelLoadError(Exception):
+    def __init__(self, model_identifier: ModelIdentifier, message: str):
+        self.model_identifier = model_identifier
+        super().__init__(f"Failed to load model {model_identifier}: {message}")
+
+
+class ModelNotFoundError(ModelLoadError):
+    def __init__(self, model_identifier: ModelIdentifier):
+        super().__init__(model_identifier, "Model not found")
+
+
 class ModelCache:
     def __init__(self, language_data_folder: str = "~/.cache/language_data"):
         self.language_data_folder = language_data_folder
@@ -49,9 +60,15 @@ class ModelCache:
                 model_name=model_identifier.model_name,
                 is_stemmed=model_identifier.is_stemmed,
             )
-        except Exception as e:
-            log.warning(f"Failed to load model: {e}", exc_info=True)
-            return load_from_gensim(model_identifier)
+        except Exception as local_load_error:
+            log.warning(f"Failed to load local model: {local_load_error}")
+            try:
+                return load_from_gensim(model_identifier)
+            except Exception as gensim_load_error:
+                log.warning(f"Failed to load model from gensim: {gensim_load_error}")
+                if isinstance(local_load_error, FileNotFoundError):
+                    raise ModelNotFoundError(model_identifier) from gensim_load_error
+                raise ModelLoadError(model_identifier, str(local_load_error)) from gensim_load_error
 
 
 def load_kv_format(language_base_folder: str, model_name: str, is_stemmed: bool = False) -> KeyedVectors:
