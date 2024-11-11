@@ -22,21 +22,21 @@ all = ["openai"]
 
 [tool.poetry.dependencies]
 # Core
-python = "^3.9"
+python = "^3.12,<3.13"
 the-spymaster-util = { version = "~3.2", extras = ["logging"] }
 codenames = "^4.1.5"
 pydantic = "^1.9"
 # Numbers
 numpy = "^1.21"
-pandas = "^1.3"
+pandas = ">=1.6"
 scipy = "^1.7"
 networkx = "^2.6"
-matplotlib = "^3.4.3"  # TODO: This should not be here
+matplotlib = ">=3.8"  # TODO: This should not be here
 # Language
-gensim = "^4.1"
+gensim = ">=4.3.3"
 generic-iterative-stemmer = "^1.1.6"
 python-louvain = "^0.15"
-editdistance = "^0.6"
+editdistance = ">=0.8.1"
 # GPT
 openai = { version = "^0.27", optional = true }
 
@@ -45,15 +45,15 @@ pytest = "7.2.2"
 coverage = "7.2.3"
 
 [tool.poetry.group.lint.dependencies]
-ruff = "^0.0.269"
-black = "^23.3.0"
-isort = "^5.12.0"
-mypy = "^1.3.0"
-pylint = "^2.17.4"
+ruff = ">=0.7"
+black = ">=24.10"
+isort = ">=5.13"
+mypy = ">=1.13"
+pylint = ">=3.3"
 types-requests = "^2.30.0.0"
 
 [tool.poetry.group.video.dependencies]
-manim = "0.11.0"
+manim = "^0.18"
 #moviepy = "1.0.3"
 
 [tool.poetry.group.dev.dependencies]
@@ -80,11 +80,13 @@ source = ["solvers/cli", "solvers/cli", "solvers/models", "solvers/utils", "solv
 # Lint
 
 [tool.ruff]
+exclude = ["local", ".deployment", "*.ipynb"]
+
+[tool.ruff.lint]
 select = ["B", "C", "E", "F", "W"]
 ignore = [
     "E501",
 ]
-exclude = ["local", ".deployment"]
 
 [tool.black]
 line-length = 120
@@ -109,6 +111,7 @@ disable = [
     "C0115",
     "C0116",
     "R0903",
+    "R0917",
     "W1203",
     "fixme",
     "too-many-instance-attributes",

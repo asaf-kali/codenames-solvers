@@ -81,12 +81,10 @@ class ModelFormatAdapter(ABC):
         return expression
 
     @abstractmethod
-    def _to_model_format(self, word: str) -> str:
-        ...
+    def _to_model_format(self, word: str) -> str: ...
 
     @abstractmethod
-    def _to_board_format(self, word: str) -> str:
-        ...
+    def _to_board_format(self, word: str) -> str: ...
 
     def to_model_formats(self, word: str) -> List[str]:
         return [self.to_model_format(word)]
