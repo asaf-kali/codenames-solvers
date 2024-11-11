@@ -53,6 +53,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
       - uses: ./.github/actions/lint-install
+      - name: Install requests
+        run: |
+          pip install requests==2.30.0
       - name: Install dependencies
         run: |
           make install-dev SYNC=""
@@ -68,7 +71,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
       - name: Set up python 3.12
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           cache: "pip"
           python-version: "3.12"
