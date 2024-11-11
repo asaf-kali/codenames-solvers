@@ -15,7 +15,7 @@ upgrade-pip:
 	pip install --upgrade pip
 
 install-ci: upgrade-pip
-	pip install poetry==1.7.1
+	pip install poetry==1.8.3
 	poetry config virtualenvs.create false
 
 install-test:
@@ -111,12 +111,12 @@ gource-all:
 # Lint
 
 format:
-	ruff . --fix
+	ruff check --fix
 	black .
 	isort .
 
 check-ruff:
-	ruff .
+	ruff check
 
 check-black:
 	black --check .
