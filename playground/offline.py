@@ -2,7 +2,7 @@ import logging
 import os
 import random
 
-from codenames.game.color import TeamColor
+from codenames.game.color import ClassicTeam
 from codenames.game.exceptions import QuitGame
 from codenames.game.player import GamePlayers
 from codenames.game.runner import GameRunner
@@ -10,7 +10,7 @@ from codenames.game.runner import GameRunner
 from playground.boards.english import *  # noqa
 from playground.boards.hebrew import *  # noqa
 from playground.printer import print_results
-from solvers.cli import CLIGuesser  # noqa
+from solvers.cli import CLIOperative  # noqa
 from solvers.models import (  # noqa
     DEFAULT_MODEL_ADAPTER,
     HEBREW_SUFFIX_ADAPTER,
@@ -20,8 +20,8 @@ from solvers.models import (  # noqa
     load_language_async,
     load_model_async,
 )
-from solvers.naive import NaiveGuesser, NaiveHinter  # noqa
-from solvers.other.naive_cli_guesser import ModelAwareCliGuesser  # noqa
+from solvers.naive import NaiveOperative, NaiveSpymaster  # noqa
+from solvers.other.naive_cli_guesser import ModelAwareCliOperative  # noqa
 
 random.seed(42)
 
@@ -45,38 +45,38 @@ def run_offline(board: Board = boards[1]):  # noqa: F405
     log.info("Running offline game...")
     game_runner = None
     try:
-        blue_hinter = NaiveHinter(
+        blue_hinter = NaiveSpymaster(
             name="Yoda",
-            team_color=TeamColor.BLUE,
+            team=ClassicTeam.BLUE,
             model_identifier=model_id,
             model_adapter=adapter,
             max_group_size=4,
         )
-        # blue_hinter = GPTHinter(name="Yoda", api_key=GPT_API_KEY)
-        red_hinter = NaiveHinter(
+        # blue_hinter = GPTSpymaster(name="Yoda", api_key=GPT_API_KEY)
+        red_hinter = NaiveSpymaster(
             name="Einstein",
-            team_color=TeamColor.RED,
+            team=ClassicTeam.RED,
             model_identifier=model_id,
             model_adapter=adapter,
             max_group_size=3,
         )
-        # red_hinter = GPTHinter(name="Einstein", api_key=GPT_API_KEY)
-        # red_hinter = OlympicHinter(name="Yoda", model_adapter=adapter)
-        blue_guesser = CLIGuesser(name="Anakin", team_color=TeamColor.BLUE)
-        # blue_guesser = NaiveGuesser(
+        # red_hinter = GPTSpymaster(name="Einstein", api_key=GPT_API_KEY)
+        # red_hinter = OlympicSpymaster(name="Yoda", model_adapter=adapter)
+        blue_guesser = CLIOperative(name="Anakin", team=ClassicTeam.BLUE)
+        # blue_guesser = NaiveOperative(
         #     name="Anakin",
         #     model_identifier=model_id,
         #     model_adapter=adapter,
-        #     team_color=TeamColor.BLUE,
+        #     team=ClassicTeam.BLUE,
         # )
-        # blue_guesser = GPTGuesser(name="Anakin", api_key=GPT_API_KEY)
-        red_guesser = NaiveGuesser(
+        # blue_guesser = GPTOperative(name="Anakin", api_key=GPT_API_KEY)
+        red_guesser = NaiveOperative(
             name="Newton",
             model_identifier=model_id,
             model_adapter=adapter,
-            team_color=TeamColor.RED,
+            team=ClassicTeam.RED,
         )
-        # red_guesser = GPTGuesser(name="Newton", api_key=GPT_API_KEY)
+        # red_guesser = GPTOperative(name="Newton", api_key=GPT_API_KEY)
         players = GamePlayers.from_collection([blue_hinter, blue_guesser, red_hinter, red_guesser])
         game_runner = GameRunner(players=players, board=board)
         game_runner.run_game()

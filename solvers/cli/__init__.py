@@ -1,1 +1,1 @@
-from .cli_players import CLIHinter, CLIGuesser  # noqa
+from .cli_players import CLISpymaster, CLIOperative  # noqa

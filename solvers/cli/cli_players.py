@@ -1,36 +1,36 @@
-from codenames.game.base import canonical_format
-from codenames.game.board import Board
-from codenames.game.exceptions import CardNotFoundError
-from codenames.game.move import Guess, Hint
-from codenames.game.player import Guesser, Hinter
-from codenames.game.state import GuesserGameState, HinterGameState
+from codenames.generic.board import Board
+from codenames.generic.card import canonical_format
+from codenames.generic.exceptions import CardNotFoundError
+from codenames.generic.move import Clue, Guess
+from codenames.generic.player import Operative, Spymaster
+from codenames.generic.state import OperativeState, SpymasterState
 
 
-class CLIHinter(Hinter):
+class CLISpymaster(Spymaster):
     @property
     def is_human(self) -> bool:
         return True
 
-    def pick_hint(self, game_state: HinterGameState) -> Hint:
+    def give_clue(self, game_state: SpymasterState) -> Clue:
         print_board(game_state.board)
         while True:
             try:
-                data = input("Please enter your given_hint in the format 'word, card_amount': ")
+                data = input("Please enter your given_clue in the format 'word, card_amount': ")
                 print()
                 word, card_amount = data.split(",")
                 word = word.strip().title()
                 card_amount_parsed = int(card_amount.strip())
-                return Hint(word=word, card_amount=card_amount_parsed)
+                return Clue(word=word, card_amount=card_amount_parsed)
             except ValueError:
                 pass
 
 
-class CLIGuesser(Guesser):
+class CLIOperative(Operative):
     @property
     def is_human(self) -> bool:
         return True
 
-    def guess(self, game_state: GuesserGameState) -> Guess:
+    def guess(self, game_state: OperativeState) -> Guess:
         print_board(game_state.board)
         index = None
         while index is None:

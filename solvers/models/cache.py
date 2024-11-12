@@ -52,7 +52,7 @@ class ModelCache:
             return self._cache[model_identifier]
 
     def _load_model(self, model_identifier: ModelIdentifier) -> KeyedVectors:
-        log.info("Loading model...", extra={"model": model_identifier.dict()})
+        log.info("Loading model...", extra={"model": model_identifier.model_dump()})
         language_base_folder = expanduser(os.path.join(self.language_data_folder, model_identifier.language))
         try:
             return load_kv_format(

@@ -2,11 +2,11 @@ import json
 import logging
 from typing import Optional
 
-from codenames.game.board import Board
-from codenames.game.card import Card
-from codenames.game.move import PASS_GUESS, GivenHint, Guess
-from codenames.game.player import Guesser
-from codenames.game.state import GuesserGameState
+from codenames.generic.board import Board
+from codenames.generic.card import Card
+from codenames.generic.move import PASS_GUESS, GivenClue, Guess
+from codenames.generic.player import Operative
+from codenames.generic.state import OperativeState
 
 from solvers.gpt.gpt_player import (
     GUESSER_TURN_COMMAND,
@@ -17,16 +17,16 @@ from solvers.gpt.gpt_player import (
 log = logging.getLogger(__name__)
 
 
-class GPTGuesser(GPTPlayer, Guesser):
-    def guess(self, game_state: GuesserGameState) -> Guess:
+class GPTOperative(GPTPlayer, Operative):
+    def guess(self, game_state: OperativeState) -> Guess:
         # legal_guesses = self.build_legal_guesses(board=game_state.board)
         # illegal_guesses = self.build_illegal_guesses(board=game_state.board)
         board_repr = self.build_board_repr(board=game_state.board)
         team = self.build_team_repr()
         moves = self.build_moves_repr(state=game_state)
-        score_status = self.build_score_repr(score=game_state.score)
+        # score_status = self.build_score_repr(score=game_state.score)
         options = self.build_options(state=game_state)
-        hint = self.build_hint_repr(hint=game_state.current_hint)
+        clue = self.build_clue_repr(clue=game_state.current_clue)
         you_already_guessed = self.build_you_already_guesses(state=game_state)
         # pylint: disable=R0801
         infos = [
@@ -37,10 +37,10 @@ class GPTGuesser(GPTPlayer, Guesser):
             board_repr,
             team,
             moves,
-            score_status,
+            # score_status,
             options,
             GUESSER_TURN_COMMAND,
-            hint,
+            clue,
             you_already_guessed,
             GUESSER_TURN_COMMAND,
             options,
@@ -54,14 +54,14 @@ class GPTGuesser(GPTPlayer, Guesser):
             return Guess(card_index=PASS_GUESS)
 
     @classmethod
-    def build_hint_repr(cls, hint: GivenHint) -> str:
-        return f"Hint word: '{hint.formatted_word}', {hint.card_amount} cards."
+    def build_clue_repr(cls, clue: GivenClue) -> str:
+        return f"Clue word: '{clue.formatted_word}', {clue.card_amount} cards."
 
     @classmethod
-    def build_options(cls, state: GuesserGameState) -> str:
+    def build_options(cls, state: OperativeState) -> str:
         legal_guesses = [card.formatted_word for card in state.board.cards if not card.revealed]
         illegal_guesses = [card.formatted_word for card in state.board.cards if card.revealed] + [
-            hint.word for hint in state.given_hints
+            clue.word for clue in state.given_clues
         ]
         assert set(legal_guesses).isdisjoint(set(illegal_guesses))
         options = {
@@ -85,8 +85,8 @@ class GPTGuesser(GPTPlayer, Guesser):
     #     return f"Illegal guesses - DO NOT provide any guess word from the following list: {joined}."
 
     @classmethod
-    def build_you_already_guesses(cls, state: GuesserGameState) -> Optional[str]:
-        current_turn_guesses = [guess for guess in state.given_guesses if guess.given_hint == state.current_hint]
+    def build_you_already_guesses(cls, state: OperativeState) -> Optional[str]:
+        current_turn_guesses = [guess for guess in state.given_guesses if guess.for_clue == state.current_clue]
         if not current_turn_guesses:
             return None
         words = [guess.guessed_card.word for guess in current_turn_guesses]
@@ -99,7 +99,7 @@ class GPTGuesser(GPTPlayer, Guesser):
         joined = ", ".join(words)
         return f"Board cards: {joined}."
 
-    def parse_guess(self, completion_result: dict, game_state: GuesserGameState) -> Guess:
+    def parse_guess(self, completion_result: dict, game_state: OperativeState) -> Guess:
         data = extract_data_from_response(completion_result=completion_result)
         extra = data.get("extra")
         word = _parse_guess_word(raw=data["word"])

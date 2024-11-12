@@ -3,11 +3,12 @@ from typing import Callable, List, Optional
 from uuid import uuid4
 
 import numpy as np
-from codenames.game.board import Board
-from codenames.game.color import TeamColor
-from codenames.game.move import Hint
-from codenames.game.player import Hinter
-from codenames.game.state import HinterGameState
+from codenames.classic.color import ClassicColor
+from codenames.classic.state import ClassicState
+from codenames.generic.board import Board
+from codenames.generic.move import Clue
+from codenames.generic.player import Spymaster, Team
+from codenames.generic.state import PlayerState, SpymasterState
 from gensim.models import KeyedVectors
 
 from solvers.models import ModelFormatAdapter, ModelIdentifier
@@ -16,6 +17,7 @@ from solvers.naive.proposal_generator import (
     DEFAULT_THRESHOLDS,
     NaiveProposalsGenerator,
     Proposal,
+    ProposalColors,
     ProposalThresholds,
 )
 
@@ -32,20 +34,20 @@ def default_proposal_grade_calculator(proposal: Proposal) -> float:
     """
     grade = (
         1.6 * len(proposal.word_group)
-        + 1.8 * proposal.hint_word_frequency
+        + 1.8 * proposal.clue_word_frequency
         - 3.5 * proposal.distance_group  # High group distance is bad.
-        + 1.0 * proposal.distance_gray
+        + 1.0 * proposal.distance_neutral
         + 2.0 * proposal.distance_opponent
-        + 3.0 * proposal.distance_black
+        + 3.0 * proposal.distance_assassin
     )
     return float(np.nan_to_num(grade, nan=-100))
 
 
-class NaiveHinter(NaivePlayer, Hinter):
+class NaiveSpymaster(NaivePlayer, Spymaster):
     def __init__(
         self,
         name: str,
-        team_color: TeamColor,
+        team: Team,
         model: Optional[KeyedVectors] = None,
         model_identifier: Optional[ModelIdentifier] = None,
         proposals_thresholds: Optional[ProposalThresholds] = None,
@@ -56,7 +58,7 @@ class NaiveHinter(NaivePlayer, Hinter):
     ):
         super().__init__(
             name=name,
-            team_color=team_color,
+            team=team,
             model=model,
             model_identifier=model_identifier,
             model_adapter=model_adapter,
@@ -69,7 +71,7 @@ class NaiveHinter(NaivePlayer, Hinter):
 
     def on_game_start(self, board: Board):
         super().on_game_start(board=board)
-        self.opponent_card_color = self.team_color.opponent.as_card_color  # type: ignore
+        self.opponent_card_color = self.team.opponent.as_card_color  # type: ignore
 
     @classmethod
     def pick_best_proposal(cls, proposals: List[Proposal]) -> Proposal:
@@ -81,17 +83,18 @@ class NaiveHinter(NaivePlayer, Hinter):
         best_ton_n_repr = "\n".join(str(p) for p in proposals[:print_top_n])
         log.info(f"Best {print_top_n} proposals: \n{best_ton_n_repr}")
         best_proposal = proposals[0]
-        log.debug("Picked proposal", extra=best_proposal.dict())
+        log.debug("Picked proposal", extra=best_proposal.model_dump())
         return best_proposal
 
-    def pick_hint(
-        self, game_state: HinterGameState, thresholds_filter_active: bool = True, similarities_top_n: int = 10
-    ) -> Hint:
+    def give_clue(
+        self, game_state: SpymasterState, thresholds_filter_active: bool = True, similarities_top_n: int = 10
+    ) -> Clue:
+        colors = _get_proposal_colors(game_state)
         proposal_generator = NaiveProposalsGenerator(
             model=self.model,
             model_adapter=self._model_adapter,
             game_state=game_state,
-            team_card_color=self.team_color.as_card_color,  # type: ignore
+            proposal_colors=colors,
             proposals_thresholds=self.proposals_thresholds,
             proposal_grade_calculator=self.proposal_grade_calculator,
             thresholds_filter_active=thresholds_filter_active,
@@ -102,11 +105,22 @@ class NaiveHinter(NaivePlayer, Hinter):
         try:
             proposal = self.pick_best_proposal(proposals=proposals)
             word_group_board_format = tuple(self.board_format(word) for word in proposal.word_group)
-            return Hint(word=proposal.hint_word, card_amount=proposal.card_count, for_words=word_group_board_format)
+            return Clue(word=proposal.clue_word, card_amount=proposal.card_count, for_words=word_group_board_format)
         except NoProposalsFound:
             log.debug("No legal proposals found.")
             if not thresholds_filter_active and similarities_top_n >= 20:
                 random_word = uuid4().hex[:4]
-                return Hint(word=random_word, card_amount=1)
+                return Clue(word=random_word, card_amount=1)
             log.info("Trying without thresholds filtering.")
-            return self.pick_hint(game_state=game_state, thresholds_filter_active=False, similarities_top_n=50)
+            return self.give_clue(game_state=game_state, thresholds_filter_active=False, similarities_top_n=50)
+
+
+def _get_proposal_colors(state: PlayerState) -> ProposalColors:
+    if isinstance(state, ClassicState):
+        return ProposalColors(
+            team=state.current_team.as_card_color,
+            opponent=state.current_team.opponent.as_card_color,
+            neutral=ClassicColor.NEUTRAL,
+            assassin=ClassicColor.ASSASSIN,
+        )
+    raise NotImplementedError(f"Unsupported state type: {type(state)}")

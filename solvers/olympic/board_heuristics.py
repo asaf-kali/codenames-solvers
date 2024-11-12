@@ -1,7 +1,7 @@
 from typing import List, NamedTuple
 
 import numpy as np
-from codenames.game.color import CardColor
+from codenames.generic.card import CardColor
 from gensim.models import KeyedVectors
 from typing_extensions import TypeAlias
 
@@ -77,7 +77,7 @@ class HeuristicsCalculator:
         """
         Calculate updated board heuristic for each word in the vocabulary.
         :return: a Probability tensor `heuristics`, where
-        heuristics[i, j, k] = P(card[j].color = colors[k] | given_hint = vocabulary[i])
+        heuristics[i, j, k] = P(card[j].color = colors[k] | given_clue = vocabulary[i])
         """
         vocabulary_size = similarities.shape[0]
         my_color_index = get_card_color_index(self.team_card_color)

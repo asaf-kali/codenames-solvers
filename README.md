@@ -39,7 +39,7 @@ Given the board:
 +-------------+------------+----------+--------------+----------------+
 ```
 
-A `NaiveHinter` playing for the blue team will output `"role", 4`. \
+A `NaiveSpymaster` playing for the blue team will output `"role", 4`. \
 From the logs:
 
 ```
@@ -54,7 +54,7 @@ Best 5 proposals:
 ('drama', 'musical', 'series') = ('comic', 8.04)
 ('drama', 'commitment', 'teaching') = ('focuses', 7.88)
 ('musical', 'commitment', 'teaching') = ('educational', 7.87)
-Hinter: [role] 4 card(s)
+Spymaster: [role] 4 card(s)
 ```
 
 Some extra data from the solver about the picked hint:
@@ -93,7 +93,7 @@ Find usage examples in the `playground` directory.
 
 Based on [Google's word2vec](https://code.google.com/archive/p/word2vec/) embedding.
 
-*Hint generation*:
+*Clue generation*:
 
 1. For each card subset `group` of size `{4, 3, 2, 1}` from my unrevealed cards, collect hint proposal:
     1. Find the mean of `group`'s word embeddings.
