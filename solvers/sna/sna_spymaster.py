@@ -20,7 +20,7 @@ from gensim.models import KeyedVectors
 from pandas import Series
 
 from solvers.models import load_language
-from solvers.naive.naive_hinter import Proposal, default_proposal_grade_calculator
+from solvers.naive.naive_spymaster import Proposal, default_proposal_grade_calculator
 from solvers.utils import RUN_ID, get_exports_folder
 from solvers.utils.algebra import cosine_distance, single_gram_schmidt
 

@@ -8,8 +8,8 @@ from codenames.classic.runner.models import GamePlayers
 from codenames.classic.runner.runner import ClassicGameRunner
 from gensim.models import KeyedVectors
 
-from solvers.naive.naive_guesser import NaiveOperative
-from solvers.naive.naive_hinter import NaiveSpymaster
+from solvers.naive.naive_operative import NaiveOperative
+from solvers.naive.naive_spymaster import NaiveSpymaster
 
 VECTORS_FILE_NAME = "tests/small_model.csv"
 BOARD_WORDS = [
@@ -95,12 +95,12 @@ def mock_load_word2vec_format(*args, **kwargs):
 @pytest.mark.slow
 @mock.patch("gensim.models.KeyedVectors.load", new=mock_load_word2vec_format)
 def test_complete_naive_flow(english_board: ClassicBoard):
-    blue_hinter = NaiveSpymaster("Leonardo", team=ClassicTeam.BLUE)
-    blue_guesser = NaiveOperative("Bard", team=ClassicTeam.BLUE)
-    red_hinter = NaiveSpymaster("Adam", team=ClassicTeam.RED)
-    red_guesser = NaiveOperative("Eve", team=ClassicTeam.RED)
+    blue_spymaster = NaiveSpymaster("Leonardo", team=ClassicTeam.BLUE)
+    blue_operative = NaiveOperative("Bard", team=ClassicTeam.BLUE)
+    red_spymaster = NaiveSpymaster("Adam", team=ClassicTeam.RED)
+    red_operative = NaiveOperative("Eve", team=ClassicTeam.RED)
 
-    players = GamePlayers.from_collection([blue_hinter, blue_guesser, red_hinter, red_guesser])
+    players = GamePlayers.from_collection([blue_spymaster, blue_operative, red_spymaster, red_operative])
     runner = ClassicGameRunner(players, board=english_board)
     runner.run_game()
 

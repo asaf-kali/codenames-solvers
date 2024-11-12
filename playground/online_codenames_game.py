@@ -15,8 +15,8 @@ from solvers.models import (
     ModelIdentifier,
     load_language_async,
 )
-from solvers.naive.naive_guesser import NaiveOperative
-from solvers.naive.naive_hinter import NaiveSpymaster
+from solvers.naive.naive_operative import NaiveOperative
+from solvers.naive.naive_spymaster import NaiveSpymaster
 
 # configure_logging(level="DEBUG", mute_solvers=False, mute_online=False)
 log = logging.getLogger(__name__)

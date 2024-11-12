@@ -21,7 +21,7 @@ from solvers.models import (  # noqa
     load_model_async,
 )
 from solvers.naive import NaiveOperative, NaiveSpymaster  # noqa
-from solvers.other.naive_cli_guesser import ModelAwareCliOperative  # noqa
+from solvers.other.naive_cli_operative import ModelAwareCliOperative  # noqa
 
 random.seed(42)
 
@@ -45,39 +45,39 @@ def run_offline(board: Board = boards[1]):  # noqa: F405
     log.info("Running offline game...")
     game_runner = None
     try:
-        blue_hinter = NaiveSpymaster(
+        blue_spymaster = NaiveSpymaster(
             name="Yoda",
             team=ClassicTeam.BLUE,
             model_identifier=model_id,
             model_adapter=adapter,
             max_group_size=4,
         )
-        # blue_hinter = GPTSpymaster(name="Yoda", api_key=GPT_API_KEY)
-        red_hinter = NaiveSpymaster(
+        # blue_spymaster = GPTSpymaster(name="Yoda", api_key=GPT_API_KEY)
+        red_spymaster = NaiveSpymaster(
             name="Einstein",
             team=ClassicTeam.RED,
             model_identifier=model_id,
             model_adapter=adapter,
             max_group_size=3,
         )
-        # red_hinter = GPTSpymaster(name="Einstein", api_key=GPT_API_KEY)
-        # red_hinter = OlympicSpymaster(name="Yoda", model_adapter=adapter)
-        blue_guesser = CLIOperative(name="Anakin", team=ClassicTeam.BLUE)
-        # blue_guesser = NaiveOperative(
+        # red_spymaster = GPTSpymaster(name="Einstein", api_key=GPT_API_KEY)
+        # red_spymaster = OlympicSpymaster(name="Yoda", model_adapter=adapter)
+        blue_operative = CLIOperative(name="Anakin", team=ClassicTeam.BLUE)
+        # blue_operative = NaiveOperative(
         #     name="Anakin",
         #     model_identifier=model_id,
         #     model_adapter=adapter,
         #     team=ClassicTeam.BLUE,
         # )
-        # blue_guesser = GPTOperative(name="Anakin", api_key=GPT_API_KEY)
-        red_guesser = NaiveOperative(
+        # blue_operative = GPTOperative(name="Anakin", api_key=GPT_API_KEY)
+        red_operative = NaiveOperative(
             name="Newton",
             model_identifier=model_id,
             model_adapter=adapter,
             team=ClassicTeam.RED,
         )
-        # red_guesser = GPTOperative(name="Newton", api_key=GPT_API_KEY)
-        players = GamePlayers.from_collection([blue_hinter, blue_guesser, red_hinter, red_guesser])
+        # red_operative = GPTOperative(name="Newton", api_key=GPT_API_KEY)
+        players = GamePlayers.from_collection([blue_spymaster, blue_operative, red_spymaster, red_operative])
         game_runner = GameRunner(players=players, board=board)
         game_runner.run_game()
     except QuitGame:

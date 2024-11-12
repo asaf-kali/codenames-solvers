@@ -19,12 +19,12 @@ def english_board() -> ClassicBoard:
 
 @patch("builtins.input")
 def test_cli_players_game(mock_input, english_board: ClassicBoard):
-    blue_hinter = CLISpymaster("Leonardo", team=ClassicTeam.BLUE)
-    blue_guesser = CLIOperative("Bard", team=ClassicTeam.BLUE)
-    red_hinter = CLISpymaster("Adam", team=ClassicTeam.RED)
-    red_guesser = CLIOperative("Eve", team=ClassicTeam.RED)
+    blue_spymaster = CLISpymaster("Leonardo", team=ClassicTeam.BLUE)
+    blue_operative = CLIOperative("Bard", team=ClassicTeam.BLUE)
+    red_spymaster = CLISpymaster("Adam", team=ClassicTeam.RED)
+    red_operative = CLIOperative("Eve", team=ClassicTeam.RED)
 
-    players = GamePlayers.from_collection([blue_hinter, blue_guesser, red_hinter, red_guesser])
+    players = GamePlayers.from_collection([blue_spymaster, blue_operative, red_spymaster, red_operative])
     mock_input.side_effect = [
         "YOU_CANNOT_PARSE_THIS",  # Invalid hint, ignore
         "Ice, 4",
