@@ -1,4 +1,4 @@
-# %% Taken from sna_hinter
+# %% Taken from sna_spymaster
 from typing import Dict
 
 import community

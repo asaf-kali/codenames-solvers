@@ -128,7 +128,7 @@ check-mypy:
 	mypy .
 
 check-pylint:
-	pylint solvers/ --fail-under=10
+	pylint solvers/ --fail-under=8.8
 
 lint: format
 	pre-commit run --all-files

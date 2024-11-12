@@ -1,15 +1,15 @@
 # flake8: noqa
 # type: ignore
-
 import os
 import random
 from typing import List
 
+import numpy as np
 import pandas as pd
 from manim import *
 from scipy.interpolate import interp1d
 
-from solvers.sna.sna_hinter import (  # , opponent_force, friendly_force
+from solvers.sna.sna_spymaster import (  # , opponent_force, friendly_force
     ForceNode,
     step_from_forces,
 )
@@ -264,20 +264,20 @@ def get_svg(name: str) -> SVGMobject:
 
 class SVG:
     @staticmethod
-    def blue_hinter():
-        return get_svg("blue_hinter")
+    def blue_spymaster():
+        return get_svg("blue_spymaster")
 
     @staticmethod
-    def red_hinter():
-        return get_svg("red_hinter")
+    def red_spymaster():
+        return get_svg("red_spymaster")
 
     @staticmethod
-    def blue_guesser():
-        return get_svg("blue_guesser")
+    def blue_operative():
+        return get_svg("blue_operative")
 
     @staticmethod
-    def red_guesser():
-        return get_svg("red_guesser")
+    def red_operative():
+        return get_svg("red_operative")
 
     @staticmethod
     def bubble():
@@ -311,7 +311,7 @@ class KalirmozExplanation(ThreeDScene):
         self.remove(progression_dict)
         self.advance_progress_markers(progression_dict, 3)
 
-        self.scene_guesser_views()
+        self.scene_operative_views()
 
         self.scene_ending_title()
 
@@ -323,59 +323,59 @@ class KalirmozExplanation(ThreeDScene):
         self.play(FadeOut(t1), FadeOut(t2))
 
     def scene_game_rules(self):
-        blue_hinter = SVG.blue_hinter().to_corner(UR).shift(DOWN).scale(0.8)
-        red_hinter = SVG.red_hinter().to_corner(DR).scale(0.8)
-        blue_guesser = SVG.blue_guesser().to_corner(UL).align_to(blue_hinter, DOWN).shift(LEFT * 0.2)
-        red_guesser = SVG.red_guesser().to_corner(DL).shift(LEFT * 0.2)
+        blue_spymaster = SVG.blue_spymaster().to_corner(UR).shift(DOWN).scale(0.8)
+        red_spymaster = SVG.red_spymaster().to_corner(DR).scale(0.8)
+        blue_operative = SVG.blue_operative().to_corner(UL).align_to(blue_spymaster, DOWN).shift(LEFT * 0.2)
+        red_operative = SVG.red_operative().to_corner(DL).shift(LEFT * 0.2)
 
         board = self.generate_board(BOARD_WORDS)
         self.play(
-            FadeIn(blue_hinter, shift=DOWN),
-            FadeIn(blue_guesser, shift=DOWN),
-            FadeIn(red_hinter, shift=DOWN),
-            FadeIn(red_guesser, shift=DOWN),
+            FadeIn(blue_spymaster, shift=DOWN),
+            FadeIn(blue_operative, shift=DOWN),
+            FadeIn(red_spymaster, shift=DOWN),
+            FadeIn(red_operative, shift=DOWN),
         )
-        # self.add(board, blue_hinter, blue_guesser, red_hinter, red_guesser)
+        # self.add(board, blue_spymaster, blue_operative, red_spymaster, red_operative)
         self.dynamic_wait(1)
-        self.annotate_objects([blue_hinter, blue_guesser], 1.3, 1)
-        self.annotate_objects([red_hinter, red_guesser], 1.3, 1)
+        self.annotate_objects([blue_spymaster, blue_operative], 1.3, 1)
+        self.annotate_objects([red_spymaster, red_operative], 1.3, 1)
         self.dynamic_wait(4)
-        self.annotate_objects([blue_hinter, red_hinter], 1.3, 1)
+        self.annotate_objects([blue_spymaster, red_spymaster], 1.3, 1)
         self.dynamic_wait(2)
-        self.annotate_objects([blue_guesser, red_guesser], 1.3, 1)
+        self.annotate_objects([blue_operative, red_operative], 1.3, 1)
         self.dynamic_wait(7)
         self.play(DrawBorderThenFill(board))
         self.dynamic_wait(3)
 
         self.expose_board_colors(board)
 
-        blue_hinter_bubble, blue_hinter_text = self.animate_hint(blue_hinter, "planets", 2)
+        blue_spymaster_bubble, blue_spymaster_text = self.animate_hint(blue_spymaster, "planets", 2)
         self.dynamic_wait(10)
 
-        blue_guesser_bubble = self.animate_guess(
+        blue_operative_bubble = self.animate_guess(
             board=board,
             card_color=BLUE,
             word="earth",
-            guesser_obj=blue_guesser,
-            guesser_bubble=None,
+            operative_obj=blue_operative,
+            operative_bubble=None,
             finish_turn=False,
             guess_reveal_wait_time=5,
         )
 
         self.animate_guess(
-            board=board, card_color=BLUE, word="jupiter", guesser_bubble=blue_guesser_bubble, finish_turn=True
+            board=board, card_color=BLUE, word="jupiter", operative_bubble=blue_operative_bubble, finish_turn=True
         )
 
-        self.play(FadeOut(blue_hinter_bubble), FadeOut(blue_hinter_text))
+        self.play(FadeOut(blue_spymaster_bubble), FadeOut(blue_spymaster_text))
 
-        red_hinter_bubble, red_hinter_text = self.animate_hint(red_hinter, "water", 4)
+        red_spymaster_bubble, red_spymaster_text = self.animate_hint(red_spymaster, "water", 4)
 
-        red_guesser_bubble = self.animate_guess(
+        red_operative_bubble = self.animate_guess(
             board=board,
             card_color=RED,
             word="flood",
-            guesser_obj=red_guesser,
-            guesser_bubble=None,
+            operative_obj=red_operative,
+            operative_bubble=None,
             quick_mode=True,
             finish_turn=False,
         )
@@ -384,20 +384,20 @@ class KalirmozExplanation(ThreeDScene):
             board=board,
             card_color=LIGHT_GRAY,
             word="moon",
-            guesser_bubble=red_guesser_bubble,
+            operative_bubble=red_operative_bubble,
             finish_turn=True,
             quick_mode=True,
         )
 
-        self.play(FadeOut(red_hinter_bubble), FadeOut(red_hinter_text))
+        self.play(FadeOut(red_spymaster_bubble), FadeOut(red_spymaster_text))
 
-        self.animate_hint(blue_hinter, "costume", 2)
+        self.animate_hint(blue_spymaster, "costume", 2)
 
         self.animate_guess(
             board=board,
             card_color=DARK_GRAY,
             word="ninja",
-            guesser_obj=blue_guesser,
+            operative_obj=blue_operative,
             finish_turn=True,
             quick_mode=True,
             winning_title=True,
@@ -407,21 +407,21 @@ class KalirmozExplanation(ThreeDScene):
 
         self.remove_everything()
 
-    def animate_hint(self, hinter_obj, hint_word, hint_number):
-        hinter_bubble = SVG.bubble().scale(0.5).next_to(hinter_obj, UP)
-        hinter_text = Text(f'"{hint_word}", {hint_number}', font_size=18).move_to(hinter_bubble).shift(UP * 0.2)
-        self.play(FadeIn(hinter_bubble, shift=DOWN))
-        self.play(Write(hinter_text))
+    def animate_hint(self, spymaster_obj, hint_word, hint_number):
+        spymaster_bubble = SVG.bubble().scale(0.5).next_to(spymaster_obj, UP)
+        spymaster_text = Text(f'"{hint_word}", {hint_number}', font_size=18).move_to(spymaster_bubble).shift(UP * 0.2)
+        self.play(FadeIn(spymaster_bubble, shift=DOWN))
+        self.play(Write(spymaster_text))
         self.dynamic_wait(3)
-        return hinter_bubble, hinter_text
+        return spymaster_bubble, spymaster_text
 
     def animate_guess(
         self,
         board,
         card_color,
         word,
-        guesser_obj=None,
-        guesser_bubble=None,
+        operative_obj=None,
+        operative_bubble=None,
         finish_turn=False,
         guess_reveal_wait_time=1,
         quick_mode=False,
@@ -431,19 +431,19 @@ class KalirmozExplanation(ThreeDScene):
             quick_factor = 0.5
         else:
             quick_factor = 1
-        if guesser_bubble is None:
-            guesser_bubble = SVG.bubble().scale(0.6).next_to(guesser_obj, UP).shift(DOWN * 0.3)
-            self.play(FadeIn(guesser_bubble, shift=DOWN), run_time=quick_factor)
-        guesser_text = Text(f'I Guess: "{word}"', font_size=17).move_to(guesser_bubble).shift(UP * 0.2)
-        self.play(Write(guesser_text), run_time=quick_factor)
+        if operative_bubble is None:
+            operative_bubble = SVG.bubble().scale(0.6).next_to(operative_obj, UP).shift(DOWN * 0.3)
+            self.play(FadeIn(operative_bubble, shift=DOWN), run_time=quick_factor)
+        operative_text = Text(f'I Guess: "{word}"', font_size=17).move_to(operative_bubble).shift(UP * 0.2)
+        self.play(Write(operative_text), run_time=quick_factor)
         self.dynamic_wait(guess_reveal_wait_time * quick_factor)
         self.change_card_color(board, word, card_color, annotate=True, winning_title=winning_title)
         self.wait(quick_factor)
         if finish_turn:
-            self.play(FadeOut(guesser_text), FadeOut(guesser_bubble), run_time=quick_factor)
+            self.play(FadeOut(operative_text), FadeOut(operative_bubble), run_time=quick_factor)
         else:
-            self.play(FadeOut(guesser_text), run_time=quick_factor)
-        return guesser_bubble
+            self.play(FadeOut(operative_text), run_time=quick_factor)
+        return operative_bubble
 
     def advance_progress_markers(self, progression_dict, i, previous_i=None, extra_waiting_time=1):
         if previous_i is None:
@@ -605,20 +605,20 @@ class KalirmozExplanation(ThreeDScene):
         if not self.simple_mode:
             self.stop_ambient_camera_rotation()
 
-    def scene_guesser_views(self):
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\planets.csv", "planets (2 cards)", waiting_time=26)
-        self.plot_guesser_view_chart(
+    def scene_operative_views(self):
+        # self.plot_operative_view_chart(r"visualizer\graphs_data\planets.csv", "planets (2 cards)", waiting_time=26)
+        self.plot_operative_view_chart(
             r"visualizer\graphs_data\redevelopment_fine.csv", "redevelopment (2 cards)", waiting_time=26
         )
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\dark_bad_choose_it.csv", 'dark (2 cards)', waiting_time=21)
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\apollo_bad.csv", 'apollo')
-        self.plot_guesser_view_chart(r"visualizer\graphs_data\rhino_bad.csv", "rhino (2 cards)", waiting_time=21)
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\rhino_bad.csv", 'rhino')
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\advice.csv", "advice")
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\beneath_good.csv", 'beneath')
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\ceilings_good.csv", 'ceillings')
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\father.csv", 'father')
-        # self.plot_guesser_view_chart(r"visualizer\graphs_data\gear_good.csv", 'gear')
+        # self.plot_operative_view_chart(r"visualizer\graphs_data\dark_bad_choose_it.csv", 'dark (2 cards)', waiting_time=21)
+        # self.plot_operative_view_chart(r"visualizer\graphs_data\apollo_bad.csv", 'apollo')
+        self.plot_operative_view_chart(r"visualizer\graphs_data\rhino_bad.csv", "rhino (2 cards)", waiting_time=21)
+        # self.plot_operative_view_chart(r"visualizer\graphs_data\rhino_bad.csv", 'rhino')
+        # self.plot_operative_view_chart(r"visualizer\graphs_data\advice.csv", "advice")
+        # self.plot_operative_view_chart(r"visualizer\graphs_data\beneath_good.csv", 'beneath')
+        # self.plot_operative_view_chart(r"visualizer\graphs_data\ceilings_good.csv", 'ceillings')
+        # self.plot_operative_view_chart(r"visualizer\graphs_data\father.csv", 'father')
+        # self.plot_operative_view_chart(r"visualizer\graphs_data\gear_good.csv", 'gear')
 
         self.play(*[FadeOut(mob) for mob in self.mobjects])
 
@@ -686,7 +686,7 @@ class KalirmozExplanation(ThreeDScene):
         return card
 
     # def animate_game_explanation(self):
-    #     self.play(FadeIn(SVGMobject(r"visualizer\svg\hinter.svg")))
+    #     self.play(FadeIn(SVGMobject(r"visualizer\svg\spymaster.svg")))
 
     def scene_word2vec_explanation(self):
         spacing_constant = 3
@@ -957,7 +957,7 @@ class KalirmozExplanation(ThreeDScene):
         rotated = phi_rotation @ theta_rotation @ constant_rotation @ coords_np
         return rotated
 
-    def plot_guesser_view_chart(self, data_path, title, waiting_time=1):
+    def plot_operative_view_chart(self, data_path, title, waiting_time=1):
         df = pd.read_csv(data_path)
         df = df.loc[0:10, :]
         colors = df["colors"].apply(text2color).to_list()
@@ -1046,4 +1046,4 @@ class KalirmozExplanation(ThreeDScene):
 #     starting_point=starting_point, nodes_list=nodes_list, num_of_iterations=5, arc_radians=0.01
 # )
 # hint_word = "planets"
-# test_scene.plot_guesser_view_chart(f"visualizer\graphs_data\{hint_word}.csv", hint_word)
+# test_scene.plot_operative_view_chart(f"visualizer\graphs_data\{hint_word}.csv", hint_word)
