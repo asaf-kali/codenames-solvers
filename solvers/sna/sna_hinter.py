@@ -11,12 +11,11 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
-from codenames.game.base import WordGroup
-from codenames.game.board import Board
-from codenames.game.color import CardColor
-from codenames.game.move import Hint
-from codenames.game.player import Hinter
-from codenames.game.state import HinterGameState
+from codenames.generic.board import Board, WordGroup
+from codenames.generic.card import CardColor
+from codenames.generic.move import Clue
+from codenames.generic.player import Spymaster
+from codenames.generic.state import SpymasterState
 from gensim.models import KeyedVectors
 from pandas import Series
 
@@ -134,7 +133,7 @@ def opponent_force(d: float):
     return repelling_force(d, OPPONENT_FORCE_CUTOFF, OPPONENT_FORCE_FACTOR)
 
 
-def gray_force(d):
+def neutral_force(d):
     return repelling_force(d, OPPONENT_FORCE_CUTOFF, GRAY_FORCE_FACTOR)
 
 
@@ -181,7 +180,7 @@ class Cluster:
         return self.grade < cluster_2.grade
 
 
-class SNAHinter(Hinter):
+class SNASpymaster(Spymaster):
     def __init__(self, name: str, debug_mode=False, physics_optimization=True):
         super().__init__(name=name)
         self.model: Optional[KeyedVectors] = None
@@ -190,7 +189,7 @@ class SNAHinter(Hinter):
         self.graded_proposals: List[Cluster] = []
         self.debug_mode = debug_mode
         self.physics_optimization = physics_optimization
-        self.game_state: Optional[HinterGameState] = None
+        self.game_state: Optional[SpymasterState] = None
 
     def on_game_start(self, board: Board):
         self.model = load_language(language=board.language)  # type: ignore
@@ -218,21 +217,21 @@ class SNAHinter(Hinter):
     @property
     def own_unrevealed_cards(self) -> pd.DataFrame:
         own_unrevealed_idx = (self.board_data.is_revealed == False) & (  # noqa: E712
-            self.board_data.color == self.team_color.as_card_color
+            self.board_data.color == self.team.as_card_color
         )
         return self.board_data[own_unrevealed_idx]
 
     @property
     def opponent_cards(self) -> pd.DataFrame:
-        return self.board_data[self.board_data["color"] == self.team_color.opponent.as_card_color]
+        return self.board_data[self.board_data["color"] == self.team.opponent.as_card_color]
 
     @property
-    def gray_cards(self) -> pd.DataFrame:
+    def neutral_cards(self) -> pd.DataFrame:
         return self.board_data[self.board_data["color"] == CardColor.GRAY]
 
     @property
     def own_cards(self) -> pd.DataFrame:
-        return self.board_data[self.board_data["color"] == self.team_color]
+        return self.board_data[self.board_data["color"] == self.team]
 
     @property
     def black_card(self) -> pd.DataFrame:
@@ -241,14 +240,14 @@ class SNAHinter(Hinter):
     @property
     def bad_cards(self) -> pd.DataFrame:
         return self.board_data[
-            self.board_data["color"].isin([CardColor.GRAY, CardColor.BLACK, self.team_color.opponent.as_card_color])
+            self.board_data["color"].isin([CardColor.GRAY, CardColor.BLACK, self.team.opponent.as_card_color])
         ]
 
     def update_reveals(self, game_state):
         mapper = {card.word: card.revealed for card in game_state.board}
         self.board_data["is_revealed"] = self.board_data.index.map(mapper)
 
-    def pick_hint(self, game_state: HinterGameState) -> Hint:
+    def give_clue(self, game_state: SpymasterState) -> Clue:
         self.game_state = game_state
         self.update_reveals(game_state)
         graded_proposals = self.generate_graded_proposals()
@@ -259,11 +258,11 @@ class SNAHinter(Hinter):
         # draw_cluster = Cluster(
         #     -1,
         #     self.board_data[self.board_data.index.isin(best_proposal.word_group)],
-        #     self.model.get_vector(best_proposal.hint_word),
+        #     self.model.get_vector(best_proposal.clue_word),
         # )
-        # self.draw_guesser_view(draw_cluster, best_proposal.hint_word, self.model.get_vector(best_proposal.hint_word))
-        hint = Hint(word=best_proposal.hint_word, card_amount=best_proposal.card_count)
-        return hint
+        # self.draw_operative_view(draw_cluster, best_proposal.clue_word, self.model.get_vector(best_proposal.clue_word))
+        clue = Clue(word=best_proposal.clue_word, card_amount=best_proposal.card_count)
+        return clue
 
     def generate_graded_proposals(self, resolution_parameter=1):
         self.divide_to_clusters(df=self.own_unrevealed_cards, resolution_parameter=resolution_parameter)
@@ -277,9 +276,9 @@ class SNAHinter(Hinter):
             draw_cluster = Cluster(
                 -1,
                 self.board_data[self.board_data.index.isin(proposal.word_group)],
-                self.model.get_vector(proposal.hint_word),
+                self.model.get_vector(proposal.clue_word),
             )
-            self.draw_guesser_view(draw_cluster, proposal.hint_word, self.model.get_vector(proposal.hint_word))
+            self.draw_operative_view(draw_cluster, proposal.clue_word, self.model.get_vector(proposal.clue_word))
         graded_proposals.sort(key=lambda c: -c.grade)
         return graded_proposals
 
@@ -316,18 +315,18 @@ class SNAHinter(Hinter):
         centroid_to_black = np.min(  # This min is required for the float type
             cosine_distance(vector, temp_df[temp_df["color"] == CardColor.BLACK]["vector"])
         )
-        centroid_to_gray = np.min(cosine_distance(vector, temp_df[temp_df["color"] == CardColor.GRAY]["vector"]))
+        centroid_to_neutral = np.min(cosine_distance(vector, temp_df[temp_df["color"] == CardColor.GRAY]["vector"]))
         centroid_to_opponent = np.min(
             cosine_distance(
                 vector,
-                temp_df[temp_df["color"] == self.team_color.opponent.as_card_color]["vector"],
+                temp_df[temp_df["color"] == self.team.opponent.as_card_color]["vector"],
             )
         )
 
         bad_cards_limitation = np.min(
             [
                 centroid_to_black - MIN_SELF_BLACK_DELTA,
-                centroid_to_gray - MIN_SELF_GRAY_DELTA,
+                centroid_to_neutral - MIN_SELF_GRAY_DELTA,
                 centroid_to_opponent - MIN_SELF_OPPONENT_DELTA,
             ]
         )
@@ -335,7 +334,7 @@ class SNAHinter(Hinter):
         chosen_cards = temp_df[
             (temp_df["distance_to_centroid"] < bad_cards_limitation)
             & (temp_df["distance_to_centroid"] < MAX_SELF_DISTANCE)
-            & (temp_df["color"] == self.team_color.as_card_color)
+            & (temp_df["color"] == self.team.as_card_color)
         ]
 
         distance_group = np.max(chosen_cards["distance_to_centroid"])
@@ -343,14 +342,14 @@ class SNAHinter(Hinter):
         if self.debug_mode is True:
             draw_cluster = Cluster(0, chosen_cards)
             draw_cluster.reset()
-            self.draw_guesser_view(cluster=draw_cluster, word=word, vector=vector)
+            self.draw_operative_view(cluster=draw_cluster, word=word, vector=vector)
 
         proposal = Proposal(
             word_group=chosen_cards.index.to_list(),
-            hint_word=word,
-            hint_word_frequency=0,
+            clue_word=word,
+            clue_word_frequency=0,
             distance_group=distance_group,
-            distance_gray=centroid_to_gray,
+            distance_neutral=centroid_to_neutral,
             distance_opponent=centroid_to_opponent,
             distance_black=centroid_to_black,
         )
@@ -361,13 +360,13 @@ class SNAHinter(Hinter):
     def force_from_color(self, centroid: np.ndarray, card_row: Series):
         vector, card_color = card_row["vector"], card_row["color"]
         d = cosine_distance(centroid, vector)
-        if card_color == self.team_color.opponent.as_card_color:
+        if card_color == self.team.opponent.as_card_color:
             return opponent_force(d)
         elif card_color == CardColor.BLACK:
             return black_force(d)
         elif card_color == CardColor.GRAY:
-            return gray_force(d)
-        elif card_color == self.team_color.as_card_color:
+            return neutral_force(d)
+        elif card_color == self.team.as_card_color:
             return friendly_force(d)
         else:
             raise ValueError(f"color{card_row['color']} is not a valid color")
@@ -384,16 +383,16 @@ class SNAHinter(Hinter):
 
     def optimization_break_condition(self, cluster: Cluster) -> bool:
         self.update_distances(cluster.centroid)
-        distances2opponent = self.extract_centroid_distances(self.team_color.opponent.as_card_color)
-        distances2own = self.extract_centroid_distances(self.team_color.as_card_color)
+        distances2opponent = self.extract_centroid_distances(self.team.opponent.as_card_color)
+        distances2own = self.extract_centroid_distances(self.team.as_card_color)
         distances2own = distances2own[distances2own.index.isin(cluster.df.index.to_list())]
         distance2black = self.extract_centroid_distances(CardColor.BLACK)
-        distances2gray = self.extract_centroid_distances(CardColor.GRAY)
+        distances2neutral = self.extract_centroid_distances(CardColor.GRAY)
         max_distance2own = max(distances2own)
         if (
             (min(distances2opponent) - max_distance2own > MIN_SELF_OPPONENT_DELTA)
             and (distance2black[0] - max_distance2own > MIN_SELF_OPPONENT_DELTA)
-            and (min(distances2gray) - max_distance2own > MIN_SELF_GRAY_DELTA)
+            and (min(distances2neutral) - max_distance2own > MIN_SELF_GRAY_DELTA)
             and (max_distance2own < MAX_SELF_DISTANCE)
         ):
             return True
@@ -403,18 +402,18 @@ class SNAHinter(Hinter):
     def optimize_cluster(self, cluster: Cluster) -> Cluster:
         cluster.reset()
         if self.debug_mode is True:
-            self.draw_guesser_view(cluster)
+            self.draw_operative_view(cluster)
         for _ in range(100):
             self.clean_cluster(cluster)
             if self.debug_mode is True:
-                self.draw_guesser_view(cluster)
+                self.draw_operative_view(cluster)
             if self.optimization_break_condition(cluster):
                 break
             if self.physics_optimization:
                 nodes = self.board_df2nodes(cluster.centroid)
                 cluster.centroid = step_from_forces(cluster.centroid, nodes, arc_radians=5e-2)
             if self.debug_mode is True:
-                self.draw_guesser_view(cluster)
+                self.draw_operative_view(cluster)
         return cluster
 
     def extract_centroid_distances(self, color: CardColor):
@@ -423,14 +422,12 @@ class SNAHinter(Hinter):
             color_rows = relevant_df.color == CardColor.GRAY
         elif color == CardColor.BLACK:
             color_rows = relevant_df.color == CardColor.BLACK
-        elif color == self.team_color.opponent.as_card_color:
-            color_rows = relevant_df.color == self.team_color.opponent.as_card_color
-        elif color == self.team_color.as_card_color:
-            color_rows = relevant_df.color == self.team_color.as_card_color
+        elif color == self.team.opponent.as_card_color:
+            color_rows = relevant_df.color == self.team.opponent.as_card_color
+        elif color == self.team.as_card_color:
+            color_rows = relevant_df.color == self.team.as_card_color
         elif color == CardColor.BAD:  # TODO: What is this?
-            color_rows = relevant_df.color.isin(
-                [CardColor.GRAY, CardColor.BLACK, self.team_color.opponent.as_card_color]
-            )
+            color_rows = relevant_df.color.isin([CardColor.GRAY, CardColor.BLACK, self.team.opponent.as_card_color])
         else:
             raise ValueError(f"No such color as {color}")
         return relevant_df.loc[color_rows, "distance_to_centroid"]
@@ -478,13 +475,13 @@ class SNAHinter(Hinter):
             plt.savefig(f"{export_file}.png")
         plt.show()
 
-    def draw_guesser_view(self, cluster: Cluster, word=None, vector=None):
+    def draw_operative_view(self, cluster: Cluster, word=None, vector=None):
         if word is None:
             fig, ax = plt.subplots(1, 1, figsize=(15, 8))
             self.draw_centroid_distances(ax, cluster, title="Cluster centroid")
         else:
             fig, ax = plt.subplots(1, 1, figsize=(15, 8))
-            self.draw_centroid_distances(ax, cluster, centroid=vector, title=f"hint word: {word}")
+            self.draw_centroid_distances(ax, cluster, centroid=vector, title=f"clue word: {word}")
             # self.draw_centroid_distances(ax[1], cluster, title="Cluster centroid")
 
     def divide_to_clusters(self, df: pd.DataFrame, resolution_parameter=1):

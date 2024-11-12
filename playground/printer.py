@@ -1,10 +1,10 @@
 import logging
 from typing import Optional
 
-from codenames.game.move import GuessMove, HintMove, Move, PassMove
-from codenames.game.player import Player, PlayerRole
-from codenames.game.runner import GameRunner
-from codenames.game.state import GameState
+from codenames.generic.move import ClueMove, GuessMove, Move, PassMove
+from codenames.generic.player import Player, PlayerRole
+from codenames.generic.runner import GameRunner
+from codenames.generic.state import GameState
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def _print_moves(game_runner: GameRunner):
     state = game_runner.state
     for move in state.moves:
         player = _get_player(game_runner, move)
-        if isinstance(move, HintMove):
+        if isinstance(move, ClueMove):
             hint = state.raw_hints[hint_count]
             hint_count += 1
             log.info(f"{player} said '{hint.word}' for words: {hint.for_words}")
@@ -42,8 +42,8 @@ def _print_moves(game_runner: GameRunner):
 
 
 def _get_player(game_runner: GameRunner, move: Move) -> Player:
-    role = PlayerRole.HINTER if isinstance(move, HintMove) else PlayerRole.GUESSER
-    return game_runner.players.get_player(team_color=move.team_color, role=role)
+    role = PlayerRole.HINTER if isinstance(move, ClueMove) else PlayerRole.GUESSER
+    return game_runner.players.get_player(team=move.team, role=role)
 
 
 def _print_result(state: GameState):

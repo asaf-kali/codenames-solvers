@@ -1,28 +1,28 @@
 from unittest.mock import patch
 
 import pytest
-from codenames.boards.builder import generate_board
-from codenames.game.board import Board
-from codenames.game.color import TeamColor
-from codenames.game.move import PASS_GUESS, QUIT_GAME
-from codenames.game.player import GamePlayers
-from codenames.game.runner import GameRunner
-from codenames.game.winner import WinningReason
+from codenames.classic.board import ClassicBoard
+from codenames.classic.builder import generate_board
+from codenames.classic.color import ClassicTeam
+from codenames.classic.runner.models import GamePlayers
+from codenames.classic.runner.runner import ClassicGameRunner
+from codenames.classic.winner import WinningReason
+from codenames.generic.move import PASS_GUESS, QUIT_GAME
 
-from solvers.cli import CLIGuesser, CLIHinter
+from solvers.cli import CLIOperative, CLISpymaster
 
 
 @pytest.fixture
-def english_board() -> Board:
-    return generate_board(language="english", first_team=TeamColor.BLUE, seed=2)
+def english_board() -> ClassicBoard:
+    return generate_board(language="english", first_team=ClassicTeam.BLUE, seed=2)
 
 
 @patch("builtins.input")
-def test_cli_players_game(mock_input, english_board: Board):
-    blue_hinter = CLIHinter("Leonardo", team_color=TeamColor.BLUE)
-    blue_guesser = CLIGuesser("Bard", team_color=TeamColor.BLUE)
-    red_hinter = CLIHinter("Adam", team_color=TeamColor.RED)
-    red_guesser = CLIGuesser("Eve", team_color=TeamColor.RED)
+def test_cli_players_game(mock_input, english_board: ClassicBoard):
+    blue_hinter = CLISpymaster("Leonardo", team=ClassicTeam.BLUE)
+    blue_guesser = CLIOperative("Bard", team=ClassicTeam.BLUE)
+    red_hinter = CLISpymaster("Adam", team=ClassicTeam.RED)
+    red_guesser = CLIOperative("Eve", team=ClassicTeam.RED)
 
     players = GamePlayers.from_collection([blue_hinter, blue_guesser, red_hinter, red_guesser])
     mock_input.side_effect = [
@@ -39,7 +39,7 @@ def test_cli_players_game(mock_input, english_board: Board):
         "god",  # Black
         f"{QUIT_GAME}",
     ]
-    runner = GameRunner(players=players, board=english_board)
+    runner = ClassicGameRunner(players=players, board=english_board)
     winner = runner.run_game()
-    assert winner.team_color == TeamColor.RED
-    assert winner.reason == WinningReason.OPPONENT_HIT_BLACK
+    assert winner.team == ClassicTeam.RED
+    assert winner.reason == WinningReason.OPPONENT_HIT_ASSASSIN

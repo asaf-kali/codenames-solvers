@@ -28,7 +28,7 @@ def text2color(text):
         return RED
     if text == "black":
         return DARK_GRAY
-    if text == "gray":
+    if text == "neutral":
         return GRAY
 
 
@@ -995,7 +995,7 @@ class KalirmozExplanation(ThreeDScene):
 
         chart = BarChart(values=df["distance_to_centroid"].to_list(), **CONFIG_dict)
         chart.shift(chart_position_y * UP + chart_position_x * RIGHT)
-        title = Text(f"Hint word: {title}")
+        title = Text(f"Clue word: {title}")
         y_label = Text("Cosine distance to hinted word")
         x_label = Text("Board words")
         title.next_to(chart, UP).shift(RIGHT - chart_position_y * UP)

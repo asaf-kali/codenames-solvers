@@ -4,28 +4,21 @@ import re
 from abc import ABC
 from typing import List, Optional
 
-from codenames.game.color import TeamColor
-from codenames.game.move import (
-    GivenGuess,
-    GivenHint,
-    GuessMove,
-    HintMove,
-    Move,
-    PassMove,
-)
-from codenames.game.player import Player
-from codenames.game.score import Score
-from codenames.game.state import BaseGameState
+from codenames.classic.score import Score
+from codenames.generic.move import GivenClue, GivenGuess
+from codenames.generic.player import Player, Spymaster, Team
+from codenames.generic.state import PlayerState
 from openai import ChatCompletion
 
 from solvers.gpt.instructions import load_instructions
+from solvers.gpt.moves import ClueMove, GuessMove, Move, PassMove, get_moves
 
 log = logging.getLogger(__name__)
 INSTRUCTIONS = load_instructions()
 FULL_INSTRUCTIONS = INSTRUCTIONS["full_instructions"]
 SHORT_INSTRUCTIONS = INSTRUCTIONS["short_instructions"]
-HINTER_TURN_COMMAND = INSTRUCTIONS["hinter_turn_command"]
-GUESSER_TURN_COMMAND = INSTRUCTIONS["guesser_turn_command"]
+HINTER_TURN_COMMAND = INSTRUCTIONS["spymaster_turn_command"]
+GUESSER_TURN_COMMAND = INSTRUCTIONS["operative_turn_command"]
 
 
 class GPTPlayer(Player, ABC):
@@ -33,17 +26,21 @@ class GPTPlayer(Player, ABC):
         self,
         name: str,
         api_key: str,
-        team_color: Optional[TeamColor] = None,
+        team: Optional[Team] = None,
         model_name: str = "gpt-3.5-turbo",
         temperature: float = 0,
     ):
-        super().__init__(name=name, team_color=team_color)
+        super().__init__(name=name, team=team)
         self.api_key = api_key
         self.model_name = model_name
         self.temperature = temperature
 
+    @property
+    def role(self) -> str:
+        return "spymaster" if isinstance(self, Spymaster) else "operative"
+
     def build_team_repr(self):
-        return f"You are the {self.team_color} team {self.role}."
+        return f"You are the {self.team} team {self.role}."
 
     @classmethod
     def build_score_repr(cls, score: Score) -> str:
@@ -54,14 +51,14 @@ class GPTPlayer(Player, ABC):
         )
 
     @classmethod
-    def build_moves_repr(cls, state: BaseGameState) -> Optional[str]:
-        moves: List[Move] = state.moves
+    def build_moves_repr(cls, state: PlayerState) -> Optional[str]:
+        moves: List[Move] = get_moves(state)
         if not moves:
             return None
         moves_repr = []
         for move in moves:
-            if isinstance(move, HintMove):
-                moves_repr.append(hint_repr(hint=move.given_hint))
+            if isinstance(move, ClueMove):
+                moves_repr.append(clue_repr(clue=move.given_clue))
             elif isinstance(move, GuessMove):
                 moves_repr.append(guess_repr(guess=move.given_guess))
             elif isinstance(move, PassMove):
@@ -96,13 +93,13 @@ def find_json_in_string(data: str) -> str:
     raise ValueError("No JSON found in string")
 
 
-def hint_repr(hint: GivenHint) -> str:
-    return f"{hint.team_color} hinter said: '{hint.word}', {hint.card_amount} cards."
+def clue_repr(clue: GivenClue) -> str:
+    return f"{clue.team} spymaster said: '{clue.word}', {clue.card_amount} cards."
 
 
 def guess_repr(guess: GivenGuess) -> str:
-    return f"{guess.team} guesser said: {guess}."
+    return f"{guess.team} operative said: {guess}."
 
 
 def pass_repr(move: PassMove) -> str:
-    return f"{move.team_color} team guesser passed the turn."
+    return f"{move.team} team operative passed the turn."

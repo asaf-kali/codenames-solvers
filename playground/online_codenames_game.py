@@ -1,8 +1,8 @@
 import logging
 import os
 
-from codenames.game.color import TeamColor
-from codenames.game.exceptions import QuitGame
+from codenames.classic.color import ClassicTeam
+from codenames.generic.exceptions import QuitGame
 from codenames.online.codenames_game.adapter import CodenamesGameLanguage, GameConfigs
 from codenames.online.codenames_game.runner import CodenamesGameRunner
 
@@ -15,7 +15,8 @@ from solvers.models import (
     ModelIdentifier,
     load_language_async,
 )
-from solvers.naive import NaiveGuesser, NaiveHinter
+from solvers.naive.naive_guesser import NaiveOperative
+from solvers.naive.naive_hinter import NaiveSpymaster
 
 # configure_logging(level="DEBUG", mute_solvers=False, mute_online=False)
 log = logging.getLogger(__name__)
@@ -40,29 +41,31 @@ def run_online():
     online_manager = runner = None
     try:
         configs = GameConfigs(language=CodenamesGameLanguage.HEBREW)
-        # blue_hinter = GPTHinter(name="Einstein", api_key=GPT_API_KEY)
-        blue_hinter = NaiveHinter(
-            "Einstein", team_color=TeamColor.BLUE, model_identifier=model_id, model_adapter=adapter
+        # blue_spymaster = GPTSpymaster(name="Einstein", api_key=GPT_API_KEY)
+        blue_spymaster = NaiveSpymaster(
+            "Einstein", team=ClassicTeam.BLUE, model_identifier=model_id, model_adapter=adapter
         )
-        red_hinter = NaiveHinter(
-            name="Yoda", team_color=TeamColor.RED, model_identifier=model_id, model_adapter=adapter
+        red_spymaster = NaiveSpymaster(
+            name="Yoda", team=ClassicTeam.RED, model_identifier=model_id, model_adapter=adapter
         )
-        blue_guesser = NaiveGuesser(
-            name="Newton", team_color=TeamColor.BLUE, model_identifier=model_id, model_adapter=adapter
+        blue_operative = NaiveOperative(
+            name="Newton", team=ClassicTeam.BLUE, model_identifier=model_id, model_adapter=adapter
         )
-        # red_guesser = GPTGuesser(name="Anakin", api_key=GPT_API_KEY)
-        red_guesser = NaiveGuesser(
-            name="Anakin", team_color=TeamColor.RED, model_identifier=model_id, model_adapter=adapter
+        # red_operative = GPTOperative(name="Anakin", api_key=GPT_API_KEY)
+        red_operative = NaiveOperative(
+            name="Anakin", team=ClassicTeam.RED, model_identifier=model_id, model_adapter=adapter
         )
         online_manager = CodenamesGameRunner(
-            blue_hinter=blue_hinter,
-            red_hinter=red_hinter,
-            blue_guesser=blue_guesser,
-            red_guesser=red_guesser,
+            blue_spymaster=blue_spymaster,
+            red_spymaster=red_spymaster,
+            blue_operative=blue_operative,
+            red_operative=red_operative,
             show_host=True,
             game_configs=configs,
         )
-        # online_manager = CodenamesGameGameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
+        # online_manager = CodenamesGameGameRunner(
+        # blue_spymaster, red_spymaster, blue_operative, red_operative, show_host=False
+        # )
         runner = online_manager.auto_start()
     except QuitGame:
         log.info("Game quit")

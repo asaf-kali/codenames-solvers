@@ -1,16 +1,14 @@
 import itertools
 import logging
 from dataclasses import dataclass
-from functools import cached_property
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
 import editdistance
 import numpy as np
 import pandas as pd
-from codenames.game.base import WordGroup
-from codenames.game.card import Cards
-from codenames.game.color import CardColor
-from codenames.game.state import HinterGameState
+from codenames.generic.board import WordGroup
+from codenames.generic.card import CardColor, Cards
+from codenames.generic.state import SpymasterState
 from gensim.models import KeyedVectors
 from pydantic import BaseModel
 from the_spymaster_util.async_task_manager import AsyncTaskManager
@@ -26,23 +24,23 @@ Similarity = Tuple[str, float]
 
 # min_frequency:          high = fewer results
 # max_distance_group:     high =  more results
-# min_distance_gray:      high = fewer results
+# min_distance_neutral:      high = fewer results
 # min_distance_opponent:  high = fewer results
-# min_distance_black:     high = fewer results
+# min_distance_assassin:     high = fewer results
 class ProposalThresholds(BaseModel):
     min_frequency: float = 0  # Can't be less common than X.
     max_distance_group: float = 1  # Can't be far from the group more than X.
-    min_distance_gray: float = 0  # Can't be closer to gray then X.
+    min_distance_neutral: float = 0  # Can't be closer to neutral then X.
     min_distance_opponent: float = 0  # Can't be closer to opponent then X.
-    min_distance_black: float = 0  # Can't be closer to black then X.
+    min_distance_assassin: float = 0  # Can't be closer to assassin then X.
 
     @staticmethod
     def from_max_distance_group(max_distance_group: float) -> "ProposalThresholds":
         return ProposalThresholds(
             max_distance_group=max_distance_group,
-            min_distance_gray=max_distance_group * 1.04,
+            min_distance_neutral=max_distance_group * 1.04,
             min_distance_opponent=max_distance_group * 1.14,
-            min_distance_black=max_distance_group * 1.18,
+            min_distance_assassin=max_distance_group * 1.18,
         )
 
 
@@ -58,37 +56,45 @@ class ThresholdDistances(dict):
 
 class Proposal(BaseModel):
     word_group: WordGroup
-    hint_word: str
-    hint_word_frequency: float
+    clue_word: str
+    clue_word_frequency: float
     distance_group: float
-    distance_gray: float
+    distance_neutral: float
     distance_opponent: float
-    distance_black: float
+    distance_assassin: float
     grade: float = 0
     board_distances: Dict[str, float] = {}
 
     def __str__(self) -> str:
-        return f"{self.word_group} = ('{self.hint_word}', {self.grade:.2f})"
+        return f"{self.word_group} = ('{self.clue_word}', {self.grade:.2f})"
 
     @property
     def card_count(self) -> int:
         return len(self.word_group)
 
     def dict(self, *args, **kwargs):
-        result = super().dict(*args, **kwargs)
+        result = super().model_dump(*args, **kwargs)
         _format_dict_floats(result)
         return result
 
 
-DEFAULT_THRESHOLDS = ProposalThresholds(min_frequency=0.82, max_distance_group=0.27, min_distance_black=0.43)
+DEFAULT_THRESHOLDS = ProposalThresholds(min_frequency=0.82, max_distance_group=0.27, min_distance_assassin=0.43)
+
+
+@dataclass
+class ProposalColors:
+    team: CardColor
+    neutral: CardColor
+    assassin: CardColor
+    opponent: CardColor | None = None
 
 
 @dataclass
 class NaiveProposalsGenerator:
     model: KeyedVectors
     model_adapter: ModelFormatAdapter
-    game_state: HinterGameState
-    team_card_color: CardColor
+    game_state: SpymasterState
+    proposal_colors: ProposalColors
     proposals_thresholds: ProposalThresholds
     proposal_grade_calculator: Callable[[Proposal], float]
     thresholds_filter_active: bool
@@ -108,23 +114,25 @@ class NaiveProposalsGenerator:
             index=words,  # type: ignore
         )
 
-    @cached_property
+    @property
     def team_unrevealed_cards(self) -> Cards:
-        return self.game_state.board.unrevealed_cards_for_color(self.team_card_color)
+        return self.game_state.board.unrevealed_cards_for_color(self.proposal_colors.team)
 
-    @cached_property
-    def gray_indices(self) -> np.ndarray:
-        return self.board_data.color == CardColor.GRAY
+    @property
+    def neutral_indices(self) -> np.ndarray:
+        return self.board_data.color == self.proposal_colors.neutral  # type: ignore
 
-    @cached_property
+    @property
     def opponent_indices(self) -> np.ndarray:
-        return self.board_data.color == self.team_card_color.opponent
+        if not self.proposal_colors.opponent:
+            return np.array([])
+        return self.board_data.color == self.proposal_colors.opponent  # type: ignore
 
-    @cached_property
-    def black_indices(self) -> np.ndarray:
-        return self.board_data.color == CardColor.BLACK
+    @property
+    def assassin_indices(self) -> np.ndarray:
+        return self.board_data.color == self.proposal_colors.assassin  # type: ignore
 
-    @cached_property
+    @property
     def board_vectors(self) -> pd.Series:
         return self.board_data["vectors"]
 
@@ -197,28 +205,28 @@ class NaiveProposalsGenerator:
     def proposal_from_similarity(
         self, word_group: WordGroup, group_indices: np.ndarray, similarity: Similarity
     ) -> Optional[Proposal]:
-        hint, similarity_score = similarity  # pylint: disable=unused-variable
+        clue, similarity_score = similarity  # pylint: disable=unused-variable
         # word = format_word(word)
-        filter_expressions = self.game_state.illegal_hint_words
-        if self.should_filter_hint(hint=hint, word_group=word_group, filter_expressions=filter_expressions):
+        filter_expressions = self.game_state.illegal_clue_words
+        if self.should_filter_clue(clue=clue, word_group=word_group, filter_expressions=filter_expressions):
             return None
-        hint_vector = self.model[hint]
-        board_distances: np.ndarray = cosine_distance(hint_vector, self.board_vectors)  # type: ignore
-        hint_to_group = board_distances[group_indices]
-        hint_to_gray = board_distances[self.gray_indices]
-        hint_to_opponent = board_distances[self.opponent_indices]
-        hint_to_black = board_distances[self.black_indices]
+        clue_vector = self.model[clue]
+        board_distances: np.ndarray = cosine_distance(clue_vector, self.board_vectors)  # type: ignore
+        clue_to_group = board_distances[group_indices]
+        clue_to_neutral = board_distances[self.neutral_indices]
+        clue_to_opponent = board_distances[self.opponent_indices]
+        clue_to_assassin = board_distances[self.assassin_indices]
         proposal = Proposal(
             word_group=word_group,
-            hint_word=self.board_format(hint),
-            hint_word_frequency=self.get_word_frequency(hint),
-            distance_group=np.max(hint_to_group),
-            distance_gray=np.min(hint_to_gray) if hint_to_gray.size > 0 else 1,
-            distance_opponent=np.min(hint_to_opponent),
-            distance_black=np.min(hint_to_black),
+            clue_word=self.board_format(clue),
+            clue_word_frequency=self.get_word_frequency(clue),
+            distance_group=np.max(clue_to_group),
+            distance_neutral=np.min(clue_to_neutral) if clue_to_neutral.size > 0 else 0,
+            distance_opponent=np.min(clue_to_opponent) if clue_to_opponent.size > 0 else 0,
+            distance_assassin=np.min(clue_to_assassin),
             board_distances=self._get_board_distances_dict(board_distances),
         )
-        if self.gradual_distances_filter_active and not _hint_group_is_closest(proposal=proposal):
+        if self.gradual_distances_filter_active and not _clue_group_is_closest(proposal=proposal):
             return None
         if not self.proposal_satisfy_thresholds(proposal=proposal):
             return None
@@ -232,18 +240,18 @@ class NaiveProposalsGenerator:
         order = np.argsort(board_distances)
         return {self.board_data.index[i]: board_distances[i] for i in order}
 
-    def should_filter_hint(self, hint: str, word_group: WordGroup, filter_expressions: Iterable[str]) -> bool:
+    def should_filter_clue(self, clue: str, word_group: WordGroup, filter_expressions: Iterable[str]) -> bool:
         # if "_" in word:
         #     return True
         # if word in BANNED_WORDS:
         #     return True
-        hint = self.board_format(hint)
+        clue = self.board_format(clue)
         for filter_expression in filter_expressions:
-            if hint in filter_expression or filter_expression in hint:
+            if clue in filter_expression or filter_expression in clue:
                 return True
         for word in word_group:
-            edit_distance = editdistance.eval(hint, word)
-            if len(word) <= 4 or len(hint) <= 4:
+            edit_distance = editdistance.eval(clue, word)
+            if len(word) <= 4 or len(clue) <= 4:
                 if edit_distance <= 1:
                     return True
             elif edit_distance <= 2:
@@ -255,11 +263,11 @@ class NaiveProposalsGenerator:
             return True
         # distances dict is built in such way that higher values are better.
         distances = ThresholdDistances(
-            frequency=proposal.hint_word_frequency - self.proposals_thresholds.min_frequency,
+            frequency=proposal.clue_word_frequency - self.proposals_thresholds.min_frequency,
             group=self.proposals_thresholds.max_distance_group - proposal.distance_group,
-            gray=proposal.distance_gray - self.proposals_thresholds.min_distance_gray,
+            neutral=proposal.distance_neutral - self.proposals_thresholds.min_distance_neutral,
             opponent=proposal.distance_opponent - self.proposals_thresholds.min_distance_opponent,
-            black=proposal.distance_black - self.proposals_thresholds.min_distance_black,
+            assassin=proposal.distance_assassin - self.proposals_thresholds.min_distance_assassin,
         )
         # This means all values are above their thresholds.
         pass_thresholds = distances.min >= 0
@@ -279,9 +287,9 @@ def _format_dict_floats(data: dict):
             data[key] = round(value, 3)
 
 
-def _hint_group_is_closest(proposal: Proposal) -> bool:
+def _clue_group_is_closest(proposal: Proposal) -> bool:
     """
-    Returns true if the proposed word group is closer to the hint than any card on the board.
+    Returns true if the proposed word group is closer to the clue than any card on the board.
     """
-    distances = {proposal.distance_gray, proposal.distance_opponent, proposal.distance_black}
+    distances = {proposal.distance_neutral, proposal.distance_opponent, proposal.distance_assassin}
     return all(proposal.distance_group < distance for distance in distances)

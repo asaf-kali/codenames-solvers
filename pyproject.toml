@@ -24,8 +24,8 @@ all = ["openai"]
 # Core
 python = "^3.12,<3.13"
 the-spymaster-util = { version = "~3.2", extras = ["logging"] }
-codenames = "^4.1.5"
-pydantic = "^1.9"
+codenames = ">=5.0.4"
+pydantic = ">=2.4"
 # Numbers
 numpy = "^1.21"
 pandas = ">=1.6"
@@ -34,7 +34,7 @@ networkx = "^2.6"
 matplotlib = ">=3.8"  # TODO: This should not be here
 # Language
 gensim = ">=4.3.3"
-generic-iterative-stemmer = "^1.1.6"
+generic-iterative-stemmer = ">=1.2"
 python-louvain = "^0.15"
 editdistance = ">=0.8.1"
 # GPT
@@ -63,7 +63,7 @@ jupyter = "^1.0"
 # Other
 pre-commit = "^3.2.2"
 # Local playground
-codenames = { extras = ["web"], version = "^4.1.0" }
+codenames = { extras = ["web"], version = ">=4.1" }
 
 [build-system]
 requires = ["poetry-core"]
@@ -97,7 +97,7 @@ profile = "black"
 
 [tool.mypy]
 ignore_missing_imports = true
-exclude = ["build", "dist"]
+exclude = ["build", "dist", "playground/"]
 
 [tool.pylint.main]
 max-line-length = 120

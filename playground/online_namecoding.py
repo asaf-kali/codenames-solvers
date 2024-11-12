@@ -14,7 +14,7 @@ from solvers.models import (
     ModelIdentifier,
     load_language_async,
 )
-from solvers.naive import NaiveGuesser, NaiveHinter
+from solvers.naive import NaiveOperative, NaiveSpymaster
 from utils import configure_logging
 
 configure_logging(level="INFO", mute_solvers=False, mute_online=False)
@@ -39,12 +39,12 @@ def run_online():
     log.info("Running online game...")
     online_manager = None
     try:
-        # blue_hinter = GPTHinter(name="Einstein", api_key=GPT_API_KEY)
-        blue_hinter = NaiveHinter("Einstein", model_identifier=model_id, model_adapter=adapter)  # noqa
-        red_hinter = NaiveHinter(name="Yoda", model_identifier=model_id, model_adapter=adapter)  # noqa
-        blue_guesser = NaiveGuesser(name="Newton", model_identifier=model_id, model_adapter=adapter)  # noqa
-        # red_guesser = GPTGuesser(name="Anakin", api_key=GPT_API_KEY)
-        red_guesser = NaiveGuesser(name="Anakin", model_identifier=model_id, model_adapter=adapter)  # noqa
+        # blue_hinter = GPTSpymaster(name="Einstein", api_key=GPT_API_KEY)
+        blue_hinter = NaiveSpymaster("Einstein", model_identifier=model_id, model_adapter=adapter)  # noqa
+        red_hinter = NaiveSpymaster(name="Yoda", model_identifier=model_id, model_adapter=adapter)  # noqa
+        blue_guesser = NaiveOperative(name="Newton", model_identifier=model_id, model_adapter=adapter)  # noqa
+        # red_guesser = GPTOperative(name="Anakin", api_key=GPT_API_KEY)
+        red_guesser = NaiveOperative(name="Anakin", model_identifier=model_id, model_adapter=adapter)  # noqa
         online_manager = NamecodingGameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=True)
         # online_manager = NamecodingGameRunner(blue_hinter, red_hinter, blue_guesser, red_guesser, show_host=False)
         online_manager.auto_start(language=namecoding_language, clock=False)
