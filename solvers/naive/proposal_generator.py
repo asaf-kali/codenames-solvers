@@ -72,7 +72,7 @@ class Proposal(BaseModel):
     def card_count(self) -> int:
         return len(self.word_group)
 
-    def dict(self, *args, **kwargs):
+    def model_dump(self, *args, **kwargs):
         result = super().model_dump(*args, **kwargs)
         _format_dict_floats(result)
         return result
