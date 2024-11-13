@@ -4,12 +4,11 @@ from uuid import uuid4
 
 import editdistance
 import numpy as np
-from codenames.game.base import WordGroup
-from codenames.game.board import Board
-from codenames.game.color import CardColor
-from codenames.game.move import Clue, GivenClue
-from codenames.game.player import Spymaster
-from codenames.game.state import SpymasterState
+from codenames.generic.board import Board, WordGroup
+from codenames.generic.card import CardColor
+from codenames.generic.move import Clue, GivenClue
+from codenames.generic.player import Spymaster
+from codenames.generic.state import SpymasterState
 from gensim.models import KeyedVectors
 from typing_extensions import TypeAlias
 

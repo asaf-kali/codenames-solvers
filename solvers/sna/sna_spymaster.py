@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
+from codenames.classic.color import ClassicColor
 from codenames.generic.board import Board, WordGroup
-from codenames.generic.card import CardColor
 from codenames.generic.move import Clue
 from codenames.generic.player import Spymaster
 from codenames.generic.state import SpymasterState
@@ -35,16 +35,16 @@ class ForceNode:
 
 
 log = logging.getLogger(__name__)
-MIN_SELF_BLACK_DELTA = 0.07
+MIN_SELF_ASSASSIN_DELTA = 0.07
 MIN_SELF_OPPONENT_DELTA = 0.04
-MIN_SELF_GRAY_DELTA = 0.01
+MIN_SELF_NEUTRAL_DELTA = 0.01
 MAX_SELF_DISTANCE = 0.235
 OPPONENT_FORCE_CUTOFF = 0.275
 OPPONENT_FORCE_FACTOR = 1.6
 FRIENDLY_FORCE_CUTOFF = 0.2
 FRIENDLY_FORCE_FACTOR = 1
-BLACK_FORCE_FACTOR = 2
-GRAY_FORCE_FACTOR = 1.2
+ASSASSIN_FORCE_FACTOR = 2
+NEUTRAL_FORCE_FACTOR = 1.2
 EPSILON = 0.001
 
 BANNED_WORDS = {"slackerjack"}
@@ -134,11 +134,11 @@ def opponent_force(d: float):
 
 
 def neutral_force(d):
-    return repelling_force(d, OPPONENT_FORCE_CUTOFF, GRAY_FORCE_FACTOR)
+    return repelling_force(d, OPPONENT_FORCE_CUTOFF, NEUTRAL_FORCE_FACTOR)
 
 
 def black_force(d):
-    return repelling_force(d, OPPONENT_FORCE_CUTOFF, BLACK_FORCE_FACTOR)
+    return repelling_force(d, OPPONENT_FORCE_CUTOFF, ASSASSIN_FORCE_FACTOR)
 
 
 def _format_word(word: str) -> str:
@@ -227,7 +227,7 @@ class SNASpymaster(Spymaster):
 
     @property
     def neutral_cards(self) -> pd.DataFrame:
-        return self.board_data[self.board_data["color"] == CardColor.GRAY]
+        return self.board_data[self.board_data["color"] == ClassicColor.NEUTRAL]
 
     @property
     def own_cards(self) -> pd.DataFrame:
@@ -235,12 +235,14 @@ class SNASpymaster(Spymaster):
 
     @property
     def black_card(self) -> pd.DataFrame:
-        return self.board_data[self.board_data["color"] == CardColor.BLACK]
+        return self.board_data[self.board_data["color"] == ClassicColor.ASSASSIN]
 
     @property
     def bad_cards(self) -> pd.DataFrame:
         return self.board_data[
-            self.board_data["color"].isin([CardColor.GRAY, CardColor.BLACK, self.team.opponent.as_card_color])
+            self.board_data["color"].isin(
+                [ClassicColor.NEUTRAL, ClassicColor.ASSASSIN, self.team.opponent.as_card_color]
+            )
         ]
 
     def update_reveals(self, game_state):
@@ -313,9 +315,11 @@ class SNASpymaster(Spymaster):
         self.update_distances(vector)
         temp_df = self.unrevealed_cards.sort_values("distance_to_centroid")
         centroid_to_black = np.min(  # This min is required for the float type
-            cosine_distance(vector, temp_df[temp_df["color"] == CardColor.BLACK]["vector"])
+            cosine_distance(vector, temp_df[temp_df["color"] == ClassicColor.ASSASSIN]["vector"])
         )
-        centroid_to_neutral = np.min(cosine_distance(vector, temp_df[temp_df["color"] == CardColor.GRAY]["vector"]))
+        centroid_to_neutral = np.min(
+            cosine_distance(vector, temp_df[temp_df["color"] == ClassicColor.NEUTRAL]["vector"])
+        )
         centroid_to_opponent = np.min(
             cosine_distance(
                 vector,
@@ -325,8 +329,8 @@ class SNASpymaster(Spymaster):
 
         bad_cards_limitation = np.min(
             [
-                centroid_to_black - MIN_SELF_BLACK_DELTA,
-                centroid_to_neutral - MIN_SELF_GRAY_DELTA,
+                centroid_to_black - MIN_SELF_ASSASSIN_DELTA,
+                centroid_to_neutral - MIN_SELF_NEUTRAL_DELTA,
                 centroid_to_opponent - MIN_SELF_OPPONENT_DELTA,
             ]
         )
@@ -362,9 +366,9 @@ class SNASpymaster(Spymaster):
         d = cosine_distance(centroid, vector)
         if card_color == self.team.opponent.as_card_color:
             return opponent_force(d)
-        elif card_color == CardColor.BLACK:
+        elif card_color == ClassicColor.ASSASSIN:
             return black_force(d)
-        elif card_color == CardColor.GRAY:
+        elif card_color == ClassicColor.NEUTRAL:
             return neutral_force(d)
         elif card_color == self.team.as_card_color:
             return friendly_force(d)
@@ -386,18 +390,17 @@ class SNASpymaster(Spymaster):
         distances2opponent = self.extract_centroid_distances(self.team.opponent.as_card_color)
         distances2own = self.extract_centroid_distances(self.team.as_card_color)
         distances2own = distances2own[distances2own.index.isin(cluster.df.index.to_list())]
-        distance2black = self.extract_centroid_distances(CardColor.BLACK)
-        distances2neutral = self.extract_centroid_distances(CardColor.GRAY)
+        distance2black = self.extract_centroid_distances(ClassicColor.ASSASSIN)
+        distances2neutral = self.extract_centroid_distances(ClassicColor.NEUTRAL)
         max_distance2own = max(distances2own)
         if (
             (min(distances2opponent) - max_distance2own > MIN_SELF_OPPONENT_DELTA)
             and (distance2black[0] - max_distance2own > MIN_SELF_OPPONENT_DELTA)
-            and (min(distances2neutral) - max_distance2own > MIN_SELF_GRAY_DELTA)
+            and (min(distances2neutral) - max_distance2own > MIN_SELF_NEUTRAL_DELTA)
             and (max_distance2own < MAX_SELF_DISTANCE)
         ):
             return True
-        else:
-            return False
+        return False
 
     def optimize_cluster(self, cluster: Cluster) -> Cluster:
         cluster.reset()
@@ -416,18 +419,20 @@ class SNASpymaster(Spymaster):
                 self.draw_operative_view(cluster)
         return cluster
 
-    def extract_centroid_distances(self, color: CardColor):
+    def extract_centroid_distances(self, color: ClassicColor):
         relevant_df = self.board_data[self.board_data["is_revealed"] == False]  # noqa: E712
-        if color == CardColor.GRAY:
-            color_rows = relevant_df.color == CardColor.GRAY
-        elif color == CardColor.BLACK:
-            color_rows = relevant_df.color == CardColor.BLACK
+        if color == ClassicColor.NEUTRAL:
+            color_rows = relevant_df.color == ClassicColor.NEUTRAL
+        elif color == ClassicColor.ASSASSIN:
+            color_rows = relevant_df.color == ClassicColor.ASSASSIN
         elif color == self.team.opponent.as_card_color:
             color_rows = relevant_df.color == self.team.opponent.as_card_color
         elif color == self.team.as_card_color:
             color_rows = relevant_df.color == self.team.as_card_color
-        elif color == CardColor.BAD:  # TODO: What is this?
-            color_rows = relevant_df.color.isin([CardColor.GRAY, CardColor.BLACK, self.team.opponent.as_card_color])
+        elif color == ClassicColor.BAD:  # TODO: What is this?
+            color_rows = relevant_df.color.isin(
+                [ClassicColor.NEUTRAL, ClassicColor.ASSASSIN, self.team.opponent.as_card_color]
+            )
         else:
             raise ValueError(f"No such color as {color}")
         return relevant_df.loc[color_rows, "distance_to_centroid"]
