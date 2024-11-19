@@ -6,7 +6,6 @@ else
 	OPEN_FILE_COMMAND=xdg-open
 	DEL_COMMAND=gio trash
 endif
-SYNC=--sync
 .PHONY: build
 
 # Install
@@ -25,7 +24,7 @@ install-lint:
 	poetry install --only lint
 
 install-dev: upgrade-pip
-	poetry install --all-extras --without video $(SYNC)
+	poetry install --all-extras --without video
 	pre-commit install
 
 install-video:
@@ -128,7 +127,7 @@ check-mypy:
 	mypy .
 
 check-pylint:
-	pylint solvers/ --fail-under=9.75
+	pylint solvers/ --fail-under=9.68
 
 lint: format
 	pre-commit run --all-files

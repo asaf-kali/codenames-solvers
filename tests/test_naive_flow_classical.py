@@ -4,85 +4,14 @@ import pandas as pd
 import pytest
 from codenames.classic.board import ClassicBoard
 from codenames.classic.color import ClassicTeam
-from codenames.classic.runner.models import GamePlayers
-from codenames.classic.runner.runner import ClassicGameRunner
+from codenames.classic.runner import ClassicGamePlayers, ClassicGameRunner
 from gensim.models import KeyedVectors
 
 from solvers.naive.naive_operative import NaiveOperative
 from solvers.naive.naive_spymaster import NaiveSpymaster
+from tests.words import ALL_WORDS
 
 VECTORS_FILE_NAME = "tests/small_model.csv"
-BOARD_WORDS = [
-    "cloak",
-    "kiss",
-    "flood",
-    "mail",
-    "skates",
-    "paper",
-    "frog",
-    "skyscraper",
-    "moon",
-    "egypt",
-    "teacher",
-    "avalanche",
-    "newton",
-    "violet",
-    "drill",
-    "fever",
-    "ninja",
-    "jupiter",
-    "ski",
-    "attic",
-    "beach",
-    "lock",
-    "earth",
-    "park",
-    "gymnast",
-    "king",
-    "queen",
-    "teenage",
-    "tomato",
-    "parrot",
-    "london",
-    "spiderman",
-    "high-school",
-]
-HINT_WORDS = [
-    "classmate",
-    "roommate",
-    "graduated",
-    "prince",
-    "letter",
-    "bedroom",
-    "sonar",
-    "scuba",
-    "shoot",
-    "copy",
-    "printed",
-    "hammer",
-    "dam",
-    "milton",
-    "bow",
-    "orbit",
-    "planets",
-    "maynard",
-    "mars",
-    "ghostbusters",
-    "canucks",
-    "giraffe",
-    "snowboard",
-]
-ALL_WORDS = BOARD_WORDS + HINT_WORDS
-
-
-@pytest.fixture
-def english_board() -> ClassicBoard:
-    return ClassicBoard.from_vocabulary(
-        language="english",
-        first_team=ClassicTeam.BLUE,
-        vocabulary=BOARD_WORDS,
-        seed=2,
-    )
 
 
 def mock_load_word2vec_format(*args, **kwargs):
@@ -100,7 +29,7 @@ def test_complete_naive_flow(english_board: ClassicBoard):
     red_spymaster = NaiveSpymaster("Adam", team=ClassicTeam.RED)
     red_operative = NaiveOperative("Eve", team=ClassicTeam.RED)
 
-    players = GamePlayers.from_collection([blue_spymaster, blue_operative, red_spymaster, red_operative])
+    players = ClassicGamePlayers.from_collection(blue_spymaster, blue_operative, red_spymaster, red_operative)
     runner = ClassicGameRunner(players, board=english_board)
     runner.run_game()
 
