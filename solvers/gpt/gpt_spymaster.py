@@ -7,7 +7,7 @@ from codenames.generic.board import Board
 from codenames.generic.move import Clue, GivenClue
 from codenames.generic.player import Spymaster, Team
 from codenames.generic.state import SpymasterState
-from codenames.resources.english import ENGLISH_WORDS
+from codenames.utils.vocabulary.english import ENGLISH_WORDS
 
 from solvers.gpt.gpt_player import (
     HINTER_TURN_COMMAND,

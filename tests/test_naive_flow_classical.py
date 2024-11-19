@@ -9,9 +9,10 @@ from gensim.models import KeyedVectors
 
 from solvers.naive.naive_operative import NaiveOperative
 from solvers.naive.naive_spymaster import NaiveSpymaster
-from tests.words import ALL_WORDS
+from tests.resources.resource_manager import get_resource_path
+from tests.resources.words import ALL_WORDS
 
-VECTORS_FILE_NAME = "tests/small_model.csv"
+VECTORS_FILE_NAME = get_resource_path("small_model.csv")
 
 
 def mock_load_word2vec_format(*args, **kwargs):

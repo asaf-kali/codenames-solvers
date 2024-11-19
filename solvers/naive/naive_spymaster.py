@@ -4,7 +4,9 @@ from uuid import uuid4
 
 import numpy as np
 from codenames.classic.color import ClassicColor
-from codenames.classic.state import ClassicState
+from codenames.classic.state import ClassicPlayerState
+from codenames.duet.card import DuetColor
+from codenames.duet.state import DuetPlayerState
 from codenames.generic.board import Board
 from codenames.generic.move import Clue
 from codenames.generic.player import Spymaster, Team
@@ -116,11 +118,18 @@ class NaiveSpymaster(NaivePlayer, Spymaster):
 
 
 def _get_proposal_colors(state: PlayerState) -> ProposalColors:
-    if isinstance(state, ClassicState):
+    if isinstance(state, ClassicPlayerState):
         return ProposalColors(
             team=state.current_team.as_card_color,
             opponent=state.current_team.opponent.as_card_color,
             neutral=ClassicColor.NEUTRAL,
             assassin=ClassicColor.ASSASSIN,
+        )
+    if isinstance(state, DuetPlayerState):
+        return ProposalColors(
+            team=state.current_team.as_card_color,
+            opponent=None,
+            neutral=DuetColor.NEUTRAL,
+            assassin=DuetColor.ASSASSIN,
         )
     raise NotImplementedError(f"Unsupported state type: {type(state)}")

@@ -24,7 +24,7 @@ all = ["openai"]
 # Core
 python = "^3.12,<3.13"
 the-spymaster-util = { version = "~3.2", extras = ["logging"] }
-codenames = ">=5.0.4,<5.1"
+codenames = ">=5.1.2"
 pydantic = ">=2.4"
 # Numbers
 numpy = "^1.21"
@@ -122,8 +122,8 @@ disable = [
 ]
 extension-pkg-allow-list = ["pydantic"]
 ignore = [
-    "sna_hinter.py",
+    "solvers/sna",
+    "solvers/olympic",
     "algebra.py",
-    "olympic_hinter.py",
     "board_heuristics.py",
 ]
