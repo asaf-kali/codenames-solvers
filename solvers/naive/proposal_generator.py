@@ -123,9 +123,9 @@ class NaiveProposalsGenerator:
         return self.board_data.color == self.proposal_colors.neutral  # type: ignore
 
     @property
-    def opponent_indices(self) -> np.ndarray:
+    def opponent_indices(self) -> np.ndarray | None:
         if not self.proposal_colors.opponent:
-            return np.array([])
+            return None
         return self.board_data.color == self.proposal_colors.opponent  # type: ignore
 
     @property
@@ -214,7 +214,7 @@ class NaiveProposalsGenerator:
         board_distances: np.ndarray = cosine_distance(clue_vector, self.board_vectors)  # type: ignore
         clue_to_group = board_distances[group_indices]
         clue_to_neutral = board_distances[self.neutral_indices]
-        clue_to_opponent = board_distances[self.opponent_indices]
+        clue_to_opponent = board_distances[self.opponent_indices] if self.opponent_indices is not None else None
         clue_to_assassin = board_distances[self.assassin_indices]
         proposal = Proposal(
             word_group=word_group,
@@ -222,7 +222,7 @@ class NaiveProposalsGenerator:
             clue_word_frequency=self.get_word_frequency(clue),
             distance_group=np.max(clue_to_group),
             distance_neutral=np.min(clue_to_neutral) if clue_to_neutral.size > 0 else 0,
-            distance_opponent=np.min(clue_to_opponent) if clue_to_opponent.size > 0 else 0,
+            distance_opponent=np.min(clue_to_opponent) if clue_to_opponent is not None else 1,
             distance_assassin=np.min(clue_to_assassin),
             board_distances=self._get_board_distances_dict(board_distances),
         )

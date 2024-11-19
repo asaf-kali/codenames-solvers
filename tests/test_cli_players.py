@@ -10,7 +10,7 @@ from solvers.cli import CLIOperative, CLISpymaster
 
 
 @patch("builtins.input")
-def test_cli_players_game(mock_input, english_board: ClassicBoard):
+def test_cli_players_game(mock_input, classic_board: ClassicBoard):
     blue_spymaster = CLISpymaster("Leonardo", team=ClassicTeam.BLUE)
     blue_operative = CLIOperative("Bard", team=ClassicTeam.BLUE)
     red_spymaster = CLISpymaster("Adam", team=ClassicTeam.RED)
@@ -30,7 +30,7 @@ def test_cli_players_game(mock_input, english_board: ClassicBoard):
         "Fail, 2",  # Clue
         "teenage",  # Assassin
     ]
-    runner = ClassicGameRunner(players=players, board=english_board)
+    runner = ClassicGameRunner(players=players, board=classic_board)
     winner = runner.run_game()
     assert winner.team == ClassicTeam.RED
     assert winner.reason == WinningReason.OPPONENT_HIT_ASSASSIN
