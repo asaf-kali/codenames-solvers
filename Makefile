@@ -96,16 +96,18 @@ gource:
 
 gource-all:
 	bash ./videos/gource-all.sh \
-	../the-spymaster-backend \
 	../codenames \
+	../codenames-parser \
 	./ \
-	../model-trainer \
-	../resources \
+	../generic-iterative-stemmer \
 	../the-spymaster-automation \
+	../the-spymaster-backend \
 	../the-spymaster-bot \
 	../the-spymaster-infra \
+	../the-spymaster-parser \
 	../the-spymaster-solvers \
-	../the-spymaster-util
+	../the-spymaster-util \
+	../resources
 
 # Lint
 
