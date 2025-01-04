@@ -9,5 +9,14 @@ class ModelIdentifier(BaseModel):
     def __hash__(self):
         return hash(f"{self.language}-{self.model_name}-{self.is_stemmed}")
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ModelIdentifier):
+            return False
+        return (
+            self.language == other.language
+            and self.model_name == other.model_name
+            and self.is_stemmed == other.is_stemmed
+        )
+
     def __str__(self) -> str:
         return f"{self.language}/{self.model_name}"
