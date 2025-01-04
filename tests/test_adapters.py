@@ -1,4 +1,4 @@
-from solvers.models import DefaultFormatAdapter
+from codenames_solvers.models import DefaultFormatAdapter
 
 
 def test_adapter_uses_init_cache():

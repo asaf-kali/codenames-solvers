@@ -8,8 +8,12 @@ from codenames.generic.player import Team
 from codenames.generic.state import OperativeState
 from gensim.models import KeyedVectors
 
-from solvers.cli import CLIOperative
-from solvers.models import DEFAULT_MODEL_ADAPTER, ModelFormatAdapter, load_language
+from codenames_solvers.cli import CLIOperative
+from codenames_solvers.models import (
+    DEFAULT_MODEL_ADAPTER,
+    ModelFormatAdapter,
+    load_language,
+)
 
 log = logging.getLogger(__name__)
 

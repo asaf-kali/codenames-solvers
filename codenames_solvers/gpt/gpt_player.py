@@ -10,8 +10,8 @@ from codenames.generic.player import Player, Spymaster, Team
 from codenames.generic.state import PlayerState
 from openai import ChatCompletion
 
-from solvers.gpt.instructions import load_instructions
-from solvers.gpt.moves import ClueMove, GuessMove, Move, PassMove, get_moves
+from codenames_solvers.gpt.instructions import load_instructions
+from codenames_solvers.gpt.moves import ClueMove, GuessMove, Move, PassMove, get_moves
 
 log = logging.getLogger(__name__)
 INSTRUCTIONS = load_instructions()

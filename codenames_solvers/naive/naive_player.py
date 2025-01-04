@@ -5,7 +5,7 @@ from codenames.generic.board import Board
 from codenames.generic.player import Player, Team
 from gensim.models import KeyedVectors
 
-from solvers.models import (
+from codenames_solvers.models import (
     DefaultFormatAdapter,
     ModelFormatAdapter,
     ModelIdentifier,

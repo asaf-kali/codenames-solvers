@@ -5,8 +5,8 @@ from typing import Optional
 
 from gensim.models import KeyedVectors
 
-from solvers.models.cache import ModelCache
-from solvers.models.identifier import ModelIdentifier
+from codenames_solvers.models.cache import ModelCache
+from codenames_solvers.models.identifier import ModelIdentifier
 
 log = logging.getLogger(__name__)
 

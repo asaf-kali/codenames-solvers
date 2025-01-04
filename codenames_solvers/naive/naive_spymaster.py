@@ -13,9 +13,9 @@ from codenames.generic.player import Spymaster, Team
 from codenames.generic.state import PlayerState, SpymasterState
 from gensim.models import KeyedVectors
 
-from solvers.models import ModelFormatAdapter, ModelIdentifier
-from solvers.naive.naive_player import NaivePlayer
-from solvers.naive.proposal_generator import (
+from codenames_solvers.models import ModelFormatAdapter, ModelIdentifier
+from codenames_solvers.naive.naive_player import NaivePlayer
+from codenames_solvers.naive.proposal_generator import (
     DEFAULT_THRESHOLDS,
     NaiveProposalsGenerator,
     Proposal,

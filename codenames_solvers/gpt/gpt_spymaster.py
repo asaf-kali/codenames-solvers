@@ -9,7 +9,7 @@ from codenames.generic.player import Spymaster, Team
 from codenames.generic.state import SpymasterState
 from codenames.utils.vocabulary.english import ENGLISH_WORDS
 
-from solvers.gpt.gpt_player import (
+from codenames_solvers.gpt.gpt_player import (
     HINTER_TURN_COMMAND,
     GPTPlayer,
     extract_data_from_response,

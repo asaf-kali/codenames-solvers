@@ -2,12 +2,12 @@
 
 [tool.poetry]
 name = "codenames-solvers"
-version = "1.8.1"
+version = "1.9"
 description = "Solvers implementation for Codenames board game in python."
 authors = ["Michael Kali <michael.kali@mail.huji.ac.il>", "Asaf Kali <asaf.kali@mail.huji.ac.il>"]
 readme = "README.md"
 packages = [
-    { include = "solvers" },
+    { include = "codenames_solvers" },
 ]
 include = ["*.json"]
 
@@ -75,7 +75,13 @@ build-backend = "poetry.core.masonry.api"
 addopts = "-s --disable-pytest-warnings"
 
 [tool.coverage.run]
-source = ["solvers/cli", "solvers/cli", "solvers/models", "solvers/utils", "solvers/naive"]
+source = [
+    "codenames_solvers/cli",
+    "codenames_solvers/cli",
+    "codenames_solvers/models",
+    "codenames_solvers/utils",
+    "codenames_solvers/naive"
+]
 
 # Lint
 
@@ -122,8 +128,8 @@ disable = [
 ]
 extension-pkg-allow-list = ["pydantic"]
 ignore = [
-    "solvers/sna",
-    "solvers/olympic",
+    "codenames_solvers/sna",
+    "codenames_solvers/olympic",
     "algebra.py",
     "board_heuristics.py",
 ]

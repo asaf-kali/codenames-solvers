@@ -4,7 +4,7 @@ from datetime import datetime
 
 import gensim.downloader
 
-from solvers.models import load_language
+from codenames_solvers.models import load_language
 
 models_names = ["glove-wiki-gigaword-50"]
 LARGE_MODEL_NAMES = ["glove-wiki-gigaword-100", "glove-wiki-gigaword-300"]

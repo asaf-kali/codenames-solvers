@@ -8,7 +8,7 @@ import gensim.downloader as gensim_api
 from generic_iterative_stemmer.models import StemmedKeyedVectors
 from gensim.models import KeyedVectors
 
-from solvers.models.identifier import ModelIdentifier
+from codenames_solvers.models.identifier import ModelIdentifier
 
 log = logging.getLogger(__name__)
 

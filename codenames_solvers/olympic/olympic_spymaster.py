@@ -12,8 +12,12 @@ from codenames.generic.state import SpymasterState
 from gensim.models import KeyedVectors
 from typing_extensions import TypeAlias
 
-from solvers.models import DEFAULT_MODEL_ADAPTER, ModelFormatAdapter, load_language
-from solvers.olympic.board_heuristics import (
+from codenames_solvers.models import (
+    DEFAULT_MODEL_ADAPTER,
+    ModelFormatAdapter,
+    load_language,
+)
+from codenames_solvers.olympic.board_heuristics import (
     HeuristicsCalculator,
     HeuristicsTensor,
     SimilaritiesMatrix,

@@ -7,11 +7,8 @@ from codenames.game.exceptions import QuitGame
 from codenames.game.player import GamePlayers
 from codenames.game.runner import GameRunner
 
-from playground.boards.english import *  # noqa
-from playground.boards.hebrew import *  # noqa
-from playground.printer import print_results
-from solvers.cli import CLIOperative  # noqa
-from solvers.models import (  # noqa
+from codenames_solvers.cli import CLIOperative  # noqa
+from codenames_solvers.models import (  # noqa
     DEFAULT_MODEL_ADAPTER,
     HEBREW_SUFFIX_ADAPTER,
     IS_STEMMED_ENV_KEY,
@@ -20,8 +17,11 @@ from solvers.models import (  # noqa
     load_language_async,
     load_model_async,
 )
-from solvers.naive import NaiveOperative, NaiveSpymaster  # noqa
-from solvers.other.naive_cli_operative import ModelAwareCliOperative  # noqa
+from codenames_solvers.naive import NaiveOperative, NaiveSpymaster  # noqa
+from codenames_solvers.other.naive_cli_operative import ModelAwareCliOperative  # noqa
+from playground.boards.english import *  # noqa
+from playground.boards.hebrew import *  # noqa
+from playground.printer import print_results
 
 random.seed(42)
 

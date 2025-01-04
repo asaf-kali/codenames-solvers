@@ -8,7 +8,7 @@ from codenames.generic.move import PASS_GUESS, GivenClue, Guess
 from codenames.generic.player import Operative
 from codenames.generic.state import OperativeState
 
-from solvers.gpt.gpt_player import (
+from codenames_solvers.gpt.gpt_player import (
     GUESSER_TURN_COMMAND,
     GPTPlayer,
     extract_data_from_response,

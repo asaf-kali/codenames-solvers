@@ -11,9 +11,9 @@ from codenames.duet.score import TARGET_REACHED
 from codenames.duet.state import DuetGameState
 from gensim.models import KeyedVectors
 
-from solvers.naive.naive_duet import UnifiedDuetPlayer
-from solvers.naive.naive_operative import NaiveOperative
-from solvers.naive.naive_spymaster import NaiveSpymaster
+from codenames_solvers.naive.naive_duet import UnifiedDuetPlayer
+from codenames_solvers.naive.naive_operative import NaiveOperative
+from codenames_solvers.naive.naive_spymaster import NaiveSpymaster
 from tests.resources.resource_manager import get_resource_path
 from tests.resources.words import ALL_WORDS
 

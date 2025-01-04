@@ -5,7 +5,7 @@ from codenames.generic.move import PASS_GUESS, Guess
 from codenames.generic.player import Operative
 from codenames.generic.state import OperativeState
 
-from solvers.naive.naive_player import NaivePlayer
+from codenames_solvers.naive.naive_player import NaivePlayer
 
 log = logging.getLogger(__name__)
 

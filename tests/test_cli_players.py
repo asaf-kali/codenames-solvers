@@ -6,7 +6,7 @@ from codenames.classic.runner import ClassicGamePlayers, ClassicGameRunner
 from codenames.classic.winner import WinningReason
 from codenames.generic.move import PASS_GUESS
 
-from solvers.cli import CLIOperative, CLISpymaster
+from codenames_solvers.cli import CLIOperative, CLISpymaster
 
 
 @patch("builtins.input")

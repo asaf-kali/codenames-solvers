@@ -6,8 +6,7 @@ from codenames.generic.exceptions import QuitGame
 from codenames.online.codenames_game.adapter import CodenamesGameLanguage, GameConfigs
 from codenames.online.codenames_game.runner import CodenamesGameRunner
 
-from playground.printer import print_results
-from solvers.models import (
+from codenames_solvers.models import (
     DEFAULT_MODEL_ADAPTER,
     HEBREW_SUFFIX_ADAPTER,
     IS_STEMMED_ENV_KEY,
@@ -15,8 +14,9 @@ from solvers.models import (
     ModelIdentifier,
     load_language_async,
 )
-from solvers.naive.naive_operative import NaiveOperative
-from solvers.naive.naive_spymaster import NaiveSpymaster
+from codenames_solvers.naive.naive_operative import NaiveOperative
+from codenames_solvers.naive.naive_spymaster import NaiveSpymaster
+from playground.printer import print_results
 
 # configure_logging(level="DEBUG", mute_solvers=False, mute_online=False)
 log = logging.getLogger(__name__)

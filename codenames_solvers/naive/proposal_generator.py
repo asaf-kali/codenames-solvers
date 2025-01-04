@@ -14,8 +14,8 @@ from pydantic import BaseModel
 from the_spymaster_util.async_task_manager import AsyncTaskManager
 from the_spymaster_util.logger import wrap
 
-from solvers.models import ModelFormatAdapter
-from solvers.utils.algebra import cosine_distance
+from codenames_solvers.models import ModelFormatAdapter
+from codenames_solvers.utils.algebra import cosine_distance
 
 log = logging.getLogger(__name__)
 

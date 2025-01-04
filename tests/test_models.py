@@ -1,4 +1,4 @@
-from solvers.models import ModelIdentifier
+from codenames_solvers.models import ModelIdentifier
 
 
 def test_model_identifier():

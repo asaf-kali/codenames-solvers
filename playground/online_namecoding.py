@@ -5,8 +5,7 @@ from codenames.game.exceptions import QuitGame
 from codenames.online.namecoding.adapter import NamecodingLanguage
 from codenames.online.namecoding.game_runner import NamecodingGameRunner
 
-from playground.printer import print_results
-from solvers.models import (
+from codenames_solvers.models import (
     DEFAULT_MODEL_ADAPTER,
     HEBREW_SUFFIX_ADAPTER,
     IS_STEMMED_ENV_KEY,
@@ -14,7 +13,8 @@ from solvers.models import (
     ModelIdentifier,
     load_language_async,
 )
-from solvers.naive import NaiveOperative, NaiveSpymaster
+from codenames_solvers.naive import NaiveOperative, NaiveSpymaster
+from playground.printer import print_results
 from utils import configure_logging
 
 configure_logging(level="INFO", mute_solvers=False, mute_online=False)
