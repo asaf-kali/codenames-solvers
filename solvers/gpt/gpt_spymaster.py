@@ -69,12 +69,12 @@ class GPTSpymaster(GPTPlayer, Spymaster):
     def _verify_clue(self, clue: Clue, game_state: SpymasterState):
         good_clue = True
         for word in clue.for_words:
-            if not self._card_valid_for_clueing(clue=clue, game_state=game_state, word=word):
+            if not self._card_valid_for_clue(clue=clue, game_state=game_state, word=word):
                 good_clue = False
         if good_clue:
             log.info(f"Clue {clue} is valid")
 
-    def _card_valid_for_clueing(self, clue: Clue, game_state: SpymasterState, word: str) -> bool:
+    def _card_valid_for_clue(self, clue: Clue, game_state: SpymasterState, word: str) -> bool:
         try:
             card = game_state.board[word]
         except KeyError:
