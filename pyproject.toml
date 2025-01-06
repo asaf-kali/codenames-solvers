@@ -2,7 +2,7 @@
 
 [tool.poetry]
 name = "codenames-solvers"
-version = "1.9"
+version = "1.9.1"
 description = "Solvers implementation for Codenames board game in python."
 authors = ["Michael Kali <michael.kali@mail.huji.ac.il>", "Asaf Kali <asaf.kali@mail.huji.ac.il>"]
 readme = "README.md"
@@ -24,7 +24,7 @@ all = ["openai"]
 # Core
 python = "^3.12,<3.13"
 the-spymaster-util = { version = "~3.2", extras = ["logging"] }
-codenames = ">=5.1.2"
+codenames = ">=5.4.2"
 pydantic = ">=2.4"
 # Numbers
 numpy = "^1.21"
@@ -46,11 +46,13 @@ coverage = "7.2.3"
 
 [tool.poetry.group.lint.dependencies]
 ruff = ">=0.7"
-black = ">=24.10"
+black = { version = ">=24.10", extras = ["jupyter"] }
 isort = ">=5.13"
 mypy = ">=1.13"
 pylint = ">=3.3"
 types-requests = "^2.30.0.0"
+types-editdistance = "^0.8.0.20241221"
+pandas-stubs = "^2.2.3.241126"
 
 [tool.poetry.group.video.dependencies]
 manim = "^0.18"
@@ -102,8 +104,15 @@ skip = ["__init__.py"]
 profile = "black"
 
 [tool.mypy]
+exclude = ["build", "dist", "playground/", "codenames_solvers/olympic/"]
+
+[[tool.mypy.overrides]]
+module = "gensim.*"
 ignore_missing_imports = true
-exclude = ["build", "dist", "playground/"]
+
+[[tool.mypy.overrides]]
+module = "generic_iterative_stemmer.*"
+ignore_missing_imports = true
 
 [tool.pylint.main]
 max-line-length = 120

@@ -1,8 +1,8 @@
 from unittest.mock import patch
 
 from codenames.classic.board import ClassicBoard
-from codenames.classic.color import ClassicTeam
 from codenames.classic.runner import ClassicGamePlayers, ClassicGameRunner
+from codenames.classic.team import ClassicTeam
 from codenames.classic.winner import WinningReason
 from codenames.generic.move import PASS_GUESS
 

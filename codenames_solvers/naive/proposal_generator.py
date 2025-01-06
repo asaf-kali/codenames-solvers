@@ -179,7 +179,7 @@ class NaiveProposalsGenerator:
         centroid = np.mean(vectors, axis=0)
         group_indices = self.word_group_indices(word_group)
         group_vectors = self.get_vectors(group_indices)
-        centroid_to_group = cosine_distance(centroid, group_vectors)
+        centroid_to_group = cosine_distance(centroid, group_vectors)  # type: ignore
         max_centroid_to_group = np.max(centroid_to_group)
         if self.thresholds_filter_active and max_centroid_to_group > self.proposals_thresholds.max_distance_group:
             return []

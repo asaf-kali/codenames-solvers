@@ -2,10 +2,11 @@ import json
 import logging
 from typing import Optional
 
+from codenames.classic.player import ClassicOperative
+from codenames.classic.state import ClassicOperativeState
 from codenames.generic.board import Board
 from codenames.generic.card import Card
 from codenames.generic.move import PASS_GUESS, GivenClue, Guess
-from codenames.generic.player import Operative
 from codenames.generic.state import OperativeState
 
 from codenames_solvers.gpt.gpt_player import (
@@ -17,8 +18,8 @@ from codenames_solvers.gpt.gpt_player import (
 log = logging.getLogger(__name__)
 
 
-class GPTOperative(GPTPlayer, Operative):
-    def guess(self, game_state: OperativeState) -> Guess:
+class GPTOperative(GPTPlayer, ClassicOperative):
+    def guess(self, game_state: ClassicOperativeState) -> Guess:
         # legal_guesses = self.build_legal_guesses(board=game_state.board)
         # illegal_guesses = self.build_illegal_guesses(board=game_state.board)
         board_repr = self.build_board_repr(board=game_state.board)

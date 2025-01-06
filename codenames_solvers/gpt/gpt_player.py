@@ -1,13 +1,14 @@
 import json
 import logging
 import re
-from abc import ABC
 from typing import List, Optional
 
+from codenames.classic.player import ClassicPlayer
 from codenames.classic.score import Score
+from codenames.classic.state import ClassicPlayerState
+from codenames.classic.team import ClassicTeam
 from codenames.generic.move import GivenClue, GivenGuess
-from codenames.generic.player import Player, Spymaster, Team
-from codenames.generic.state import PlayerState
+from codenames.generic.player import Spymaster
 from openai import ChatCompletion
 
 from codenames_solvers.gpt.instructions import load_instructions
@@ -21,12 +22,12 @@ HINTER_TURN_COMMAND = INSTRUCTIONS["spymaster_turn_command"]
 GUESSER_TURN_COMMAND = INSTRUCTIONS["operative_turn_command"]
 
 
-class GPTPlayer(Player, ABC):
+class GPTPlayer(ClassicPlayer):
     def __init__(
         self,
         name: str,
         api_key: str,
-        team: Optional[Team] = None,
+        team: ClassicTeam,
         model_name: str = "gpt-3.5-turbo",
         temperature: float = 0,
     ):
@@ -51,7 +52,7 @@ class GPTPlayer(Player, ABC):
         )
 
     @classmethod
-    def build_moves_repr(cls, state: PlayerState) -> Optional[str]:
+    def build_moves_repr(cls, state: ClassicPlayerState) -> Optional[str]:
         moves: List[Move] = get_moves(state)
         if not moves:
             return None

@@ -1,8 +1,9 @@
-from codenames.duet.player import DuetPlayer, DuetTeam
+from codenames.duet.player import DuetPlayer
+from codenames.duet.state import DuetOperativeState, DuetSpymasterState
+from codenames.duet.team import DuetTeam
 from codenames.generic.board import Board
 from codenames.generic.move import Clue, GivenClue, GivenGuess, Guess
 from codenames.generic.player import Operative, Spymaster
-from codenames.generic.state import OperativeState, SpymasterState
 
 
 class UnifiedDuetPlayer(DuetPlayer):
@@ -11,10 +12,10 @@ class UnifiedDuetPlayer(DuetPlayer):
         self.spymaster = spymaster
         self.operative = operative
 
-    def give_clue(self, game_state: SpymasterState) -> Clue:
+    def give_clue(self, game_state: DuetSpymasterState) -> Clue:
         return self.spymaster.give_clue(game_state)
 
-    def guess(self, game_state: OperativeState) -> Guess:
+    def guess(self, game_state: DuetOperativeState) -> Guess:
         return self.operative.guess(game_state)
 
     def on_game_start(self, board: Board):

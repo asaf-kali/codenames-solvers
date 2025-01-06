@@ -126,7 +126,7 @@ check-isort:
 	isort --check .
 
 check-mypy:
-	mypy .
+	mypy codenames_solvers/
 
 check-pylint:
 	pylint codenames_solvers/ --fail-under=10

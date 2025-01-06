@@ -1,7 +1,7 @@
-from abc import ABC
 from typing import Optional
 
 from codenames.generic.board import Board
+from codenames.generic.card import CardColor
 from codenames.generic.player import Player, Team
 from gensim.models import KeyedVectors
 
@@ -14,11 +14,11 @@ from codenames_solvers.models import (
 )
 
 
-class NaivePlayer(Player, ABC):
+class NaivePlayer[C: CardColor, T: Team](Player[C, T]):
     def __init__(
         self,
         name: str,
-        team: Team,
+        team: T,
         model: Optional[KeyedVectors] = None,
         model_identifier: Optional[ModelIdentifier] = None,
         model_adapter: Optional[ModelFormatAdapter] = None,

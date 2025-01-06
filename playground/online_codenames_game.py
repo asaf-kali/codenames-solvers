@@ -1,7 +1,7 @@
 import logging
 import os
 
-from codenames.classic.color import ClassicTeam
+from codenames.classic.team import ClassicTeam
 from codenames.generic.exceptions import QuitGame
 from codenames.online.codenames_game.adapter import CodenamesGameLanguage, GameConfigs
 from codenames.online.codenames_game.runner import CodenamesGameRunner

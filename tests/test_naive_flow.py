@@ -3,8 +3,8 @@ from unittest import mock
 import pandas as pd
 import pytest
 from codenames.classic.board import ClassicBoard
-from codenames.classic.color import ClassicTeam
 from codenames.classic.runner import ClassicGamePlayers, ClassicGameRunner
+from codenames.classic.team import ClassicTeam
 from codenames.duet.board import DuetBoard
 from codenames.duet.runner import DuetGamePlayers, DuetGameRunner
 from codenames.duet.score import TARGET_REACHED

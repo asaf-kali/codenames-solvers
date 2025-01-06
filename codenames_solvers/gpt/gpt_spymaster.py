@@ -3,9 +3,11 @@ import random
 from typing import List, Optional
 
 from codenames.classic.color import ClassicColor
+from codenames.classic.player import ClassicSpymaster
+from codenames.classic.state import ClassicSpymasterState
 from codenames.generic.board import Board
 from codenames.generic.move import Clue, GivenClue
-from codenames.generic.player import Spymaster, Team
+from codenames.generic.player import Team
 from codenames.generic.state import SpymasterState
 from codenames.utils.vocabulary.english import ENGLISH_WORDS
 
@@ -18,8 +20,8 @@ from codenames_solvers.gpt.gpt_player import (
 log = logging.getLogger(__name__)
 
 
-class GPTSpymaster(GPTPlayer, Spymaster):
-    def give_clue(self, game_state: SpymasterState) -> Clue:
+class GPTSpymaster(GPTPlayer, ClassicSpymaster):
+    def give_clue(self, game_state: ClassicSpymasterState) -> Clue:
         board_repr = self.build_board_repr(board=game_state.board)
         team = self.build_team_repr()
         moves = self.build_moves_repr(state=game_state)
@@ -66,8 +68,10 @@ class GPTSpymaster(GPTPlayer, Spymaster):
         self._verify_clue(clue=clue, game_state=game_state)
         return clue
 
-    def _verify_clue(self, clue: Clue, game_state: SpymasterState):
+    def _verify_clue(self, clue: Clue, game_state: ClassicSpymasterState):
         good_clue = True
+        if not clue.for_words:
+            raise ValueError(f"Clue {clue} does not refer to any word")
         for word in clue.for_words:
             if not self._card_valid_for_clue(clue=clue, game_state=game_state, word=word):
                 good_clue = False
