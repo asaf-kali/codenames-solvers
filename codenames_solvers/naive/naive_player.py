@@ -2,7 +2,8 @@ from typing import Optional
 
 from codenames.generic.board import Board
 from codenames.generic.card import CardColor
-from codenames.generic.player import Player, Team
+from codenames.generic.player import Player
+from codenames.generic.team import Team
 from gensim.models import KeyedVectors
 
 from codenames_solvers.models import (

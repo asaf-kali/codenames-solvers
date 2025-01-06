@@ -9,8 +9,9 @@ from codenames.duet.card import DuetColor
 from codenames.duet.state import DuetPlayerState
 from codenames.generic.board import Board
 from codenames.generic.move import Clue
-from codenames.generic.player import Spymaster, Team
+from codenames.generic.player import Spymaster
 from codenames.generic.state import PlayerState, SpymasterState
+from codenames.generic.team import Team
 from gensim.models import KeyedVectors
 
 from codenames_solvers.models import ModelFormatAdapter, ModelIdentifier

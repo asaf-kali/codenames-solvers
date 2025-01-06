@@ -646,13 +646,13 @@ click = ">=8.0,<9.0"
 
 [[package]]
 name = "codenames"
-version = "5.4.2"
+version = "5.5.0"
 description = "Codenames board game logic implementation in python."
 optional = false
 python-versions = "<4.0,>=3.12"
 files = [
-    {file = "codenames-5.4.2-py3-none-any.whl", hash = "sha256:3ce42cb7e09b9bdae9d466fdc1b3698938d36c4255b5c442464a6caf8eb66b2e"},
-    {file = "codenames-5.4.2.tar.gz", hash = "sha256:404053948d01e88eb8e587882bcc7841f2237158354f96f3992ec53607911eb0"},
+    {file = "codenames-5.5.0-py3-none-any.whl", hash = "sha256:1c7ccbbc8a3d6b3610ac466c13950db13783a141654b46445c8d00351e76ae12"},
+    {file = "codenames-5.5.0.tar.gz", hash = "sha256:2d53a2e942fa6e58b144ae813aceacbc033d34c555584c566de25de15659cf93"},
 ]
 
 [package.dependencies]
@@ -5240,4 +5240,4 @@ gpt = ["openai"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12,<3.13"
-content-hash = "c7dfff687a859fcd53f0f34b019d71e33476cd5cf08300ebba8f4c0cca36ec67"
+content-hash = "63f77da2bae687e616aa0f452efcba0a64407009ac7f7e747ea3cc36819a19c4"

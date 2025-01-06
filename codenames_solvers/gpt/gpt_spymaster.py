@@ -7,8 +7,8 @@ from codenames.classic.player import ClassicSpymaster
 from codenames.classic.state import ClassicSpymasterState
 from codenames.generic.board import Board
 from codenames.generic.move import Clue, GivenClue
-from codenames.generic.player import Team
 from codenames.generic.state import SpymasterState
+from codenames.generic.team import Team
 from codenames.utils.vocabulary.english import ENGLISH_WORDS
 
 from codenames_solvers.gpt.gpt_player import (

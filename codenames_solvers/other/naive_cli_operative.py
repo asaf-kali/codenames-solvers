@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from codenames.generic.board import Board
 from codenames.generic.move import Guess
-from codenames.generic.player import Team
 from codenames.generic.state import OperativeState
+from codenames.generic.team import Team
 from gensim.models import KeyedVectors
 
 from codenames_solvers.cli import CLIOperative
