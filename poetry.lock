@@ -4665,22 +4665,22 @@ typing = ["mypy (>=1.6,<2.0)", "traitlets (>=5.11.1)"]
 
 [[package]]
 name = "the-spymaster-util"
-version = "3.2.4"
+version = "4.0.0"
 description = "Common utilities and infra for The Spymaster game."
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "the_spymaster_util-3.2.4-py3-none-any.whl", hash = "sha256:d5b65c998113a48a2670b185efa58d53e0f39718ed52935cb79f1d78db721506"},
-    {file = "the_spymaster_util-3.2.4.tar.gz", hash = "sha256:1c6576ac296ba09d0a5aca4e7b83cde8dea9bcdbb30dd5542570012f440dd99b"},
+    {file = "the_spymaster_util-4.0.0-py3-none-any.whl", hash = "sha256:87c8bec578cc1482815f3b329a94eb17ffe3175d5325e52a5584c4b30921a429"},
+    {file = "the_spymaster_util-4.0.0.tar.gz", hash = "sha256:e2dd3ca83bc838c896ad702fea4adc2fb47c6fe00549dcc8c4782ceaa1910e1e"},
 ]
 
 [package.dependencies]
 ulid-py = {version = ">=1.1,<2.0", optional = true, markers = "extra == \"logging\" or extra == \"all\""}
 
 [package.extras]
-all = ["boto3 (>=1.24.6,<2.0.0)", "dynaconf (>=3.1,<4.0)", "requests (>=2.28,<3.0)", "ulid-py (>=1.1,<2.0)"]
-clients = ["requests (>=2.28,<3.0)"]
-config = ["boto3 (>=1.24.6,<2.0.0)", "dynaconf (>=3.1,<4.0)"]
+all = ["boto3 (>=1.24,<2.0)", "dynaconf (>=3.1,<4.0)", "requests (>=2.32,<3.0)", "ulid-py (>=1.1,<2.0)"]
+clients = ["requests (>=2.32,<3.0)"]
+config = ["boto3 (>=1.24,<2.0)", "dynaconf (>=3.1,<4.0)"]
 logging = ["ulid-py (>=1.1,<2.0)"]
 
 [[package]]
@@ -5240,4 +5240,4 @@ gpt = ["openai"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12,<3.13"
-content-hash = "63f77da2bae687e616aa0f452efcba0a64407009ac7f7e747ea3cc36819a19c4"
+content-hash = "d81dbb4ab252264f547da6b8b56e37a23a7cc000977cd5cf5d23018524e193c7"

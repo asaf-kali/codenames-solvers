@@ -2,7 +2,7 @@
 
 [tool.poetry]
 name = "codenames-solvers"
-version = "1.9.2"
+version = "1.9.3"
 description = "Solvers implementation for Codenames board game in python."
 authors = ["Michael Kali <michael.kali@mail.huji.ac.il>", "Asaf Kali <asaf.kali@mail.huji.ac.il>"]
 readme = "README.md"
@@ -23,7 +23,7 @@ all = ["openai"]
 [tool.poetry.dependencies]
 # Core
 python = "^3.12,<3.13"
-the-spymaster-util = { version = "~3.2", extras = ["logging"] }
+the-spymaster-util = { version = "^4.0", extras = ["logging"] }
 codenames = ">=5.5"
 pydantic = ">=2.4"
 # Numbers
