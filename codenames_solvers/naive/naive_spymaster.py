@@ -7,10 +7,10 @@ from codenames.classic.color import ClassicColor
 from codenames.classic.state import ClassicPlayerState
 from codenames.duet.card import DuetColor
 from codenames.duet.state import DuetPlayerState
-from codenames.generic.board import Board
+from codenames.generic.card import CardColor
 from codenames.generic.move import Clue
 from codenames.generic.player import Spymaster
-from codenames.generic.state import PlayerState, SpymasterState
+from codenames.generic.state import SpymasterState
 from codenames.generic.team import Team
 from gensim.models import KeyedVectors
 
@@ -46,11 +46,11 @@ def default_proposal_grade_calculator(proposal: Proposal) -> float:
     return float(np.nan_to_num(grade, nan=-100))
 
 
-class NaiveSpymaster(NaivePlayer, Spymaster):
+class NaiveSpymaster[C: CardColor, T: Team, S: SpymasterState](NaivePlayer[C, T], Spymaster[C, T, S]):
     def __init__(
         self,
         name: str,
-        team: Team,
+        team: T,
         model: Optional[KeyedVectors] = None,
         model_identifier: Optional[ModelIdentifier] = None,
         proposals_thresholds: Optional[ProposalThresholds] = None,
@@ -67,14 +67,9 @@ class NaiveSpymaster(NaivePlayer, Spymaster):
             model_adapter=model_adapter,
         )
         self.max_group_size = max_group_size
-        self.opponent_card_color = None
         self.proposals_thresholds = proposals_thresholds or DEFAULT_THRESHOLDS
         self.gradual_distances_filter_active = gradual_distances_filter_active
         self.proposal_grade_calculator = proposal_grade_calculator
-
-    def on_game_start(self, board: Board):
-        super().on_game_start(board=board)
-        self.opponent_card_color = self.team.opponent.as_card_color  # type: ignore
 
     @classmethod
     def pick_best_proposal(cls, proposals: List[Proposal]) -> Proposal:
@@ -89,9 +84,7 @@ class NaiveSpymaster(NaivePlayer, Spymaster):
         log.debug("Picked proposal", extra=best_proposal.model_dump())
         return best_proposal
 
-    def give_clue(
-        self, game_state: SpymasterState, thresholds_filter_active: bool = True, similarities_top_n: int = 10
-    ) -> Clue:
+    def give_clue(self, game_state: S, thresholds_filter_active: bool = True, similarities_top_n: int = 10) -> Clue:
         colors = _get_proposal_colors(game_state)
         proposal_generator = NaiveProposalsGenerator(
             model=self.model,
@@ -118,7 +111,7 @@ class NaiveSpymaster(NaivePlayer, Spymaster):
             return self.give_clue(game_state=game_state, thresholds_filter_active=False, similarities_top_n=50)
 
 
-def _get_proposal_colors(state: PlayerState) -> ProposalColors:
+def _get_proposal_colors(state: SpymasterState) -> ProposalColors:
     if isinstance(state, ClassicPlayerState):
         return ProposalColors(
             team=state.current_team.as_card_color,

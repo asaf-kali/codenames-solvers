@@ -9,6 +9,7 @@ from codenames.duet.board import DuetBoard
 from codenames.duet.runner import DuetGamePlayers, DuetGameRunner
 from codenames.duet.score import TARGET_REACHED
 from codenames.duet.state import DuetGameState
+from codenames.duet.team import DuetTeam
 from gensim.models import KeyedVectors
 
 from codenames_solvers.naive.naive_duet import UnifiedDuetPlayer
@@ -45,8 +46,8 @@ def test_complete_naive_flow_classic(classic_board: ClassicBoard):
 @pytest.mark.slow
 @mock.patch("gensim.models.KeyedVectors.load", new=mock_load_word2vec_format)
 def test_complete_naive_flow_duet(duet_board_small: DuetBoard, duet_board_small_dual: DuetBoard):
-    spymaster = NaiveSpymaster(name="", team=ClassicTeam.BLUE)
-    operative = NaiveOperative(name="", team=ClassicTeam.BLUE)
+    spymaster = NaiveSpymaster(name="", team=DuetTeam.MAIN)
+    operative = NaiveOperative(name="", team=DuetTeam.MAIN)
     player_a = UnifiedDuetPlayer(name="Alice", spymaster=spymaster, operative=operative)
     player_b = UnifiedDuetPlayer(name="Bob", spymaster=spymaster, operative=operative)
 

@@ -1,17 +1,19 @@
 import logging
 
+from codenames.generic.card import CardColor
 from codenames.generic.exceptions import CardNotFoundError
 from codenames.generic.move import PASS_GUESS, Guess
 from codenames.generic.player import Operative
 from codenames.generic.state import OperativeState
+from codenames.generic.team import Team
 
 from codenames_solvers.naive.naive_player import NaivePlayer
 
 log = logging.getLogger(__name__)
 
 
-class NaiveOperative(NaivePlayer, Operative):
-    def guess(self, game_state: OperativeState) -> Guess:
+class NaiveOperative[C: CardColor, T: Team, S: OperativeState](NaivePlayer[C, T], Operative[C, T, S]):
+    def guess(self, game_state: S) -> Guess:
         if len(game_state.turn_guesses) == game_state.current_clue.card_amount:
             log.debug("Naive operative does not take extra guesses.")
             return Guess(card_index=PASS_GUESS)
